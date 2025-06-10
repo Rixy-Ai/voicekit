@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ import (
 
 	"github.com/thoas/go-funk"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/config"
 )
 
 const AvailableSeconds = 5
 
 // checks if a node has been updated recently to be considered for selection
-func IsAvailable(node *livekit.Node) bool {
+func IsAvailable(node *voicekit.Node) bool {
 	if node.Stats == nil {
 		// available till stats are available
 		return true
@@ -38,13 +38,13 @@ func IsAvailable(node *livekit.Node) bool {
 	return int(delta) < AvailableSeconds
 }
 
-func GetAvailableNodes(nodes []*livekit.Node) []*livekit.Node {
-	return funk.Filter(nodes, func(node *livekit.Node) bool {
-		return IsAvailable(node) && node.State == livekit.NodeState_SERVING
-	}).([]*livekit.Node)
+func GetAvailableNodes(nodes []*voicekit.Node) []*voicekit.Node {
+	return funk.Filter(nodes, func(node *voicekit.Node) bool {
+		return IsAvailable(node) && node.State == voicekit.NodeState_SERVING
+	}).([]*voicekit.Node)
 }
 
-func GetNodeSysload(node *livekit.Node) float32 {
+func GetNodeSysload(node *voicekit.Node) float32 {
 	stats := node.Stats
 	numCpus := stats.NumCpus
 	if numCpus == 0 {
@@ -54,7 +54,7 @@ func GetNodeSysload(node *livekit.Node) float32 {
 }
 
 // TODO: check remote node configured limit, instead of this node's config
-func LimitsReached(limitConfig config.LimitConfig, nodeStats *livekit.NodeStats) bool {
+func LimitsReached(limitConfig config.LimitConfig, nodeStats *voicekit.NodeStats) bool {
 	if nodeStats == nil {
 		return false
 	}
@@ -63,7 +63,7 @@ func LimitsReached(limitConfig config.LimitConfig, nodeStats *livekit.NodeStats)
 		return true
 	}
 
-	rate := &livekit.NodeStatsRate{}
+	rate := &voicekit.NodeStatsRate{}
 	if len(nodeStats.Rates) > 0 {
 		rate = nodeStats.Rates[0]
 	}
@@ -74,7 +74,7 @@ func LimitsReached(limitConfig config.LimitConfig, nodeStats *livekit.NodeStats)
 	return false
 }
 
-func SelectSortedNode(nodes []*livekit.Node, sortBy string) (*livekit.Node, error) {
+func SelectSortedNode(nodes []*voicekit.Node, sortBy string) (*voicekit.Node, error) {
 	if sortBy == "" {
 		return nil, ErrSortByNotSet
 	}
@@ -111,12 +111,12 @@ func SelectSortedNode(nodes []*livekit.Node, sortBy string) (*livekit.Node, erro
 		return nodes[0], nil
 	case "bytespersec":
 		sort.Slice(nodes, func(i, j int) bool {
-			ratei := &livekit.NodeStatsRate{}
+			ratei := &voicekit.NodeStatsRate{}
 			if len(nodes[i].Stats.Rates) > 0 {
 				ratei = nodes[i].Stats.Rates[0]
 			}
 
-			ratej := &livekit.NodeStatsRate{}
+			ratej := &voicekit.NodeStatsRate{}
 			if len(nodes[j].Stats.Rates) > 0 {
 				ratej = nodes[j].Stats.Rates[0]
 			}

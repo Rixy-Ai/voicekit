@@ -8,20 +8,20 @@ package service
 
 import (
 	"fmt"
-	"github.com/livekit/livekit-server/pkg/agent"
-	"github.com/livekit/livekit-server/pkg/clientconfiguration"
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	redis2 "github.com/livekit/protocol/redis"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/webhook"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/agent"
+	"github.com/voicekit/voicekit-server/pkg/clientconfiguration"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	redis2 "github.com/voicekit/protocol/redis"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/webhook"
+	"github.com/voicekit/psrpc"
 	"github.com/pion/turn/v4"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
@@ -35,7 +35,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeServer(conf *config.Config, currentNode routing.LocalNode) (*LivekitServer, error) {
+func InitializeServer(conf *config.Config, currentNode routing.LocalNode) (*VoicekitServer, error) {
 	limitConfig := getLimitConf(conf)
 	apiConfig := config.DefaultAPIConfig()
 	universalClient, err := createRedisClient(conf)
@@ -155,11 +155,11 @@ func InitializeServer(conf *config.Config, currentNode routing.LocalNode) (*Live
 	if err != nil {
 		return nil, err
 	}
-	livekitServer, err := NewLivekitServer(conf, roomService, agentDispatchService, egressService, ingressService, sipService, ioInfoService, rtcService, serviceRTCRestService, agentService, keyProvider, router, roomManager, signalServer, server, currentNode)
+	voicekitServer, err := NewVoicekitServer(conf, roomService, agentDispatchService, egressService, ingressService, sipService, ioInfoService, rtcService, serviceRTCRestService, agentService, keyProvider, router, roomManager, signalServer, server, currentNode)
 	if err != nil {
 		return nil, err
 	}
-	return livekitServer, nil
+	return voicekitServer, nil
 }
 
 func InitializeRouter(conf *config.Config, currentNode routing.LocalNode) (routing.Router, error) {
@@ -192,7 +192,7 @@ func InitializeRouter(conf *config.Config, currentNode routing.LocalNode) (routi
 
 // wire.go:
 
-func getNodeID(currentNode routing.LocalNode) livekit.NodeID {
+func getNodeID(currentNode routing.LocalNode) voicekit.NodeID {
 	return currentNode.NodeID()
 }
 

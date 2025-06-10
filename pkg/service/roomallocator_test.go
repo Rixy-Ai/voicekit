@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/routing/routingfakes"
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/livekit-server/pkg/service/servicefakes"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/routing/routingfakes"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/voicekit-server/pkg/service/servicefakes"
 )
 
 func TestCreateRoom(t *testing.T) {
@@ -39,7 +39,7 @@ func TestCreateRoom(t *testing.T) {
 
 		ra, conf := newTestRoomAllocator(t, conf, node.Clone())
 
-		room, _, _, err := ra.CreateRoom(context.Background(), &livekit.CreateRoomRequest{Name: "myroom"}, true)
+		room, _, _, err := ra.CreateRoom(context.Background(), &voicekit.CreateRoomRequest{Name: "myroom"}, true)
 		require.NoError(t, err)
 		require.Equal(t, conf.Room.EmptyTimeout, room.EmptyTimeout)
 		require.Equal(t, conf.Room.DepartureTimeout, room.DepartureTimeout)
@@ -55,7 +55,7 @@ func SelectRoomNode(t *testing.T) {
 
 		node, err := routing.NewLocalNode(conf)
 		require.NoError(t, err)
-		node.SetStats(&livekit.NodeStats{
+		node.SetStats(&voicekit.NodeStats{
 			NumTracksIn:  100,
 			NumTracksOut: 100,
 		})
@@ -73,7 +73,7 @@ func SelectRoomNode(t *testing.T) {
 
 		node, err := routing.NewLocalNode(conf)
 		require.NoError(t, err)
-		node.SetStats(&livekit.NodeStats{
+		node.SetStats(&voicekit.NodeStats{
 			BytesInPerSec:  1000,
 			BytesOutPerSec: 1000,
 		})
@@ -85,7 +85,7 @@ func SelectRoomNode(t *testing.T) {
 	})
 }
 
-func newTestRoomAllocator(t *testing.T, conf *config.Config, node *livekit.Node) (service.RoomAllocator, *config.Config) {
+func newTestRoomAllocator(t *testing.T, conf *config.Config, node *voicekit.Node) (service.RoomAllocator, *config.Config) {
 	store := &servicefakes.FakeObjectStore{}
 	store.LoadRoomReturns(nil, nil, service.ErrRoomNotFound)
 	router := &routingfakes.FakeRouter{}

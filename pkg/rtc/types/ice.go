@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 LiveKit, Inc
+ * Copyright 2025 Rixy Ai
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import (
 	"github.com/pion/webrtc/v4"
 	"golang.org/x/exp/slices"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/observability/roomobs"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/observability/roomobs"
 )
 
 type ICEConnectionType int
@@ -87,7 +87,7 @@ type ICECandidateExtended struct {
 type ICEConnectionInfo struct {
 	Local     []*ICECandidateExtended
 	Remote    []*ICECandidateExtended
-	Transport livekit.SignalTarget
+	Transport voicekit.SignalTarget
 	Type      ICEConnectionType
 }
 
@@ -113,7 +113,7 @@ type ICEConnectionDetails struct {
 	logger        logger.Logger
 }
 
-func NewICEConnectionDetails(transport livekit.SignalTarget, l logger.Logger) *ICEConnectionDetails {
+func NewICEConnectionDetails(transport voicekit.SignalTarget, l logger.Logger) *ICEConnectionDetails {
 	d := &ICEConnectionDetails{
 		ICEConnectionInfo: ICEConnectionInfo{
 			Transport: transport,

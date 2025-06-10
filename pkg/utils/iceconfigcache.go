@@ -5,7 +5,7 @@ import (
 
 	"github.com/jellydator/ttlcache/v3"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 const (
@@ -13,13 +13,13 @@ const (
 )
 
 type IceConfigCache[T comparable] struct {
-	c *ttlcache.Cache[T, *livekit.ICEConfig]
+	c *ttlcache.Cache[T, *voicekit.ICEConfig]
 }
 
 func NewIceConfigCache[T comparable](ttl time.Duration) *IceConfigCache[T] {
 	cache := ttlcache.New(
-		ttlcache.WithTTL[T, *livekit.ICEConfig](max(ttl, iceConfigTTLMin)),
-		ttlcache.WithDisableTouchOnHit[T, *livekit.ICEConfig](),
+		ttlcache.WithTTL[T, *voicekit.ICEConfig](max(ttl, iceConfigTTLMin)),
+		ttlcache.WithDisableTouchOnHit[T, *voicekit.ICEConfig](),
 	)
 	go cache.Start()
 
@@ -30,13 +30,13 @@ func (icc *IceConfigCache[T]) Stop() {
 	icc.c.Stop()
 }
 
-func (icc *IceConfigCache[T]) Put(key T, iceConfig *livekit.ICEConfig) {
+func (icc *IceConfigCache[T]) Put(key T, iceConfig *voicekit.ICEConfig) {
 	icc.c.Set(key, iceConfig, ttlcache.DefaultTTL)
 }
 
-func (icc *IceConfigCache[T]) Get(key T) *livekit.ICEConfig {
+func (icc *IceConfigCache[T]) Get(key T) *voicekit.ICEConfig {
 	if it := icc.c.Get(key); it != nil {
 		return it.Value()
 	}
-	return &livekit.ICEConfig{}
+	return &voicekit.ICEConfig{}
 }

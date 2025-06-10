@@ -5,9 +5,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/observability/roomobs"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/observability/roomobs"
 )
 
 type FakeAnalyticsService struct {
@@ -22,23 +22,23 @@ type FakeAnalyticsService struct {
 	roomProjectReporterReturnsOnCall map[int]struct {
 		result1 roomobs.ProjectReporter
 	}
-	SendEventStub        func(context.Context, *livekit.AnalyticsEvent)
+	SendEventStub        func(context.Context, *voicekit.AnalyticsEvent)
 	sendEventMutex       sync.RWMutex
 	sendEventArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsEvent
+		arg2 *voicekit.AnalyticsEvent
 	}
-	SendNodeRoomStatesStub        func(context.Context, *livekit.AnalyticsNodeRooms)
+	SendNodeRoomStatesStub        func(context.Context, *voicekit.AnalyticsNodeRooms)
 	sendNodeRoomStatesMutex       sync.RWMutex
 	sendNodeRoomStatesArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsNodeRooms
+		arg2 *voicekit.AnalyticsNodeRooms
 	}
-	SendStatsStub        func(context.Context, []*livekit.AnalyticsStat)
+	SendStatsStub        func(context.Context, []*voicekit.AnalyticsStat)
 	sendStatsMutex       sync.RWMutex
 	sendStatsArgsForCall []struct {
 		arg1 context.Context
-		arg2 []*livekit.AnalyticsStat
+		arg2 []*voicekit.AnalyticsStat
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -105,11 +105,11 @@ func (fake *FakeAnalyticsService) RoomProjectReporterReturnsOnCall(i int, result
 	}{result1}
 }
 
-func (fake *FakeAnalyticsService) SendEvent(arg1 context.Context, arg2 *livekit.AnalyticsEvent) {
+func (fake *FakeAnalyticsService) SendEvent(arg1 context.Context, arg2 *voicekit.AnalyticsEvent) {
 	fake.sendEventMutex.Lock()
 	fake.sendEventArgsForCall = append(fake.sendEventArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsEvent
+		arg2 *voicekit.AnalyticsEvent
 	}{arg1, arg2})
 	stub := fake.SendEventStub
 	fake.recordInvocation("SendEvent", []interface{}{arg1, arg2})
@@ -125,24 +125,24 @@ func (fake *FakeAnalyticsService) SendEventCallCount() int {
 	return len(fake.sendEventArgsForCall)
 }
 
-func (fake *FakeAnalyticsService) SendEventCalls(stub func(context.Context, *livekit.AnalyticsEvent)) {
+func (fake *FakeAnalyticsService) SendEventCalls(stub func(context.Context, *voicekit.AnalyticsEvent)) {
 	fake.sendEventMutex.Lock()
 	defer fake.sendEventMutex.Unlock()
 	fake.SendEventStub = stub
 }
 
-func (fake *FakeAnalyticsService) SendEventArgsForCall(i int) (context.Context, *livekit.AnalyticsEvent) {
+func (fake *FakeAnalyticsService) SendEventArgsForCall(i int) (context.Context, *voicekit.AnalyticsEvent) {
 	fake.sendEventMutex.RLock()
 	defer fake.sendEventMutex.RUnlock()
 	argsForCall := fake.sendEventArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeAnalyticsService) SendNodeRoomStates(arg1 context.Context, arg2 *livekit.AnalyticsNodeRooms) {
+func (fake *FakeAnalyticsService) SendNodeRoomStates(arg1 context.Context, arg2 *voicekit.AnalyticsNodeRooms) {
 	fake.sendNodeRoomStatesMutex.Lock()
 	fake.sendNodeRoomStatesArgsForCall = append(fake.sendNodeRoomStatesArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsNodeRooms
+		arg2 *voicekit.AnalyticsNodeRooms
 	}{arg1, arg2})
 	stub := fake.SendNodeRoomStatesStub
 	fake.recordInvocation("SendNodeRoomStates", []interface{}{arg1, arg2})
@@ -158,29 +158,29 @@ func (fake *FakeAnalyticsService) SendNodeRoomStatesCallCount() int {
 	return len(fake.sendNodeRoomStatesArgsForCall)
 }
 
-func (fake *FakeAnalyticsService) SendNodeRoomStatesCalls(stub func(context.Context, *livekit.AnalyticsNodeRooms)) {
+func (fake *FakeAnalyticsService) SendNodeRoomStatesCalls(stub func(context.Context, *voicekit.AnalyticsNodeRooms)) {
 	fake.sendNodeRoomStatesMutex.Lock()
 	defer fake.sendNodeRoomStatesMutex.Unlock()
 	fake.SendNodeRoomStatesStub = stub
 }
 
-func (fake *FakeAnalyticsService) SendNodeRoomStatesArgsForCall(i int) (context.Context, *livekit.AnalyticsNodeRooms) {
+func (fake *FakeAnalyticsService) SendNodeRoomStatesArgsForCall(i int) (context.Context, *voicekit.AnalyticsNodeRooms) {
 	fake.sendNodeRoomStatesMutex.RLock()
 	defer fake.sendNodeRoomStatesMutex.RUnlock()
 	argsForCall := fake.sendNodeRoomStatesArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeAnalyticsService) SendStats(arg1 context.Context, arg2 []*livekit.AnalyticsStat) {
-	var arg2Copy []*livekit.AnalyticsStat
+func (fake *FakeAnalyticsService) SendStats(arg1 context.Context, arg2 []*voicekit.AnalyticsStat) {
+	var arg2Copy []*voicekit.AnalyticsStat
 	if arg2 != nil {
-		arg2Copy = make([]*livekit.AnalyticsStat, len(arg2))
+		arg2Copy = make([]*voicekit.AnalyticsStat, len(arg2))
 		copy(arg2Copy, arg2)
 	}
 	fake.sendStatsMutex.Lock()
 	fake.sendStatsArgsForCall = append(fake.sendStatsArgsForCall, struct {
 		arg1 context.Context
-		arg2 []*livekit.AnalyticsStat
+		arg2 []*voicekit.AnalyticsStat
 	}{arg1, arg2Copy})
 	stub := fake.SendStatsStub
 	fake.recordInvocation("SendStats", []interface{}{arg1, arg2Copy})
@@ -196,13 +196,13 @@ func (fake *FakeAnalyticsService) SendStatsCallCount() int {
 	return len(fake.sendStatsArgsForCall)
 }
 
-func (fake *FakeAnalyticsService) SendStatsCalls(stub func(context.Context, []*livekit.AnalyticsStat)) {
+func (fake *FakeAnalyticsService) SendStatsCalls(stub func(context.Context, []*voicekit.AnalyticsStat)) {
 	fake.sendStatsMutex.Lock()
 	defer fake.sendStatsMutex.Unlock()
 	fake.SendStatsStub = stub
 }
 
-func (fake *FakeAnalyticsService) SendStatsArgsForCall(i int) (context.Context, []*livekit.AnalyticsStat) {
+func (fake *FakeAnalyticsService) SendStatsArgsForCall(i int) (context.Context, []*voicekit.AnalyticsStat) {
 	fake.sendStatsMutex.RLock()
 	defer fake.sendStatsMutex.RUnlock()
 	argsForCall := fake.sendStatsArgsForCall[i]

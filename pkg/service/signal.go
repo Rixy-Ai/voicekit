@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/psrpc"
-	"github.com/livekit/psrpc/pkg/metadata"
-	"github.com/livekit/psrpc/pkg/middleware"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/psrpc"
+	"github.com/voicekit/psrpc/pkg/metadata"
+	"github.com/voicekit/psrpc/pkg/middleware"
 )
 
 //counterfeiter:generate . SessionHandler
@@ -39,7 +39,7 @@ type SessionHandler interface {
 	HandleSession(
 		ctx context.Context,
 		pi routing.ParticipantInit,
-		connectionID livekit.ConnectionID,
+		connectionID voicekit.ConnectionID,
 		requestSource routing.MessageSource,
 		responseSink routing.MessageSink,
 	) error
@@ -47,11 +47,11 @@ type SessionHandler interface {
 
 type SignalServer struct {
 	server rpc.TypedSignalServer
-	nodeID livekit.NodeID
+	nodeID voicekit.NodeID
 }
 
 func NewSignalServer(
-	nodeID livekit.NodeID,
+	nodeID voicekit.NodeID,
 	region string,
 	bus psrpc.MessageBus,
 	config config.SignalRelayConfig,
@@ -93,18 +93,18 @@ func (s *defaultSessionHandler) Logger(ctx context.Context) logger.Logger {
 func (s *defaultSessionHandler) HandleSession(
 	ctx context.Context,
 	pi routing.ParticipantInit,
-	connectionID livekit.ConnectionID,
+	connectionID voicekit.ConnectionID,
 	requestSource routing.MessageSource,
 	responseSink routing.MessageSink,
 ) error {
 	prometheus.IncrementParticipantRtcInit(1)
 
-	rtcNode, err := s.router.GetNodeForRoom(ctx, livekit.RoomName(pi.CreateRoom.Name))
+	rtcNode, err := s.router.GetNodeForRoom(ctx, voicekit.RoomName(pi.CreateRoom.Name))
 	if err != nil {
 		return err
 	}
 
-	if livekit.NodeID(rtcNode.Id) != s.currentNode.NodeID() {
+	if voicekit.NodeID(rtcNode.Id) != s.currentNode.NodeID() {
 		err = routing.ErrIncorrectRTCNode
 		logger.Errorw("called participant on incorrect node", err,
 			"rtcNode", rtcNode,
@@ -158,9 +158,9 @@ func (r *signalService) RelaySignal(stream psrpc.ServerStream[*rpc.RelaySignalRe
 		Stream:       stream,
 		Config:       r.config,
 		Writer:       signalResponseMessageWriter{},
-		ConnectionID: livekit.ConnectionID(ss.ConnectionId),
+		ConnectionID: voicekit.ConnectionID(ss.ConnectionId),
 	})
-	reqChan := routing.NewDefaultMessageChannel(livekit.ConnectionID(ss.ConnectionId))
+	reqChan := routing.NewDefaultMessageChannel(voicekit.ConnectionID(ss.ConnectionId))
 
 	go func() {
 		err := routing.CopySignalStreamToMessageChannel[*rpc.RelaySignalResponse, *rpc.RelaySignalRequest](
@@ -178,7 +178,7 @@ func (r *signalService) RelaySignal(stream psrpc.ServerStream[*rpc.RelaySignalRe
 	// and the delivery of any parting messages from the client. take care to
 	// copy the incoming rpc headers to avoid dropping any session vars.
 	ctx := metadata.NewContextWithIncomingHeader(context.Background(), metadata.IncomingHeader(stream.Context()))
-	err = r.sessionHandler.HandleSession(ctx, *pi, livekit.ConnectionID(ss.ConnectionId), reqChan, sink)
+	err = r.sessionHandler.HandleSession(ctx, *pi, voicekit.ConnectionID(ss.ConnectionId), reqChan, sink)
 	if err != nil {
 		sink.Close()
 		l.Errorw("could not handle new participant", err)
@@ -191,11 +191,11 @@ type signalResponseMessageWriter struct{}
 func (e signalResponseMessageWriter) Write(seq uint64, close bool, msgs []proto.Message) *rpc.RelaySignalResponse {
 	r := &rpc.RelaySignalResponse{
 		Seq:       seq,
-		Responses: make([]*livekit.SignalResponse, 0, len(msgs)),
+		Responses: make([]*voicekit.SignalResponse, 0, len(msgs)),
 		Close:     close,
 	}
 	for _, m := range msgs {
-		r.Responses = append(r.Responses, m.(*livekit.SignalResponse))
+		r.Responses = append(r.Responses, m.(*voicekit.SignalResponse))
 	}
 	return r
 }

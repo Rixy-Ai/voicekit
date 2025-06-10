@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,25 +17,25 @@ package routing
 import (
 	"sync"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 	"google.golang.org/protobuf/proto"
 )
 
 const DefaultMessageChannelSize = 200
 
 type MessageChannel struct {
-	connectionID livekit.ConnectionID
+	connectionID voicekit.ConnectionID
 	msgChan      chan proto.Message
 	onClose      func()
 	isClosed     bool
 	lock         sync.RWMutex
 }
 
-func NewDefaultMessageChannel(connectionID livekit.ConnectionID) *MessageChannel {
+func NewDefaultMessageChannel(connectionID voicekit.ConnectionID) *MessageChannel {
 	return NewMessageChannel(connectionID, DefaultMessageChannelSize)
 }
 
-func NewMessageChannel(connectionID livekit.ConnectionID, size int) *MessageChannel {
+func NewMessageChannel(connectionID voicekit.ConnectionID, size int) *MessageChannel {
 	return &MessageChannel{
 		connectionID: connectionID,
 		// allow some buffer to avoid blocked writes
@@ -89,6 +89,6 @@ func (m *MessageChannel) Close() {
 	}
 }
 
-func (m *MessageChannel) ConnectionID() livekit.ConnectionID {
+func (m *MessageChannel) ConnectionID() voicekit.ConnectionID {
 	return m.connectionID
 }

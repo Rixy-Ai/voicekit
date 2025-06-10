@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func TestScriptMatchConfiguration(t *testing.T) {
@@ -27,38 +27,38 @@ func TestScriptMatchConfiguration(t *testing.T) {
 		confs := []ConfigurationItem{
 			{
 				Match: &ScriptMatch{Expr: `c.protocol > 5 && c.browser != "firefox"`},
-				Configuration: &livekit.ClientConfiguration{
-					ResumeConnection: livekit.ClientConfigSetting_ENABLED,
+				Configuration: &voicekit.ClientConfiguration{
+					ResumeConnection: voicekit.ClientConfigSetting_ENABLED,
 				},
 			},
 		}
 
 		cm := NewStaticClientConfigurationManager(confs)
 
-		conf := cm.GetConfiguration(&livekit.ClientInfo{Protocol: 4})
+		conf := cm.GetConfiguration(&voicekit.ClientInfo{Protocol: 4})
 		require.Nil(t, conf)
 
-		conf = cm.GetConfiguration(&livekit.ClientInfo{Protocol: 6, Browser: "firefox"})
+		conf = cm.GetConfiguration(&voicekit.ClientInfo{Protocol: 6, Browser: "firefox"})
 		require.Nil(t, conf)
 
-		conf = cm.GetConfiguration(&livekit.ClientInfo{Protocol: 6, Browser: "chrome"})
-		require.Equal(t, conf.ResumeConnection, livekit.ClientConfigSetting_ENABLED)
+		conf = cm.GetConfiguration(&voicekit.ClientInfo{Protocol: 6, Browser: "chrome"})
+		require.Equal(t, conf.ResumeConnection, voicekit.ClientConfigSetting_ENABLED)
 	})
 
 	t.Run("merge", func(t *testing.T) {
 		confs := []ConfigurationItem{
 			{
 				Match: &ScriptMatch{Expr: `c.protocol > 5 && c.browser != "firefox"`},
-				Configuration: &livekit.ClientConfiguration{
-					ResumeConnection: livekit.ClientConfigSetting_ENABLED,
+				Configuration: &voicekit.ClientConfiguration{
+					ResumeConnection: voicekit.ClientConfigSetting_ENABLED,
 				},
 				Merge: true,
 			},
 			{
 				Match: &ScriptMatch{Expr: `c.sdk == "android"`},
-				Configuration: &livekit.ClientConfiguration{
-					Video: &livekit.VideoConfiguration{
-						HardwareEncoder: livekit.ClientConfigSetting_DISABLED,
+				Configuration: &voicekit.ClientConfiguration{
+					Video: &voicekit.VideoConfiguration{
+						HardwareEncoder: voicekit.ClientConfigSetting_DISABLED,
 					},
 				},
 				Merge: true,
@@ -67,20 +67,20 @@ func TestScriptMatchConfiguration(t *testing.T) {
 
 		cm := NewStaticClientConfigurationManager(confs)
 
-		conf := cm.GetConfiguration(&livekit.ClientInfo{Protocol: 4})
+		conf := cm.GetConfiguration(&voicekit.ClientInfo{Protocol: 4})
 		require.Nil(t, conf)
 
-		conf = cm.GetConfiguration(&livekit.ClientInfo{Protocol: 6, Browser: "firefox"})
+		conf = cm.GetConfiguration(&voicekit.ClientInfo{Protocol: 6, Browser: "firefox"})
 		require.Nil(t, conf)
 
-		conf = cm.GetConfiguration(&livekit.ClientInfo{Protocol: 6, Browser: "chrome", Sdk: 3})
-		require.Equal(t, conf.ResumeConnection, livekit.ClientConfigSetting_ENABLED)
-		require.Equal(t, conf.Video.HardwareEncoder, livekit.ClientConfigSetting_DISABLED)
+		conf = cm.GetConfiguration(&voicekit.ClientInfo{Protocol: 6, Browser: "chrome", Sdk: 3})
+		require.Equal(t, conf.ResumeConnection, voicekit.ClientConfigSetting_ENABLED)
+		require.Equal(t, conf.Video.HardwareEncoder, voicekit.ClientConfigSetting_DISABLED)
 	})
 }
 
 func TestScriptMatch(t *testing.T) {
-	client := &livekit.ClientInfo{
+	client := &voicekit.ClientInfo{
 		Protocol:    6,
 		Browser:     "chrome",
 		Sdk:         3, // android

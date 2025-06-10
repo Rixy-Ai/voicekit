@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,16 +19,16 @@ import (
 	"time"
 
 	"github.com/frostbyte73/core"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/mono"
 
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/utils"
 )
 
 type MetricsCollectorProvider interface {
 	MetricsCollectorTimeToCollectMetrics()
-	MetricsCollectorBatchReady(mb *livekit.MetricsBatch)
+	MetricsCollectorBatchReady(mb *voicekit.MetricsBatch)
 }
 
 // --------------------------------------------------------
@@ -48,7 +48,7 @@ var (
 // --------------------------------------------------------
 
 type MetricsCollectorParams struct {
-	ParticipantIdentity livekit.ParticipantIdentity
+	ParticipantIdentity voicekit.ParticipantIdentity
 	Config              MetricsCollectorConfig
 	Provider            MetricsCollectorProvider
 	Logger              logger.Logger
@@ -59,9 +59,9 @@ type MetricsCollector struct {
 
 	lock                  sync.RWMutex
 	mbb                   *utils.MetricsBatchBuilder
-	publisherRTTMetricId  map[livekit.ParticipantIdentity]int
+	publisherRTTMetricId  map[voicekit.ParticipantIdentity]int
 	subscriberRTTMetricId int
-	relayRTTMetricId      map[livekit.ParticipantIdentity]int
+	relayRTTMetricId      map[voicekit.ParticipantIdentity]int
 
 	stop core.Fuse
 }
@@ -82,14 +82,14 @@ func (mc *MetricsCollector) Stop() {
 	}
 }
 
-func (mc *MetricsCollector) AddPublisherRTT(participantIdentity livekit.ParticipantIdentity, rtt float32) {
+func (mc *MetricsCollector) AddPublisherRTT(participantIdentity voicekit.ParticipantIdentity, rtt float32) {
 	mc.lock.Lock()
 	defer mc.lock.Unlock()
 
 	metricId, ok := mc.publisherRTTMetricId[participantIdentity]
 	if !ok {
 		var err error
-		metricId, err = mc.createTimeSeriesMetric(livekit.MetricLabel_PUBLISHER_RTT, participantIdentity)
+		metricId, err = mc.createTimeSeriesMetric(voicekit.MetricLabel_PUBLISHER_RTT, participantIdentity)
 		if err != nil {
 			mc.params.Logger.Warnw("could not add time series metric for publisher RTT", err)
 			return
@@ -107,7 +107,7 @@ func (mc *MetricsCollector) AddSubscriberRTT(rtt float32) {
 
 	if mc.subscriberRTTMetricId == utils.MetricsBatchBuilderInvalidTimeSeriesMetricId {
 		var err error
-		mc.subscriberRTTMetricId, err = mc.createTimeSeriesMetric(livekit.MetricLabel_SUBSCRIBER_RTT, mc.params.ParticipantIdentity)
+		mc.subscriberRTTMetricId, err = mc.createTimeSeriesMetric(voicekit.MetricLabel_SUBSCRIBER_RTT, mc.params.ParticipantIdentity)
 		if err != nil {
 			mc.params.Logger.Warnw("could not add time series metric for publisher RTT", err)
 			return
@@ -117,14 +117,14 @@ func (mc *MetricsCollector) AddSubscriberRTT(rtt float32) {
 	mc.addTimeSeriesMetricSample(mc.subscriberRTTMetricId, rtt)
 }
 
-func (mc *MetricsCollector) AddRelayRTT(participantIdentity livekit.ParticipantIdentity, rtt float32) {
+func (mc *MetricsCollector) AddRelayRTT(participantIdentity voicekit.ParticipantIdentity, rtt float32) {
 	mc.lock.Lock()
 	defer mc.lock.Unlock()
 
 	metricId, ok := mc.relayRTTMetricId[participantIdentity]
 	if !ok {
 		var err error
-		metricId, err = mc.createTimeSeriesMetric(livekit.MetricLabel_SERVER_MESH_RTT, participantIdentity)
+		metricId, err = mc.createTimeSeriesMetric(voicekit.MetricLabel_SERVER_MESH_RTT, participantIdentity)
 		if err != nil {
 			mc.params.Logger.Warnw("could not add time series metric for server mesh RTT", err)
 			return
@@ -136,7 +136,7 @@ func (mc *MetricsCollector) AddRelayRTT(participantIdentity livekit.ParticipantI
 	mc.addTimeSeriesMetricSample(metricId, rtt)
 }
 
-func (mc *MetricsCollector) getMetricsBatchAndReset() *livekit.MetricsBatch {
+func (mc *MetricsCollector) getMetricsBatchAndReset() *voicekit.MetricsBatch {
 	mc.lock.Lock()
 	mbb := mc.mbb
 
@@ -157,21 +157,21 @@ func (mc *MetricsCollector) reset() {
 	mc.mbb.SetRestrictedLabels(utils.MetricRestrictedLabels{
 		LabelRanges: []utils.MetricLabelRange{
 			{
-				StartInclusive: livekit.MetricLabel_CLIENT_VIDEO_SUBSCRIBER_FREEZE_COUNT,
-				EndInclusive:   livekit.MetricLabel_CLIENT_VIDEO_PUBLISHER_QUALITY_LIMITATION_DURATION_OTHER,
+				StartInclusive: voicekit.MetricLabel_CLIENT_VIDEO_SUBSCRIBER_FREEZE_COUNT,
+				EndInclusive:   voicekit.MetricLabel_CLIENT_VIDEO_PUBLISHER_QUALITY_LIMITATION_DURATION_OTHER,
 			},
 		},
 		ParticipantIdentity: mc.params.ParticipantIdentity,
 	})
 
-	mc.publisherRTTMetricId = make(map[livekit.ParticipantIdentity]int)
+	mc.publisherRTTMetricId = make(map[voicekit.ParticipantIdentity]int)
 	mc.subscriberRTTMetricId = utils.MetricsBatchBuilderInvalidTimeSeriesMetricId
-	mc.relayRTTMetricId = make(map[livekit.ParticipantIdentity]int)
+	mc.relayRTTMetricId = make(map[voicekit.ParticipantIdentity]int)
 }
 
 func (mc *MetricsCollector) createTimeSeriesMetric(
-	label livekit.MetricLabel,
-	participantIdentity livekit.ParticipantIdentity,
+	label voicekit.MetricLabel,
+	participantIdentity voicekit.ParticipantIdentity,
 ) (int, error) {
 	return mc.mbb.AddTimeSeriesMetric(utils.TimeSeriesMetric{
 		MetricLabel:         label,

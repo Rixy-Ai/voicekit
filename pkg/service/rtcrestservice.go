@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,16 +23,16 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	sutils "github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	sutils "github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/psrpc"
 	"github.com/pion/webrtc/v4"
 	"github.com/tomnomnom/linkheader"
 )
@@ -48,7 +48,7 @@ type RTCRestService struct {
 	config            *config.Config
 	router            routing.Router
 	roomAllocator     RoomAllocator
-	client            rpc.RTCRestClient[livekit.NodeID]
+	client            rpc.RTCRestClient[voicekit.NodeID]
 	topicFormatter    rpc.TopicFormatter
 	participantClient rpc.TypedRTCRestParticipantClient
 }
@@ -61,7 +61,7 @@ func NewRTCRestService(
 	topicFormatter rpc.TopicFormatter,
 	participantClient rpc.TypedRTCRestParticipantClient,
 ) (*RTCRestService, error) {
-	client, err := rpc.NewRTCRestClient[livekit.NodeID](clientParams.Args())
+	client, err := rpc.NewRTCRestClient[voicekit.NodeID](clientParams.Args())
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (s *RTCRestService) handleOptions(w http.ResponseWriter, r *http.Request) {
 }
 
 type createRequest struct {
-	RoomName                        livekit.RoomName
+	RoomName                        voicekit.RoomName
 	ParticipantInit                 routing.ParticipantInit
 	ClientIP                        string
 	OfferSDP                        string
@@ -145,7 +145,7 @@ func (s *RTCRestService) validateCreate(r *http.Request) (*createRequest, int, e
 		ClientIP                        string              `json:"clientIp"`
 		SubscribedParticipantTrackNames map[string][]string `json:"subscribedParticipantTrackNames"`
 	}
-	clientInfoHeader := r.Header.Get("X-LiveKit-ClientInfo")
+	clientInfoHeader := r.Header.Get("X-Voicekit-ClientInfo")
 	if clientInfoHeader != "" {
 		if err := json.NewDecoder(strings.NewReader(clientInfoHeader)).Decode(&clientInfo); err != nil {
 			return nil, http.StatusBadRequest, fmt.Errorf("malformed json in client info header: %s", err)
@@ -170,14 +170,14 @@ func (s *RTCRestService) validateCreate(r *http.Request) (*createRequest, int, e
 	}
 
 	pi := routing.ParticipantInit{
-		Identity:      livekit.ParticipantIdentity(claims.Identity),
-		Name:          livekit.ParticipantName(claims.Name),
+		Identity:      voicekit.ParticipantIdentity(claims.Identity),
+		Name:          voicekit.ParticipantName(claims.Name),
 		AutoSubscribe: true,
-		Client: &livekit.ClientInfo{
+		Client: &voicekit.ClientInfo{
 			Protocol: types.CurrentProtocol,
 		},
 		Grants: claims,
-		CreateRoom: &livekit.CreateRoomRequest{
+		CreateRoom: &voicekit.CreateRoomRequest{
 			Name:       string(roomName),
 			RoomPreset: claims.RoomPreset,
 		},
@@ -220,7 +220,7 @@ func (s *RTCRestService) handleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	connID := livekit.ConnectionID(guid.New("CO_"))
+	connID := voicekit.ConnectionID(guid.New("CO_"))
 	starSession, err := req.ParticipantInit.ToStartSession(req.RoomName, connID)
 	if err != nil {
 		handleError("Create", w, r, http.StatusInternalServerError, err)
@@ -234,7 +234,7 @@ func (s *RTCRestService) handleCreate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	res, err := s.client.Create(r.Context(), livekit.NodeID(rtcNode.Id), &rpc.RTCRestCreateRequest{
+	res, err := s.client.Create(r.Context(), voicekit.NodeID(rtcNode.Id), &rpc.RTCRestCreateRequest{
 		OfferSdp:                    req.OfferSDP,
 		StartSession:                starSession,
 		SubscribedParticipantTracks: subscribedParticipantTracks,
@@ -305,9 +305,9 @@ func (s *RTCRestService) handleParticipantGet(w http.ResponseWriter, r *http.Req
 func (s *RTCRestService) iceTrickle(
 	w http.ResponseWriter,
 	r *http.Request,
-	roomName livekit.RoomName,
-	participantIdentity livekit.ParticipantIdentity,
-	pID livekit.ParticipantID,
+	roomName voicekit.RoomName,
+	participantIdentity voicekit.ParticipantIdentity,
+	pID voicekit.ParticipantID,
 	iceSessionID string,
 	sdpFragment string,
 ) {
@@ -359,9 +359,9 @@ func (s *RTCRestService) iceTrickle(
 func (s *RTCRestService) iceRestart(
 	w http.ResponseWriter,
 	r *http.Request,
-	roomName livekit.RoomName,
-	participantIdentity livekit.ParticipantIdentity,
-	pID livekit.ParticipantID,
+	roomName voicekit.RoomName,
+	participantIdentity voicekit.ParticipantIdentity,
+	pID voicekit.ParticipantID,
 	sdpFragment string,
 ) {
 	res, err := s.participantClient.ICERestart(
@@ -447,7 +447,7 @@ func (s *RTCRestService) handleParticipantPatch(w http.ResponseWriter, r *http.R
 		handleError("Patch", w, r, http.StatusUnauthorized, errors.New("participant identity cannot be empty"))
 		return
 	}
-	pID := livekit.ParticipantID(r.PathValue("participant_id"))
+	pID := voicekit.ParticipantID(r.PathValue("participant_id"))
 	if pID == "" {
 		handleError("Patch", w, r, http.StatusUnauthorized, errors.New("participant ID cannot be empty"))
 		return
@@ -460,9 +460,9 @@ func (s *RTCRestService) handleParticipantPatch(w http.ResponseWriter, r *http.R
 	sdpFragment := string(sdpFragmentBytes)
 
 	if ifMatch == "*" {
-		s.iceRestart(w, r, roomName, livekit.ParticipantIdentity(claims.Identity), pID, sdpFragment)
+		s.iceRestart(w, r, roomName, voicekit.ParticipantIdentity(claims.Identity), pID, sdpFragment)
 	} else {
-		s.iceTrickle(w, r, roomName, livekit.ParticipantIdentity(claims.Identity), pID, ifMatch, sdpFragment)
+		s.iceTrickle(w, r, roomName, voicekit.ParticipantIdentity(claims.Identity), pID, ifMatch, sdpFragment)
 	}
 }
 
@@ -489,7 +489,7 @@ func (s *RTCRestService) handleParticipantDelete(w http.ResponseWriter, r *http.
 
 	_, err = s.participantClient.DeleteSession(
 		r.Context(),
-		s.topicFormatter.ParticipantTopic(r.Context(), roomName, livekit.ParticipantIdentity(claims.Identity)),
+		s.topicFormatter.ParticipantTopic(r.Context(), roomName, voicekit.ParticipantIdentity(claims.Identity)),
 		&rpc.RTCRestParticipantDeleteSessionRequest{
 			Room:                string(roomName),
 			ParticipantIdentity: claims.Identity,

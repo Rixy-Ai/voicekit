@@ -8,7 +8,7 @@ import (
 
 	"github.com/pion/datachannel"
 
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/protocol/utils/mono"
 )
 
 const (

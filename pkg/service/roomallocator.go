@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@ import (
 	"errors"
 	"time"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/psrpc"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/routing/selector"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/routing/selector"
 )
 
 type StandardRoomAllocator struct {
@@ -57,29 +57,29 @@ func (r *StandardRoomAllocator) AutoCreateEnabled(context.Context) bool {
 
 // CreateRoom creates a new room from a request and allocates it to a node to handle
 // it'll also monitor its state, and cleans it up when appropriate
-func (r *StandardRoomAllocator) CreateRoom(ctx context.Context, req *livekit.CreateRoomRequest, isExplicit bool) (*livekit.Room, *livekit.RoomInternal, bool, error) {
-	token, err := r.roomStore.LockRoom(ctx, livekit.RoomName(req.Name), 5*time.Second)
+func (r *StandardRoomAllocator) CreateRoom(ctx context.Context, req *voicekit.CreateRoomRequest, isExplicit bool) (*voicekit.Room, *voicekit.RoomInternal, bool, error) {
+	token, err := r.roomStore.LockRoom(ctx, voicekit.RoomName(req.Name), 5*time.Second)
 	if err != nil {
 		return nil, nil, false, err
 	}
 	defer func() {
-		_ = r.roomStore.UnlockRoom(ctx, livekit.RoomName(req.Name), token)
+		_ = r.roomStore.UnlockRoom(ctx, voicekit.RoomName(req.Name), token)
 	}()
 
 	// find existing room and update it
 	var created bool
-	rm, internal, err := r.roomStore.LoadRoom(ctx, livekit.RoomName(req.Name), true)
+	rm, internal, err := r.roomStore.LoadRoom(ctx, voicekit.RoomName(req.Name), true)
 	if errors.Is(err, ErrRoomNotFound) {
 		created = true
 		now := time.Now()
-		rm = &livekit.Room{
+		rm = &voicekit.Room{
 			Sid:            guid.New(utils.RoomPrefix),
 			Name:           req.Name,
 			CreationTime:   now.Unix(),
 			CreationTimeMs: now.UnixMilli(),
 			TurnPassword:   utils.RandomSecret(),
 		}
-		internal = &livekit.RoomInternal{}
+		internal = &voicekit.RoomInternal{}
 		applyDefaultRoomConfig(rm, internal, &r.config.Room)
 	} else if err != nil {
 		return nil, nil, false, err
@@ -114,7 +114,7 @@ func (r *StandardRoomAllocator) CreateRoom(ctx context.Context, req *livekit.Cre
 		internal.AgentDispatches = req.Agents
 	}
 	if req.MinPlayoutDelay > 0 || req.MaxPlayoutDelay > 0 {
-		internal.PlayoutDelay = &livekit.PlayoutDelay{
+		internal.PlayoutDelay = &voicekit.PlayoutDelay{
 			Enabled: true,
 			Min:     req.MinPlayoutDelay,
 			Max:     req.MaxPlayoutDelay,
@@ -131,7 +131,7 @@ func (r *StandardRoomAllocator) CreateRoom(ctx context.Context, req *livekit.Cre
 	return rm, internal, created, nil
 }
 
-func (r *StandardRoomAllocator) SelectRoomNode(ctx context.Context, roomName livekit.RoomName, nodeID livekit.NodeID) error {
+func (r *StandardRoomAllocator) SelectRoomNode(ctx context.Context, roomName voicekit.RoomName, nodeID voicekit.NodeID) error {
 	// check if room already assigned
 	existing, err := r.router.GetNodeForRoom(ctx, roomName)
 	if !errors.Is(err, routing.ErrNotFound) && err != nil {
@@ -160,7 +160,7 @@ func (r *StandardRoomAllocator) SelectRoomNode(ctx context.Context, roomName liv
 			return err
 		}
 
-		nodeID = livekit.NodeID(node.Id)
+		nodeID = voicekit.NodeID(node.Id)
 	}
 
 	logger.Infow("selected node for room", "room", roomName, "selectedNodeID", nodeID)
@@ -172,7 +172,7 @@ func (r *StandardRoomAllocator) SelectRoomNode(ctx context.Context, roomName liv
 	return nil
 }
 
-func (r *StandardRoomAllocator) ValidateCreateRoom(ctx context.Context, roomName livekit.RoomName) error {
+func (r *StandardRoomAllocator) ValidateCreateRoom(ctx context.Context, roomName voicekit.RoomName) error {
 	// when auto create is disabled, we'll check to ensure it's already created
 	if !r.config.Room.AutoCreate {
 		_, _, err := r.roomStore.LoadRoom(ctx, roomName, false)
@@ -183,17 +183,17 @@ func (r *StandardRoomAllocator) ValidateCreateRoom(ctx context.Context, roomName
 	return nil
 }
 
-func applyDefaultRoomConfig(room *livekit.Room, internal *livekit.RoomInternal, conf *config.RoomConfig) {
+func applyDefaultRoomConfig(room *voicekit.Room, internal *voicekit.RoomInternal, conf *config.RoomConfig) {
 	room.EmptyTimeout = conf.EmptyTimeout
 	room.DepartureTimeout = conf.DepartureTimeout
 	room.MaxParticipants = conf.MaxParticipants
 	for _, codec := range conf.EnabledCodecs {
-		room.EnabledCodecs = append(room.EnabledCodecs, &livekit.Codec{
+		room.EnabledCodecs = append(room.EnabledCodecs, &voicekit.Codec{
 			Mime:     codec.Mime,
 			FmtpLine: codec.FmtpLine,
 		})
 	}
-	internal.PlayoutDelay = &livekit.PlayoutDelay{
+	internal.PlayoutDelay = &voicekit.PlayoutDelay{
 		Enabled: conf.PlayoutDelay.Enabled,
 		Min:     uint32(conf.PlayoutDelay.Min),
 		Max:     uint32(conf.PlayoutDelay.Max),
@@ -201,7 +201,7 @@ func applyDefaultRoomConfig(room *livekit.Room, internal *livekit.RoomInternal, 
 	internal.SyncStreams = conf.SyncStreams
 }
 
-func (r *StandardRoomAllocator) applyNamedRoomConfiguration(req *livekit.CreateRoomRequest) (*livekit.CreateRoomRequest, error) {
+func (r *StandardRoomAllocator) applyNamedRoomConfiguration(req *voicekit.CreateRoomRequest) (*voicekit.CreateRoomRequest, error) {
 	if req.RoomPreset == "" {
 		return req, nil
 	}
@@ -227,7 +227,7 @@ func (r *StandardRoomAllocator) applyNamedRoomConfiguration(req *livekit.CreateR
 		clone.Egress = utils.CloneProto(conf.Egress)
 	}
 	if clone.Agents == nil {
-		clone.Agents = make([]*livekit.RoomAgentDispatch, 0, len(conf.Agents))
+		clone.Agents = make([]*voicekit.RoomAgentDispatch, 0, len(conf.Agents))
 		for _, agent := range conf.Agents {
 			clone.Agents = append(clone.Agents, utils.CloneProto(agent))
 		}

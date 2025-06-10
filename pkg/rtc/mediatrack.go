@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,19 +24,19 @@ import (
 	"github.com/pion/webrtc/v4"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/observability/roomobs"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/observability/roomobs"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/rtc/dynacast"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/connectionquality"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	util "github.com/livekit/mediatransportutil"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/rtc/dynacast"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/connectionquality"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	util "github.com/voicekit/mediatransportutil"
 )
 
 // MediaTrack represents a WebRTC track that needs to be forwarded
@@ -56,7 +56,7 @@ type MediaTrack struct {
 
 	rttFromXR atomic.Bool
 
-	backupCodecPolicy             livekit.BackupCodecPolicy
+	backupCodecPolicy             voicekit.BackupCodecPolicy
 	regressionTargetCodec         mime.MimeType
 	regressionTargetCodecReceived bool
 }
@@ -64,8 +64,8 @@ type MediaTrack struct {
 type MediaTrackParams struct {
 	SignalCid             string
 	SdpCid                string
-	ParticipantID         func() livekit.ParticipantID
-	ParticipantIdentity   livekit.ParticipantIdentity
+	ParticipantID         func() voicekit.ParticipantID
+	ParticipantIdentity   voicekit.ParticipantIdentity
 	ParticipantVersion    uint32
 	BufferFactory         *buffer.Factory
 	ReceiverConfig        ReceiverConfig
@@ -79,17 +79,17 @@ type MediaTrackParams struct {
 	SimTracks             map[uint32]SimulcastTrackInfo
 	OnRTCP                func([]rtcp.Packet)
 	ForwardStats          *sfu.ForwardStats
-	OnTrackEverSubscribed func(livekit.TrackID)
+	OnTrackEverSubscribed func(voicekit.TrackID)
 	ShouldRegressCodec    func() bool
 }
 
-func NewMediaTrack(params MediaTrackParams, ti *livekit.TrackInfo) *MediaTrack {
+func NewMediaTrack(params MediaTrackParams, ti *voicekit.TrackInfo) *MediaTrack {
 	t := &MediaTrack{
 		params:            params,
 		backupCodecPolicy: ti.BackupCodecPolicy,
 	}
 
-	if t.backupCodecPolicy != livekit.BackupCodecPolicy_SIMULCAST && len(ti.Codecs) > 1 {
+	if t.backupCodecPolicy != voicekit.BackupCodecPolicy_SIMULCAST && len(ti.Codecs) > 1 {
 		t.regressionTargetCodec = mime.NormalizeMimeType(ti.Codecs[1].MimeType)
 		t.params.Logger.Debugw("track enabled codec regression", "regressionCodec", t.regressionTargetCodec)
 	}
@@ -108,7 +108,7 @@ func NewMediaTrack(params MediaTrackParams, ti *livekit.TrackInfo) *MediaTrack {
 		RegressionTargetCodec: t.regressionTargetCodec,
 	}, ti)
 
-	if ti.Type == livekit.TrackType_AUDIO {
+	if ti.Type == voicekit.TrackType_AUDIO {
 		t.MediaLossProxy = NewMediaLossProxy(MediaLossProxyParams{
 			Logger: params.Logger,
 		})
@@ -120,7 +120,7 @@ func NewMediaTrack(params MediaTrackParams, ti *livekit.TrackInfo) *MediaTrack {
 		t.MediaTrackReceiver.OnMediaLossFeedback(t.MediaLossProxy.HandleMaxLossFeedback)
 	}
 
-	if ti.Type == livekit.TrackType_VIDEO {
+	if ti.Type == voicekit.TrackType_VIDEO {
 		t.dynacastManager = dynacast.NewDynacastManager(dynacast.DynacastManagerParams{
 			DynacastPauseDelay: params.VideoConfig.DynacastPauseDelay,
 			Logger:             params.Logger,
@@ -129,7 +129,7 @@ func NewMediaTrack(params MediaTrackParams, ti *livekit.TrackInfo) *MediaTrack {
 			t.dynacastManager.AddCodec(mime)
 		})
 		t.MediaTrackReceiver.OnSubscriberMaxQualityChange(
-			func(subscriberID livekit.ParticipantID, mimeType mime.MimeType, layer int32) {
+			func(subscriberID voicekit.ParticipantID, mimeType mime.MimeType, layer int32) {
 				t.dynacastManager.NotifySubscriberMaxQuality(
 					subscriberID,
 					mimeType,
@@ -147,9 +147,9 @@ func NewMediaTrack(params MediaTrackParams, ti *livekit.TrackInfo) *MediaTrack {
 
 func (t *MediaTrack) OnSubscribedMaxQualityChange(
 	f func(
-		trackID livekit.TrackID,
-		trackInfo *livekit.TrackInfo,
-		subscribedQualities []*livekit.SubscribedCodec,
+		trackID voicekit.TrackID,
+		trackInfo *voicekit.TrackInfo,
+		subscribedQualities []*voicekit.SubscribedCodec,
 		maxSubscribedQualities []types.SubscribedCodecQuality,
 	) error,
 ) {
@@ -157,7 +157,7 @@ func (t *MediaTrack) OnSubscribedMaxQualityChange(
 		return
 	}
 
-	handler := func(subscribedQualities []*livekit.SubscribedCodec, maxSubscribedQualities []types.SubscribedCodecQuality) {
+	handler := func(subscribedQualities []*voicekit.SubscribedCodec, maxSubscribedQualities []types.SubscribedCodecQuality) {
 		if f != nil && !t.IsMuted() {
 			_ = f(t.ID(), t.ToProto(), subscribedQualities, maxSubscribedQualities)
 		}
@@ -173,7 +173,7 @@ func (t *MediaTrack) OnSubscribedMaxQualityChange(
 	t.dynacastManager.OnSubscribedMaxQualityChange(handler)
 }
 
-func (t *MediaTrack) NotifySubscriberNodeMaxQuality(nodeID livekit.NodeID, qualities []types.SubscribedCodecQuality) {
+func (t *MediaTrack) NotifySubscriberNodeMaxQuality(nodeID voicekit.NodeID, qualities []types.SubscribedCodecQuality) {
 	if t.dynacastManager != nil {
 		t.dynacastManager.NotifySubscriberNodeMaxQuality(nodeID, qualities)
 	}
@@ -203,11 +203,11 @@ func (t *MediaTrack) HasSdpCid(cid string) bool {
 	return false
 }
 
-func (t *MediaTrack) ToProto() *livekit.TrackInfo {
+func (t *MediaTrack) ToProto() *voicekit.TrackInfo {
 	return t.MediaTrackReceiver.TrackInfoClone()
 }
 
-func (t *MediaTrack) UpdateCodecCid(codecs []*livekit.SimulcastCodec) {
+func (t *MediaTrack) UpdateCodecCid(codecs []*voicekit.SimulcastCodec) {
 	t.MediaTrackReceiver.UpdateCodecCid(codecs)
 }
 
@@ -322,13 +322,13 @@ func (t *MediaTrack) AddReceiver(receiver *webrtc.RTPReceiver, track sfu.TrackRe
 		})
 
 		// SIMULCAST-CODEC-TODO: these need to be receiver/mime aware, setting it up only for primary now
-		newWR.OnStatsUpdate(func(_ *sfu.WebRTCReceiver, stat *livekit.AnalyticsStat) {
+		newWR.OnStatsUpdate(func(_ *sfu.WebRTCReceiver, stat *voicekit.AnalyticsStat) {
 			// send for only one codec, either primary (priority == 0) OR regressed codec
 			t.lock.RLock()
 			regressionTargetCodecReceived := t.regressionTargetCodecReceived
 			t.lock.RUnlock()
 			if priority == 0 || regressionTargetCodecReceived {
-				key := telemetry.StatsKeyForTrack(livekit.StreamType_UPSTREAM, t.PublisherID(), t.ID(), ti.Source, ti.Type)
+				key := telemetry.StatsKeyForTrack(voicekit.StreamType_UPSTREAM, t.PublisherID(), t.ID(), ti.Source, ti.Type)
 				t.params.Telemetry.TrackStats(key, stat)
 
 				if cs, ok := telemetry.CondenseStat(stat); ok {
@@ -455,7 +455,7 @@ func (t *MediaTrack) AddReceiver(receiver *webrtc.RTPReceiver, track sfu.TrackRe
 		t.MediaTrackSubscriptions.UpdateVideoLayers()
 	})
 
-	buff.OnFinalRtpStats(func(stats *livekit.RTPStats) {
+	buff.OnFinalRtpStats(func(stats *voicekit.RTPStats) {
 		t.params.Telemetry.TrackPublishRTPStats(
 			context.Background(),
 			t.params.ParticipantID(),
@@ -468,13 +468,13 @@ func (t *MediaTrack) AddReceiver(receiver *webrtc.RTPReceiver, track sfu.TrackRe
 	return newCodec
 }
 
-func (t *MediaTrack) GetConnectionScoreAndQuality() (float32, livekit.ConnectionQuality) {
+func (t *MediaTrack) GetConnectionScoreAndQuality() (float32, voicekit.ConnectionQuality) {
 	receiver := t.PrimaryReceiver()
 	if rtcReceiver, ok := receiver.(*sfu.WebRTCReceiver); ok {
 		return rtcReceiver.GetConnectionScoreAndQuality()
 	}
 
-	return connectionquality.MaxMOS, livekit.ConnectionQuality_EXCELLENT
+	return connectionquality.MaxMOS, voicekit.ConnectionQuality_EXCELLENT
 }
 
 func (t *MediaTrack) SetRTT(rtt uint32) {
@@ -524,8 +524,8 @@ func (t *MediaTrack) OnTrackSubscribed() {
 }
 
 func (t *MediaTrack) enableRegression() bool {
-	return t.backupCodecPolicy == livekit.BackupCodecPolicy_REGRESSION ||
-		(t.backupCodecPolicy == livekit.BackupCodecPolicy_PREFER_REGRESSION && t.params.ShouldRegressCodec())
+	return t.backupCodecPolicy == voicekit.BackupCodecPolicy_REGRESSION ||
+		(t.backupCodecPolicy == voicekit.BackupCodecPolicy_PREFER_REGRESSION && t.params.ShouldRegressCodec())
 }
 
 func (t *MediaTrack) Logger() logger.Logger {

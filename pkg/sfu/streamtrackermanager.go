@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import (
 	"github.com/frostbyte73/core"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/streamtracker"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/streamtracker"
 )
 
 // ---------------------------------------------------
@@ -112,7 +112,7 @@ var (
 
 type StreamTrackerManager struct {
 	logger    logger.Logger
-	trackInfo atomic.Pointer[livekit.TrackInfo]
+	trackInfo atomic.Pointer[voicekit.TrackInfo]
 	isSVC     bool
 	clockRate uint32
 
@@ -136,7 +136,7 @@ type StreamTrackerManager struct {
 
 func NewStreamTrackerManager(
 	logger logger.Logger,
-	trackInfo *livekit.TrackInfo,
+	trackInfo *voicekit.TrackInfo,
 	isSVC bool,
 	clockRate uint32,
 	config StreamTrackerManagerConfig,
@@ -151,9 +151,9 @@ func NewStreamTrackerManager(
 	s.trackInfo.Store(utils.CloneProto(trackInfo))
 
 	switch trackInfo.Source {
-	case livekit.TrackSource_SCREEN_SHARE:
+	case voicekit.TrackSource_SCREEN_SHARE:
 		s.trackerConfig = config.Screenshare
-	case livekit.TrackSource_CAMERA:
+	case voicekit.TrackSource_CAMERA:
 		s.trackerConfig = config.Video
 	default:
 		s.trackerConfig = config.Video
@@ -161,7 +161,7 @@ func NewStreamTrackerManager(
 
 	s.maxExpectedLayerFromTrackInfo()
 
-	if trackInfo.Type == livekit.TrackType_VIDEO {
+	if trackInfo.Type == voicekit.TrackType_VIDEO {
 		go s.bitrateReporter()
 	}
 	return s
@@ -377,7 +377,7 @@ func (s *StreamTrackerManager) IsPaused() bool {
 	return s.paused
 }
 
-func (s *StreamTrackerManager) UpdateTrackInfo(ti *livekit.TrackInfo) {
+func (s *StreamTrackerManager) UpdateTrackInfo(ti *voicekit.TrackInfo) {
 	s.trackInfo.Store(utils.CloneProto(ti))
 	s.maxExpectedLayerFromTrackInfo()
 }

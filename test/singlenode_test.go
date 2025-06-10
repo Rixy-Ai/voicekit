@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,16 +32,16 @@ import (
 	"github.com/twitchtv/twirp"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/livekit-server/pkg/sfu/datachannel"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/testutils"
-	testclient "github.com/livekit/livekit-server/test/client"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/voicekit-server/pkg/sfu/datachannel"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
+	testclient "github.com/voicekit/voicekit-server/test/client"
 )
 
 const (
@@ -181,9 +181,9 @@ func TestSinglePublisher(t *testing.T) {
 	})
 	// ensure mime type is received
 	remoteC1 := c2.GetRemoteParticipant(c1.ID())
-	audioTrack := funk.Find(remoteC1.Tracks, func(ti *livekit.TrackInfo) bool {
+	audioTrack := funk.Find(remoteC1.Tracks, func(ti *voicekit.TrackInfo) bool {
 		return ti.Name == "webcamaudio"
-	}).(*livekit.TrackInfo)
+	}).(*voicekit.TrackInfo)
 	require.Equal(t, "audio/opus", audioTrack.MimeType)
 
 	// a new client joins and should get the initial stream
@@ -347,10 +347,10 @@ func TestSingleNodeUpdateParticipant(t *testing.T) {
 
 	adminCtx := contextWithToken(adminRoomToken(testRoom))
 	t.Run("update nonexistent participant", func(t *testing.T) {
-		_, err := roomClient.UpdateParticipant(adminCtx, &livekit.UpdateParticipantRequest{
+		_, err := roomClient.UpdateParticipant(adminCtx, &voicekit.UpdateParticipantRequest{
 			Room:     testRoom,
 			Identity: "nonexistent",
-			Permission: &livekit.ParticipantPermission{
+			Permission: &voicekit.ParticipantPermission{
 				CanPublish: true,
 			},
 		})
@@ -388,8 +388,8 @@ func TestSingleNodeDoubleSlash(t *testing.T) {
 	defer finish()
 	// client contains trailing slash in URL, causing path to contain double //
 	// without our middleware, this would cause a 302 redirect
-	roomClient = livekit.NewRoomServiceJSONClient(fmt.Sprintf("http://localhost:%d/", s.HTTPPort()), &http.Client{})
-	_, err := roomClient.ListRooms(contextWithToken(listRoomToken()), &livekit.ListRoomsRequest{})
+	roomClient = voicekit.NewRoomServiceJSONClient(fmt.Sprintf("http://localhost:%d/", s.HTTPPort()), &http.Client{})
+	_, err := roomClient.ListRooms(contextWithToken(listRoomToken()), &voicekit.ListRoomsRequest{})
 	require.NoError(t, err)
 }
 
@@ -475,7 +475,7 @@ func TestAutoCreate(t *testing.T) {
 		waitForServerToStart(s)
 
 		// explicitly create
-		_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &livekit.CreateRoomRequest{Name: testRoom})
+		_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &voicekit.CreateRoomRequest{Name: testRoom})
 		require.NoError(t, err)
 
 		c1 := createRTCClient("join-after-create", defaultServerPort, nil)
@@ -523,10 +523,10 @@ func TestSingleNodeUpdateSubscriptionPermissions(t *testing.T) {
 
 	// set permissions out of band
 	ctx := contextWithToken(adminRoomToken(testRoom))
-	_, err = roomClient.UpdateParticipant(ctx, &livekit.UpdateParticipantRequest{
+	_, err = roomClient.UpdateParticipant(ctx, &voicekit.UpdateParticipantRequest{
 		Room:     testRoom,
 		Identity: "sub",
-		Permission: &livekit.ParticipantPermission{
+		Permission: &voicekit.ParticipantPermission{
 			CanSubscribe: true,
 			CanPublish:   true,
 		},
@@ -607,7 +607,7 @@ func TestDeviceCodecOverride(t *testing.T) {
 
 	// simulate device that isn't compatible with H.264
 	c1 := createRTCClient("c1", defaultServerPort, &testclient.Options{
-		ClientInfo: &livekit.ClientInfo{
+		ClientInfo: &voicekit.ClientInfo{
 			Os:          "android",
 			DeviceModel: "Xiaomi 2201117TI",
 		},
@@ -728,7 +728,7 @@ func TestSubscribeToCodecUnsupported(t *testing.T) {
 			return false
 		}
 		require.Equal(t, h264TrackID, sr.TrackSid)
-		require.Equal(t, livekit.SubscriptionError_SE_CODEC_UNSUPPORTED, sr.Err)
+		require.Equal(t, voicekit.SubscriptionError_SE_CODEC_UNSUPPORTED, sr.Err)
 		return true
 	}, 5*time.Second, 10*time.Millisecond, "did not receive subscription response")
 
@@ -851,7 +851,7 @@ func TestDataPublishSlowSubscriber(t *testing.T) {
 		for !stopWrite.Load() {
 			i++
 			binary.BigEndian.PutUint64(buf[len(buf)-8:], uint64(i))
-			if err := pub.PublishData(buf, livekit.DataPacket_RELIABLE); err != nil {
+			if err := pub.PublishData(buf, voicekit.DataPacket_RELIABLE); err != nil {
 				if errors.Is(err, datachannel.ErrDataDroppedBySlowReader) {
 					blocked.Store(true)
 					i--
@@ -886,7 +886,7 @@ func TestFireTrackBySdp(t *testing.T) {
 	var cases = []struct {
 		name   string
 		codecs []webrtc.RTPCodecCapability
-		pubSDK livekit.ClientInfo_SDK
+		pubSDK voicekit.ClientInfo_SDK
 	}{
 		{
 			name: "js client could pub a/v tracks",
@@ -894,14 +894,14 @@ func TestFireTrackBySdp(t *testing.T) {
 				{MimeType: "video/H264"},
 				{MimeType: "audio/opus"},
 			},
-			pubSDK: livekit.ClientInfo_JS,
+			pubSDK: voicekit.ClientInfo_JS,
 		},
 		{
 			name: "go client could pub audio tracks",
 			codecs: []webrtc.RTPCodecCapability{
 				{MimeType: "audio/opus"},
 			},
-			pubSDK: livekit.ClientInfo_GO,
+			pubSDK: voicekit.ClientInfo_GO,
 		},
 	}
 
@@ -909,14 +909,14 @@ func TestFireTrackBySdp(t *testing.T) {
 		codecs, sdk := c.codecs, c.pubSDK
 		t.Run(c.name, func(t *testing.T) {
 			c1 := createRTCClient(c.name+"_c1", defaultServerPort, &testclient.Options{
-				ClientInfo: &livekit.ClientInfo{
+				ClientInfo: &voicekit.ClientInfo{
 					Sdk: sdk,
 				},
 			})
 			c2 := createRTCClient(c.name+"_c2", defaultServerPort, &testclient.Options{
 				AutoSubscribe: true,
-				ClientInfo: &livekit.ClientInfo{
-					Sdk: livekit.ClientInfo_JS,
+				ClientInfo: &voicekit.ClientInfo{
+					Sdk: voicekit.ClientInfo_JS,
 				},
 			})
 			waitUntilConnected(t, c1, c2)

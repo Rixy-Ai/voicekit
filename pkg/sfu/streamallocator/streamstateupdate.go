@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package streamallocator
 import (
 	"fmt"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 // ------------------------------------------------
@@ -46,8 +46,8 @@ func (s StreamState) String() string {
 // ------------------------------------------------
 
 type StreamStateInfo struct {
-	ParticipantID livekit.ParticipantID
-	TrackID       livekit.TrackID
+	ParticipantID voicekit.ParticipantID
+	TrackID       voicekit.TrackID
 	State         StreamState
 }
 

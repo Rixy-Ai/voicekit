@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/psrpc"
 	"github.com/pion/webrtc/v4"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -33,15 +33,15 @@ func (s rtcRestService) Create(ctx context.Context, req *rpc.RTCRestCreateReques
 	if err = s.RoomManager.StartSession(
 		ctx,
 		*pi,
-		routing.NewNullMessageSource(livekit.ConnectionID(req.StartSession.ConnectionId)), // no requestSource
-		routing.NewNullMessageSink(livekit.ConnectionID(req.StartSession.ConnectionId)),   // no responseSink
+		routing.NewNullMessageSource(voicekit.ConnectionID(req.StartSession.ConnectionId)), // no requestSource
+		routing.NewNullMessageSink(voicekit.ConnectionID(req.StartSession.ConnectionId)),   // no responseSink
 		true, // useOneShotSignallingMode
 	); err != nil {
 		logger.Errorw("rtcRest service: could not start session", err)
 		return nil, err
 	}
 
-	room := s.RoomManager.GetRoom(ctx, livekit.RoomName(req.StartSession.RoomName))
+	room := s.RoomManager.GetRoom(ctx, voicekit.RoomName(req.StartSession.RoomName))
 	if room == nil {
 		logger.Errorw("rtcRest service: could not find room", nil, "room", req.StartSession.RoomName)
 		return nil, ErrRoomNotFound
@@ -64,7 +64,7 @@ func (s rtcRestService) Create(ctx context.Context, req *rpc.RTCRestCreateReques
 		for _, trackName := range trackList.TrackNames {
 			eg.Go(func() error {
 				for {
-					if lp.IsTrackNameSubscribed(livekit.ParticipantIdentity(publisherIdentity), trackName) {
+					if lp.IsTrackNameSubscribed(voicekit.ParticipantIdentity(publisherIdentity), trackName) {
 						return nil
 					}
 					time.Sleep(50 * time.Millisecond)
@@ -90,7 +90,7 @@ func (s rtcRestService) Create(ctx context.Context, req *rpc.RTCRestCreateReques
 		return nil, err
 	}
 
-	var iceServers []*livekit.ICEServer
+	var iceServers []*voicekit.ICEServer
 	apiKey, _, err := s.RoomManager.getFirstKeyPair()
 	if err != nil {
 		iceServers = s.RoomManager.iceServersForParticipant(
@@ -112,12 +112,12 @@ type rtcRestParticipantService struct {
 }
 
 func (r rtcRestParticipantService) ICETrickle(ctx context.Context, req *rpc.RTCRestParticipantICETrickleRequest) (*emptypb.Empty, error) {
-	room := r.RoomManager.GetRoom(ctx, livekit.RoomName(req.Room))
+	room := r.RoomManager.GetRoom(ctx, voicekit.RoomName(req.Room))
 	if room == nil {
 		return nil, ErrRoomNotFound
 	}
 
-	lp := room.GetParticipantByID(livekit.ParticipantID(req.ParticipantId))
+	lp := room.GetParticipantByID(voicekit.ParticipantID(req.ParticipantId))
 	if lp == nil {
 		return nil, ErrParticipantNotFound
 	}
@@ -143,12 +143,12 @@ func (r rtcRestParticipantService) ICETrickle(ctx context.Context, req *rpc.RTCR
 }
 
 func (r rtcRestParticipantService) ICERestart(ctx context.Context, req *rpc.RTCRestParticipantICERestartRequest) (*rpc.RTCRestParticipantICERestartResponse, error) {
-	room := r.RoomManager.GetRoom(ctx, livekit.RoomName(req.Room))
+	room := r.RoomManager.GetRoom(ctx, voicekit.RoomName(req.Room))
 	if room == nil {
 		return nil, ErrRoomNotFound
 	}
 
-	lp := room.GetParticipantByID(livekit.ParticipantID(req.ParticipantId))
+	lp := room.GetParticipantByID(voicekit.ParticipantID(req.ParticipantId))
 	if lp == nil {
 		return nil, ErrParticipantNotFound
 	}
@@ -171,12 +171,12 @@ func (r rtcRestParticipantService) ICERestart(ctx context.Context, req *rpc.RTCR
 }
 
 func (r rtcRestParticipantService) DeleteSession(ctx context.Context, req *rpc.RTCRestParticipantDeleteSessionRequest) (*emptypb.Empty, error) {
-	room := r.RoomManager.GetRoom(ctx, livekit.RoomName(req.Room))
+	room := r.RoomManager.GetRoom(ctx, voicekit.RoomName(req.Room))
 	if room == nil {
 		return nil, ErrRoomNotFound
 	}
 
-	lp := room.GetParticipantByID(livekit.ParticipantID(req.ParticipantId))
+	lp := room.GetParticipantByID(voicekit.ParticipantID(req.ParticipantId))
 	if lp != nil {
 		room.RemoveParticipant(
 			lp.Identity(),

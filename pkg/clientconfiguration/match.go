@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import (
 	"github.com/d5/tengo/v2/token"
 	"golang.org/x/mod/semver"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type Match interface {
-	Match(clientInfo *livekit.ClientInfo) (bool, error)
+	Match(clientInfo *voicekit.ClientInfo) (bool, error)
 }
 
 type ScriptMatch struct {
@@ -39,7 +39,7 @@ type ScriptMatch struct {
 // protocol bigger than 5 : c.protocol > 5
 // browser if firefox: c.browser == "firefox"
 // combined rule : c.protocol > 5 && c.browser == "firefox"
-func (m *ScriptMatch) Match(clientInfo *livekit.ClientInfo) (bool, error) {
+func (m *ScriptMatch) Match(clientInfo *voicekit.ClientInfo) (bool, error) {
 	res, err := tengo.Eval(context.TODO(), m.Expr, map[string]interface{}{"c": &clientObject{info: clientInfo}})
 	if err != nil {
 		return false, err
@@ -55,7 +55,7 @@ func (m *ScriptMatch) Match(clientInfo *livekit.ClientInfo) (bool, error) {
 
 type clientObject struct {
 	tengo.ObjectImpl
-	info *livekit.ClientInfo
+	info *voicekit.ClientInfo
 }
 
 func (c *clientObject) TypeName() string {

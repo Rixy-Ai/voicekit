@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import (
 	"github.com/pion/sdp/v3"
 	"github.com/pion/webrtc/v4"
 
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/protocol/livekit"
-	lksdp "github.com/livekit/protocol/sdp"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/protocol/voicekit"
+	lksdp "github.com/voicekit/protocol/sdp"
 )
 
 func (p *ParticipantImpl) setCodecPreferencesForPublisher(offer webrtc.SessionDescription) webrtc.SessionDescription {
@@ -46,7 +46,7 @@ func (p *ParticipantImpl) setCodecPreferencesOpusRedForPublisher(offer webrtc.Se
 		}
 
 		p.pendingTracksLock.RLock()
-		_, info, _, _ := p.getPendingTrack(streamID, livekit.TrackType_AUDIO, false)
+		_, info, _, _ := p.getPendingTrack(streamID, voicekit.TrackType_AUDIO, false)
 		// if RED is disabled for this track, don't prefer RED codec in offer
 		disableRed := info != nil && info.DisableRed
 		p.pendingTracksLock.RUnlock()
@@ -126,13 +126,13 @@ func (p *ParticipantImpl) setCodecPreferencesVideoForPublisher(offer webrtc.Sess
 			continue
 		}
 
-		var info *livekit.TrackInfo
+		var info *voicekit.TrackInfo
 		p.pendingTracksLock.RLock()
 		mt := p.getPublishedTrackBySdpCid(streamID)
 		if mt != nil {
 			info = mt.ToProto()
 		} else {
-			_, info, _, _ = p.getPendingTrack(streamID, livekit.TrackType_VIDEO, false)
+			_, info, _, _ = p.getPendingTrack(streamID, voicekit.TrackType_VIDEO, false)
 		}
 
 		if info == nil {
@@ -212,7 +212,7 @@ func (p *ParticipantImpl) configurePublisherAnswer(answer webrtc.SessionDescript
 				continue
 			}
 			// find track info from offer's stream id
-			var ti *livekit.TrackInfo
+			var ti *voicekit.TrackInfo
 			for _, om := range parsedOffer.MediaDescriptions {
 				_, ok := om.Attribute(sdp.AttrKeyInactive)
 				if ok {
@@ -227,7 +227,7 @@ func (p *ParticipantImpl) configurePublisherAnswer(answer webrtc.SessionDescript
 					track, _ := p.getPublishedTrackBySdpCid(streamID).(*MediaTrack)
 					if track == nil {
 						p.pendingTracksLock.RLock()
-						_, ti, _, _ = p.getPendingTrack(streamID, livekit.TrackType_AUDIO, false)
+						_, ti, _, _ = p.getPendingTrack(streamID, voicekit.TrackType_AUDIO, false)
 						p.pendingTracksLock.RUnlock()
 					} else {
 						ti = track.ToProto()

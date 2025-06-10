@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing/selector"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing/selector"
 )
 
 const (
@@ -55,7 +55,7 @@ func TestRegionAwareRouting(t *testing.T) {
 		},
 	}
 	t.Run("works without region config", func(t *testing.T) {
-		nodes := []*livekit.Node{
+		nodes := []*voicekit.Node{
 			newTestNodeInRegion("", false),
 		}
 		s, err := selector.NewRegionAwareSelector(regionEast, nil, sortBy)
@@ -68,7 +68,7 @@ func TestRegionAwareRouting(t *testing.T) {
 
 	t.Run("picks available nodes in same region", func(t *testing.T) {
 		expectedNode := newTestNodeInRegion(regionEast, true)
-		nodes := []*livekit.Node{
+		nodes := []*voicekit.Node{
 			newTestNodeInRegion(regionSeattle, true),
 			newTestNodeInRegion(regionWest, true),
 			expectedNode,
@@ -85,7 +85,7 @@ func TestRegionAwareRouting(t *testing.T) {
 
 	t.Run("picks available nodes in same region when current node is first in the list", func(t *testing.T) {
 		expectedNode := newTestNodeInRegion(regionEast, true)
-		nodes := []*livekit.Node{
+		nodes := []*voicekit.Node{
 			expectedNode,
 			newTestNodeInRegion(regionSeattle, true),
 			newTestNodeInRegion(regionWest, true),
@@ -102,7 +102,7 @@ func TestRegionAwareRouting(t *testing.T) {
 
 	t.Run("picks closest node in a diff region", func(t *testing.T) {
 		expectedNode := newTestNodeInRegion(regionWest, true)
-		nodes := []*livekit.Node{
+		nodes := []*voicekit.Node{
 			newTestNodeInRegion(regionSeattle, false),
 			expectedNode,
 			newTestNodeInRegion(regionEast, true),
@@ -118,7 +118,7 @@ func TestRegionAwareRouting(t *testing.T) {
 
 	t.Run("handles multiple nodes in same region", func(t *testing.T) {
 		expectedNode := newTestNodeInRegion(regionWest, true)
-		nodes := []*livekit.Node{
+		nodes := []*voicekit.Node{
 			newTestNodeInRegion(regionSeattle, false),
 			newTestNodeInRegion(regionEast, true),
 			newTestNodeInRegion(regionEast, true),
@@ -135,7 +135,7 @@ func TestRegionAwareRouting(t *testing.T) {
 	})
 
 	t.Run("functions when current region is full", func(t *testing.T) {
-		nodes := []*livekit.Node{
+		nodes := []*voicekit.Node{
 			newTestNodeInRegion(regionWest, true),
 		}
 		s, err := selector.NewRegionAwareSelector(regionEast, rc, sortBy)
@@ -147,16 +147,16 @@ func TestRegionAwareRouting(t *testing.T) {
 	})
 }
 
-func newTestNodeInRegion(region string, available bool) *livekit.Node {
+func newTestNodeInRegion(region string, available bool) *voicekit.Node {
 	load := float32(0.4)
 	if !available {
 		load = 1.0
 	}
-	return &livekit.Node{
+	return &voicekit.Node{
 		Id:     guid.New(utils.NodePrefix),
 		Region: region,
-		State:  livekit.NodeState_SERVING,
-		Stats: &livekit.NodeStats{
+		State:  voicekit.NodeState_SERVING,
+		Stats: &voicekit.NodeStats{
 			UpdatedAt:       time.Now().Unix(),
 			NumCpus:         1,
 			LoadAvgLast1Min: load,

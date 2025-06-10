@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,23 +15,23 @@
 package rtc
 
 import (
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
 )
 
-func HandleParticipantSignal(room types.Room, participant types.LocalParticipant, req *livekit.SignalRequest, pLogger logger.Logger) error {
+func HandleParticipantSignal(room types.Room, participant types.LocalParticipant, req *voicekit.SignalRequest, pLogger logger.Logger) error {
 	participant.UpdateLastSeenSignal()
 
 	switch msg := req.GetMessage().(type) {
-	case *livekit.SignalRequest_Offer:
+	case *voicekit.SignalRequest_Offer:
 		participant.HandleOffer(FromProtoSessionDescription(msg.Offer))
 
-	case *livekit.SignalRequest_Answer:
+	case *voicekit.SignalRequest_Answer:
 		participant.HandleAnswer(FromProtoSessionDescription(msg.Answer))
 
-	case *livekit.SignalRequest_Trickle:
+	case *voicekit.SignalRequest_Trickle:
 		candidateInit, err := FromProtoTrickle(msg.Trickle)
 		if err != nil {
 			pLogger.Warnw("could not decode trickle", err)
@@ -39,71 +39,71 @@ func HandleParticipantSignal(room types.Room, participant types.LocalParticipant
 		}
 		participant.AddICECandidate(candidateInit, msg.Trickle.Target)
 
-	case *livekit.SignalRequest_AddTrack:
+	case *voicekit.SignalRequest_AddTrack:
 		pLogger.Debugw("add track request", "trackID", msg.AddTrack.Cid)
 		participant.AddTrack(msg.AddTrack)
 
-	case *livekit.SignalRequest_Mute:
-		participant.SetTrackMuted(livekit.TrackID(msg.Mute.Sid), msg.Mute.Muted, false)
+	case *voicekit.SignalRequest_Mute:
+		participant.SetTrackMuted(voicekit.TrackID(msg.Mute.Sid), msg.Mute.Muted, false)
 
-	case *livekit.SignalRequest_Subscription:
+	case *voicekit.SignalRequest_Subscription:
 		// allow participant to indicate their interest in the subscription
 		// permission check happens later in SubscriptionManager
 		room.UpdateSubscriptions(
 			participant,
-			livekit.StringsAsIDs[livekit.TrackID](msg.Subscription.TrackSids),
+			voicekit.StringsAsIDs[voicekit.TrackID](msg.Subscription.TrackSids),
 			msg.Subscription.ParticipantTracks,
 			msg.Subscription.Subscribe,
 		)
 
-	case *livekit.SignalRequest_TrackSetting:
-		for _, sid := range livekit.StringsAsIDs[livekit.TrackID](msg.TrackSetting.TrackSids) {
+	case *voicekit.SignalRequest_TrackSetting:
+		for _, sid := range voicekit.StringsAsIDs[voicekit.TrackID](msg.TrackSetting.TrackSids) {
 			participant.UpdateSubscribedTrackSettings(sid, msg.TrackSetting)
 		}
 
-	case *livekit.SignalRequest_Leave:
+	case *voicekit.SignalRequest_Leave:
 		reason := types.ParticipantCloseReasonClientRequestLeave
 		switch msg.Leave.Reason {
-		case livekit.DisconnectReason_CLIENT_INITIATED:
+		case voicekit.DisconnectReason_CLIENT_INITIATED:
 			reason = types.ParticipantCloseReasonClientRequestLeave
-		case livekit.DisconnectReason_USER_UNAVAILABLE:
+		case voicekit.DisconnectReason_USER_UNAVAILABLE:
 			reason = types.ParticipantCloseReasonUserUnavailable
-		case livekit.DisconnectReason_USER_REJECTED:
+		case voicekit.DisconnectReason_USER_REJECTED:
 			reason = types.ParticipantCloseReasonUserRejected
 		}
 		pLogger.Debugw("client leaving room", "reason", reason)
 		room.RemoveParticipant(participant.Identity(), participant.ID(), reason)
 
-	case *livekit.SignalRequest_SubscriptionPermission:
+	case *voicekit.SignalRequest_SubscriptionPermission:
 		err := room.UpdateSubscriptionPermission(participant, msg.SubscriptionPermission)
 		if err != nil {
 			pLogger.Warnw("could not update subscription permission", err,
 				"permissions", msg.SubscriptionPermission)
 		}
 
-	case *livekit.SignalRequest_SyncState:
+	case *voicekit.SignalRequest_SyncState:
 		err := room.SyncState(participant, msg.SyncState)
 		if err != nil {
 			pLogger.Warnw("could not sync state", err,
 				"state", msg.SyncState)
 		}
 
-	case *livekit.SignalRequest_Simulate:
+	case *voicekit.SignalRequest_Simulate:
 		err := room.SimulateScenario(participant, msg.Simulate)
 		if err != nil {
 			pLogger.Warnw("could not simulate scenario", err,
 				"simulate", msg.Simulate)
 		}
 
-	case *livekit.SignalRequest_PingReq:
+	case *voicekit.SignalRequest_PingReq:
 		if msg.PingReq.Rtt > 0 {
 			participant.UpdateSignalingRTT(uint32(msg.PingReq.Rtt))
 		}
 
-	case *livekit.SignalRequest_UpdateMetadata:
-		requestResponse := &livekit.RequestResponse{
+	case *voicekit.SignalRequest_UpdateMetadata:
+		requestResponse := &voicekit.RequestResponse{
 			RequestId: msg.UpdateMetadata.RequestId,
-			Reason:    livekit.RequestResponse_OK,
+			Reason:    voicekit.RequestResponse_OK,
 		}
 		if participant.ClaimGrants().Video.GetCanUpdateOwnMetadata() {
 			if err := participant.CheckMetadataLimits(
@@ -125,31 +125,31 @@ func HandleParticipantSignal(room types.Room, participant types.LocalParticipant
 
 				switch err {
 				case ErrNameExceedsLimits:
-					requestResponse.Reason = livekit.RequestResponse_LIMIT_EXCEEDED
+					requestResponse.Reason = voicekit.RequestResponse_LIMIT_EXCEEDED
 					requestResponse.Message = "exceeds name length limit"
 
 				case ErrMetadataExceedsLimits:
-					requestResponse.Reason = livekit.RequestResponse_LIMIT_EXCEEDED
+					requestResponse.Reason = voicekit.RequestResponse_LIMIT_EXCEEDED
 					requestResponse.Message = "exceeds metadata size limit"
 
 				case ErrAttributesExceedsLimits:
-					requestResponse.Reason = livekit.RequestResponse_LIMIT_EXCEEDED
+					requestResponse.Reason = voicekit.RequestResponse_LIMIT_EXCEEDED
 					requestResponse.Message = "exceeds attributes size limit"
 				}
 
 			}
 		} else {
-			requestResponse.Reason = livekit.RequestResponse_NOT_ALLOWED
+			requestResponse.Reason = voicekit.RequestResponse_NOT_ALLOWED
 			requestResponse.Message = "does not have permission to update own metadata"
 		}
 		participant.SendRequestResponse(requestResponse)
 
-	case *livekit.SignalRequest_UpdateAudioTrack:
+	case *voicekit.SignalRequest_UpdateAudioTrack:
 		if err := participant.UpdateAudioTrack(msg.UpdateAudioTrack); err != nil {
 			pLogger.Warnw("could not update audio track", err, "update", msg.UpdateAudioTrack)
 		}
 
-	case *livekit.SignalRequest_UpdateVideoTrack:
+	case *voicekit.SignalRequest_UpdateVideoTrack:
 		if err := participant.UpdateVideoTrack(msg.UpdateVideoTrack); err != nil {
 			pLogger.Warnw("could not update video track", err, "update", msg.UpdateVideoTrack)
 		}

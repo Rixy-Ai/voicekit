@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 package videolayerselector
 
-import "github.com/livekit/protocol/logger"
+import "github.com/voicekit/protocol/logger"
 
 type FrameNumberWrapper struct {
 	offset uint64

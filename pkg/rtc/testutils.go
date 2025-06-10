@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,37 +15,37 @@
 package rtc
 
 import (
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/observability/roomobs"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/observability/roomobs"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/rtc/types/typesfakes"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types/typesfakes"
 )
 
-func NewMockParticipant(identity livekit.ParticipantIdentity, protocol types.ProtocolVersion, hidden bool, publisher bool) *typesfakes.FakeLocalParticipant {
+func NewMockParticipant(identity voicekit.ParticipantIdentity, protocol types.ProtocolVersion, hidden bool, publisher bool) *typesfakes.FakeLocalParticipant {
 	p := &typesfakes.FakeLocalParticipant{}
 	sid := guid.New(utils.ParticipantPrefix)
-	p.IDReturns(livekit.ParticipantID(sid))
+	p.IDReturns(voicekit.ParticipantID(sid))
 	p.IdentityReturns(identity)
-	p.StateReturns(livekit.ParticipantInfo_JOINED)
+	p.StateReturns(voicekit.ParticipantInfo_JOINED)
 	p.ProtocolVersionReturns(protocol)
 	p.CanSubscribeReturns(true)
 	p.CanPublishSourceReturns(!hidden)
 	p.CanPublishDataReturns(!hidden)
 	p.HiddenReturns(hidden)
-	p.ToProtoReturns(&livekit.ParticipantInfo{
+	p.ToProtoReturns(&voicekit.ParticipantInfo{
 		Sid:         sid,
 		Identity:    string(identity),
-		State:       livekit.ParticipantInfo_JOINED,
+		State:       voicekit.ParticipantInfo_JOINED,
 		IsPublisher: publisher,
 	})
-	p.ToProtoWithVersionReturns(&livekit.ParticipantInfo{
+	p.ToProtoWithVersionReturns(&voicekit.ParticipantInfo{
 		Sid:         sid,
 		Identity:    string(identity),
-		State:       livekit.ParticipantInfo_JOINED,
+		State:       voicekit.ParticipantInfo_JOINED,
 		IsPublisher: publisher,
 	}, utils.TimedVersion(0))
 
@@ -64,15 +64,15 @@ func NewMockParticipant(identity livekit.ParticipantIdentity, protocol types.Pro
 			f = p.OnTrackUpdatedArgsForCall(p.OnTrackUpdatedCallCount() - 1)
 		}
 		if f != nil {
-			f(p, NewMockTrack(livekit.TrackType_VIDEO, "testcam"))
+			f(p, NewMockTrack(voicekit.TrackType_VIDEO, "testcam"))
 		}
 	}
 
-	p.SetTrackMutedCalls(func(sid livekit.TrackID, muted bool, fromServer bool) *livekit.TrackInfo {
+	p.SetTrackMutedCalls(func(sid voicekit.TrackID, muted bool, fromServer bool) *voicekit.TrackInfo {
 		updateTrack()
 		return nil
 	})
-	p.AddTrackCalls(func(req *livekit.AddTrackRequest) {
+	p.AddTrackCalls(func(req *voicekit.AddTrackRequest) {
 		updateTrack()
 	})
 	p.GetLoggerReturns(logger.GetLogger())
@@ -81,12 +81,12 @@ func NewMockParticipant(identity livekit.ParticipantIdentity, protocol types.Pro
 	return p
 }
 
-func NewMockTrack(kind livekit.TrackType, name string) *typesfakes.FakeMediaTrack {
+func NewMockTrack(kind voicekit.TrackType, name string) *typesfakes.FakeMediaTrack {
 	t := &typesfakes.FakeMediaTrack{}
-	t.IDReturns(livekit.TrackID(guid.New(utils.TrackPrefix)))
+	t.IDReturns(voicekit.TrackID(guid.New(utils.TrackPrefix)))
 	t.KindReturns(kind)
 	t.NameReturns(name)
-	t.ToProtoReturns(&livekit.TrackInfo{
+	t.ToProtoReturns(&voicekit.TrackInfo{
 		Type: kind,
 		Name: name,
 	})

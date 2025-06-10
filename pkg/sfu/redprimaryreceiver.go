@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import (
 	"github.com/pion/rtp"
 	"github.com/pion/webrtc/v4"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 )
 
 var (
@@ -99,7 +99,7 @@ func (r *RedPrimaryReceiver) ForwardRTCPSenderReport(
 	payloadType webrtc.PayloadType,
 	isSVC bool,
 	layer int32,
-	publisherSRData *livekit.RTCPSenderReportState,
+	publisherSRData *voicekit.RTCPSenderReportState,
 ) {
 	r.downTrackSpreader.Broadcast(func(dt TrackSender) {
 		_ = dt.HandleRTCPSenderReportData(payloadType, isSVC, layer, publisherSRData)
@@ -120,7 +120,7 @@ func (r *RedPrimaryReceiver) AddDownTrack(track TrackSender) error {
 	return nil
 }
 
-func (r *RedPrimaryReceiver) DeleteDownTrack(subscriberID livekit.ParticipantID) {
+func (r *RedPrimaryReceiver) DeleteDownTrack(subscriberID voicekit.ParticipantID) {
 	if r.closed.Load() {
 		return
 	}

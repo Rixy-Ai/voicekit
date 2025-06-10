@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
 )
 
 type AgentDispatchService struct {
@@ -47,55 +47,55 @@ func NewAgentDispatchService(
 	}
 }
 
-func (ag *AgentDispatchService) CreateDispatch(ctx context.Context, req *livekit.CreateAgentDispatchRequest) (*livekit.AgentDispatch, error) {
+func (ag *AgentDispatchService) CreateDispatch(ctx context.Context, req *voicekit.CreateAgentDispatchRequest) (*voicekit.AgentDispatch, error) {
 	AppendLogFields(ctx, "room", req.Room, "request", logger.Proto(redactCreateAgentDispatchRequest(req)))
-	err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room))
+	err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room))
 	if err != nil {
 		return nil, twirpAuthError(err)
 	}
 
 	if ag.roomAllocator.AutoCreateEnabled(ctx) {
-		err := ag.roomAllocator.SelectRoomNode(ctx, livekit.RoomName(req.Room), "")
+		err := ag.roomAllocator.SelectRoomNode(ctx, voicekit.RoomName(req.Room), "")
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = ag.router.CreateRoom(ctx, &livekit.CreateRoomRequest{Name: req.Room})
+		_, err = ag.router.CreateRoom(ctx, &voicekit.CreateRoomRequest{Name: req.Room})
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	dispatch := &livekit.AgentDispatch{
+	dispatch := &voicekit.AgentDispatch{
 		Id:        guid.New(guid.AgentDispatchPrefix),
 		AgentName: req.AgentName,
 		Room:      req.Room,
 		Metadata:  req.Metadata,
 	}
-	return ag.agentDispatchClient.CreateDispatch(ctx, ag.topicFormatter.RoomTopic(ctx, livekit.RoomName(req.Room)), dispatch)
+	return ag.agentDispatchClient.CreateDispatch(ctx, ag.topicFormatter.RoomTopic(ctx, voicekit.RoomName(req.Room)), dispatch)
 }
 
-func (ag *AgentDispatchService) DeleteDispatch(ctx context.Context, req *livekit.DeleteAgentDispatchRequest) (*livekit.AgentDispatch, error) {
+func (ag *AgentDispatchService) DeleteDispatch(ctx context.Context, req *voicekit.DeleteAgentDispatchRequest) (*voicekit.AgentDispatch, error) {
 	AppendLogFields(ctx, "room", req.Room, "request", logger.Proto(req))
-	err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room))
+	err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room))
 	if err != nil {
 		return nil, twirpAuthError(err)
 	}
 
-	return ag.agentDispatchClient.DeleteDispatch(ctx, ag.topicFormatter.RoomTopic(ctx, livekit.RoomName(req.Room)), req)
+	return ag.agentDispatchClient.DeleteDispatch(ctx, ag.topicFormatter.RoomTopic(ctx, voicekit.RoomName(req.Room)), req)
 }
 
-func (ag *AgentDispatchService) ListDispatch(ctx context.Context, req *livekit.ListAgentDispatchRequest) (*livekit.ListAgentDispatchResponse, error) {
+func (ag *AgentDispatchService) ListDispatch(ctx context.Context, req *voicekit.ListAgentDispatchRequest) (*voicekit.ListAgentDispatchResponse, error) {
 	AppendLogFields(ctx, "room", req.Room, "request", logger.Proto(req))
-	err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room))
+	err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room))
 	if err != nil {
 		return nil, twirpAuthError(err)
 	}
 
-	return ag.agentDispatchClient.ListDispatch(ctx, ag.topicFormatter.RoomTopic(ctx, livekit.RoomName(req.Room)), req)
+	return ag.agentDispatchClient.ListDispatch(ctx, ag.topicFormatter.RoomTopic(ctx, voicekit.RoomName(req.Room)), req)
 }
 
-func redactCreateAgentDispatchRequest(req *livekit.CreateAgentDispatchRequest) *livekit.CreateAgentDispatchRequest {
+func redactCreateAgentDispatchRequest(req *voicekit.CreateAgentDispatchRequest) *voicekit.CreateAgentDispatchRequest {
 	if req.Metadata == "" {
 		return req
 	}

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/rtc/types/typesfakes"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types/typesfakes"
 )
 
 var defaultUptrackManagerParams = UpTrackManagerParams{
@@ -46,15 +46,15 @@ func TestUpdateSubscriptionPermission(t *testing.T) {
 		um.publishedTracks["video"] = trv
 
 		// no restrictive subscription permission
-		subscriptionPermission := &livekit.SubscriptionPermission{
+		subscriptionPermission := &voicekit.SubscriptionPermission{
 			AllParticipants: true,
 		}
 		um.UpdateSubscriptionPermission(subscriptionPermission, vg.Next(), nil)
 		require.Nil(t, um.subscriberPermissions)
 
 		// nobody is allowed to subscribe
-		subscriptionPermission = &livekit.SubscriptionPermission{
-			TrackPermissions: []*livekit.TrackPermission{},
+		subscriptionPermission = &voicekit.SubscriptionPermission{
+			TrackPermissions: []*voicekit.TrackPermission{},
 		}
 		um.UpdateSubscriptionPermission(subscriptionPermission, vg.Next(), nil)
 		require.NotNil(t, um.subscriberPermissions)
@@ -65,7 +65,7 @@ func TestUpdateSubscriptionPermission(t *testing.T) {
 		lp2 := &typesfakes.FakeLocalParticipant{}
 		lp2.IdentityReturns("p2")
 
-		sidResolver := func(sid livekit.ParticipantID) types.LocalParticipant {
+		sidResolver := func(sid voicekit.ParticipantID) types.LocalParticipant {
 			if sid == "p1" {
 				return lp1
 			}
@@ -78,16 +78,16 @@ func TestUpdateSubscriptionPermission(t *testing.T) {
 		}
 
 		// allow all tracks for participants
-		perms1 := &livekit.TrackPermission{
+		perms1 := &voicekit.TrackPermission{
 			ParticipantSid: "p1",
 			AllTracks:      true,
 		}
-		perms2 := &livekit.TrackPermission{
+		perms2 := &voicekit.TrackPermission{
 			ParticipantSid: "p2",
 			AllTracks:      true,
 		}
-		subscriptionPermission = &livekit.SubscriptionPermission{
-			TrackPermissions: []*livekit.TrackPermission{
+		subscriptionPermission = &voicekit.SubscriptionPermission{
+			TrackPermissions: []*voicekit.TrackPermission{
 				perms1,
 				perms2,
 			},
@@ -98,20 +98,20 @@ func TestUpdateSubscriptionPermission(t *testing.T) {
 		require.EqualValues(t, perms2, um.subscriberPermissions["p2"])
 
 		// allow all tracks for some and restrictive for others
-		perms1 = &livekit.TrackPermission{
+		perms1 = &voicekit.TrackPermission{
 			ParticipantIdentity: "p1",
 			AllTracks:           true,
 		}
-		perms2 = &livekit.TrackPermission{
+		perms2 = &voicekit.TrackPermission{
 			ParticipantIdentity: "p2",
 			TrackSids:           []string{"audio"},
 		}
-		perms3 := &livekit.TrackPermission{
+		perms3 := &voicekit.TrackPermission{
 			ParticipantIdentity: "p3",
 			TrackSids:           []string{"video"},
 		}
-		subscriptionPermission = &livekit.SubscriptionPermission{
-			TrackPermissions: []*livekit.TrackPermission{
+		subscriptionPermission = &voicekit.SubscriptionPermission{
+			TrackPermissions: []*voicekit.TrackPermission{
 				perms1,
 				perms2,
 				perms3,
@@ -141,7 +141,7 @@ func TestUpdateSubscriptionPermission(t *testing.T) {
 		lp2 := &typesfakes.FakeLocalParticipant{}
 		lp2.IdentityReturns("p2")
 
-		sidResolver := func(sid livekit.ParticipantID) types.LocalParticipant {
+		sidResolver := func(sid voicekit.ParticipantID) types.LocalParticipant {
 			if sid == "p1" {
 				return lp1
 			}
@@ -154,18 +154,18 @@ func TestUpdateSubscriptionPermission(t *testing.T) {
 		}
 
 		// allow all tracks for participants
-		perms1 := &livekit.TrackPermission{
+		perms1 := &voicekit.TrackPermission{
 			ParticipantSid:      "p1",
 			ParticipantIdentity: "p1",
 			AllTracks:           true,
 		}
-		perms2 := &livekit.TrackPermission{
+		perms2 := &voicekit.TrackPermission{
 			ParticipantSid:      "p2",
 			ParticipantIdentity: "p2",
 			AllTracks:           true,
 		}
-		subscriptionPermission := &livekit.SubscriptionPermission{
-			TrackPermissions: []*livekit.TrackPermission{
+		subscriptionPermission := &voicekit.SubscriptionPermission{
+			TrackPermissions: []*voicekit.TrackPermission{
 				perms1,
 				perms2,
 			},
@@ -177,7 +177,7 @@ func TestUpdateSubscriptionPermission(t *testing.T) {
 		require.EqualValues(t, perms2, um.subscriberPermissions["p2"])
 
 		// mismatched identities should fail a permission update
-		badSidResolver := func(sid livekit.ParticipantID) types.LocalParticipant {
+		badSidResolver := func(sid voicekit.ParticipantID) types.LocalParticipant {
 			if sid == "p1" {
 				return lp2
 			}
@@ -202,16 +202,16 @@ func TestUpdateSubscriptionPermission(t *testing.T) {
 
 		v0, v1, v2 := vg.Next(), vg.Next(), vg.Next()
 
-		um.UpdateSubscriptionPermission(&livekit.SubscriptionPermission{}, v1, nil)
+		um.UpdateSubscriptionPermission(&voicekit.SubscriptionPermission{}, v1, nil)
 		require.Equal(t, v1.Load(), um.subscriptionPermissionVersion.Load(), "first update should be applied")
 
-		um.UpdateSubscriptionPermission(&livekit.SubscriptionPermission{}, v2, nil)
+		um.UpdateSubscriptionPermission(&voicekit.SubscriptionPermission{}, v2, nil)
 		require.Equal(t, v2.Load(), um.subscriptionPermissionVersion.Load(), "ordered updates should be applied")
 
-		um.UpdateSubscriptionPermission(&livekit.SubscriptionPermission{}, v0, nil)
+		um.UpdateSubscriptionPermission(&voicekit.SubscriptionPermission{}, v0, nil)
 		require.Equal(t, v2.Load(), um.subscriptionPermissionVersion.Load(), "out of order updates should be ignored")
 
-		um.UpdateSubscriptionPermission(&livekit.SubscriptionPermission{}, utils.TimedVersion(0), nil)
+		um.UpdateSubscriptionPermission(&voicekit.SubscriptionPermission{}, utils.TimedVersion(0), nil)
 		require.True(t, um.subscriptionPermissionVersion.After(v2), "zero version in updates should use next local version")
 	})
 }
@@ -230,7 +230,7 @@ func TestSubscriptionPermission(t *testing.T) {
 		um.publishedTracks["video"] = trv
 
 		// no restrictive permission
-		subscriptionPermission := &livekit.SubscriptionPermission{
+		subscriptionPermission := &voicekit.SubscriptionPermission{
 			AllParticipants: true,
 		}
 		um.UpdateSubscriptionPermission(subscriptionPermission, vg.Next(), nil)
@@ -238,16 +238,16 @@ func TestSubscriptionPermission(t *testing.T) {
 		require.True(t, um.hasPermissionLocked("audio", "p2"))
 
 		// nobody is allowed to subscribe
-		subscriptionPermission = &livekit.SubscriptionPermission{
-			TrackPermissions: []*livekit.TrackPermission{},
+		subscriptionPermission = &voicekit.SubscriptionPermission{
+			TrackPermissions: []*voicekit.TrackPermission{},
 		}
 		um.UpdateSubscriptionPermission(subscriptionPermission, vg.Next(), nil)
 		require.False(t, um.hasPermissionLocked("audio", "p1"))
 		require.False(t, um.hasPermissionLocked("audio", "p2"))
 
 		// allow all tracks for participants
-		subscriptionPermission = &livekit.SubscriptionPermission{
-			TrackPermissions: []*livekit.TrackPermission{
+		subscriptionPermission = &voicekit.SubscriptionPermission{
+			TrackPermissions: []*voicekit.TrackPermission{
 				{
 					ParticipantIdentity: "p1",
 					AllTracks:           true,
@@ -277,8 +277,8 @@ func TestSubscriptionPermission(t *testing.T) {
 		require.True(t, um.hasPermissionLocked("screen", "p2"))
 
 		// allow all tracks for some and restrictive for others
-		subscriptionPermission = &livekit.SubscriptionPermission{
-			TrackPermissions: []*livekit.TrackPermission{
+		subscriptionPermission = &voicekit.SubscriptionPermission{
+			TrackPermissions: []*voicekit.TrackPermission{
 				{
 					ParticipantIdentity: "p1",
 					AllTracks:           true,

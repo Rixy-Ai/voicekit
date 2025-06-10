@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 LiveKit, Inc
+ * Copyright 2022 VoiceKit, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type twirpRequestFields struct {
@@ -221,7 +221,7 @@ func statusReporterErrorReceived(ctx context.Context, e twirp.Error) context.Con
 type twirpTelemetryKey struct{}
 
 func TwirpTelemetry(
-	nodeID livekit.NodeID,
+	nodeID voicekit.NodeID,
 	getProjectID func(ctx context.Context) string,
 	telemetry telemetry.TelemetryService,
 ) *twirp.ServerHooks {
@@ -240,56 +240,56 @@ func RecordRequest(ctx context.Context, request proto.Message) {
 		return
 	}
 
-	a, ok := ctx.Value(twirpTelemetryKey{}).(*livekit.APICallInfo)
+	a, ok := ctx.Value(twirpTelemetryKey{}).(*voicekit.APICallInfo)
 	if !ok || a == nil {
 		return
 	}
 
 	// capture request and extract common fields to top level as appropriate
 	switch msg := request.(type) {
-	case *livekit.CreateRoomRequest:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_CreateRoomRequest{
+	case *voicekit.CreateRoomRequest:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_CreateRoomRequest{
 				CreateRoomRequest: msg,
 			},
 		}
 		a.RoomName = msg.GetName()
 
-	case *livekit.ListRoomsRequest:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_ListRoomsRequest{
+	case *voicekit.ListRoomsRequest:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_ListRoomsRequest{
 				ListRoomsRequest: msg,
 			},
 		}
 
-	case *livekit.DeleteRoomRequest:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_DeleteRoomRequest{
+	case *voicekit.DeleteRoomRequest:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_DeleteRoomRequest{
 				DeleteRoomRequest: msg,
 			},
 		}
 		a.RoomName = msg.GetRoom()
 
-	case *livekit.ListParticipantsRequest:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_ListParticipantsRequest{
+	case *voicekit.ListParticipantsRequest:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_ListParticipantsRequest{
 				ListParticipantsRequest: msg,
 			},
 		}
 		a.RoomName = msg.GetRoom()
 
-	case *livekit.RoomParticipantIdentity:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_RoomParticipantIdentity{
+	case *voicekit.RoomParticipantIdentity:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_RoomParticipantIdentity{
 				RoomParticipantIdentity: msg,
 			},
 		}
 		a.RoomName = msg.GetRoom()
 		a.ParticipantIdentity = msg.GetIdentity()
 
-	case *livekit.MuteRoomTrackRequest:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_MuteRoomTrackRequest{
+	case *voicekit.MuteRoomTrackRequest:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_MuteRoomTrackRequest{
 				MuteRoomTrackRequest: msg,
 			},
 		}
@@ -297,35 +297,35 @@ func RecordRequest(ctx context.Context, request proto.Message) {
 		a.ParticipantIdentity = msg.GetIdentity()
 		a.TrackId = msg.GetTrackSid()
 
-	case *livekit.UpdateParticipantRequest:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_UpdateParticipantRequest{
+	case *voicekit.UpdateParticipantRequest:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_UpdateParticipantRequest{
 				UpdateParticipantRequest: msg,
 			},
 		}
 		a.RoomName = msg.GetRoom()
 		a.ParticipantIdentity = msg.GetIdentity()
 
-	case *livekit.UpdateSubscriptionsRequest:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_UpdateSubscriptionsRequest{
+	case *voicekit.UpdateSubscriptionsRequest:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_UpdateSubscriptionsRequest{
 				UpdateSubscriptionsRequest: msg,
 			},
 		}
 		a.RoomName = msg.GetRoom()
 		a.ParticipantIdentity = msg.GetIdentity()
 
-	case *livekit.SendDataRequest:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_SendDataRequest{
+	case *voicekit.SendDataRequest:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_SendDataRequest{
 				SendDataRequest: msg,
 			},
 		}
 		a.RoomName = msg.GetRoom()
 
-	case *livekit.UpdateRoomMetadataRequest:
-		a.Request = &livekit.APICallRequest{
-			Message: &livekit.APICallRequest_UpdateRoomMetadataRequest{
+	case *voicekit.UpdateRoomMetadataRequest:
+		a.Request = &voicekit.APICallRequest{
+			Message: &voicekit.APICallRequest_UpdateRoomMetadataRequest{
 				UpdateRoomMetadataRequest: msg,
 			},
 		}
@@ -337,23 +337,23 @@ func RecordResponse(ctx context.Context, response proto.Message) {
 		return
 	}
 
-	a, ok := ctx.Value(twirpTelemetryKey{}).(*livekit.APICallInfo)
+	a, ok := ctx.Value(twirpTelemetryKey{}).(*voicekit.APICallInfo)
 	if !ok || a == nil {
 		return
 	}
 
 	// extract common fields to top level as appropriate
 	switch msg := response.(type) {
-	case *livekit.Room:
+	case *voicekit.Room:
 		a.RoomId = msg.GetSid()
 
-	case *livekit.ParticipantInfo:
+	case *voicekit.ParticipantInfo:
 		a.ParticipantId = msg.GetSid()
 	}
 }
 
 func telemetryRequestReceived(ctx context.Context) (context.Context, error) {
-	a := &livekit.APICallInfo{}
+	a := &voicekit.APICallInfo{}
 	a.StartedAt = timestamppb.Now()
 
 	if svc, ok := twirp.ServiceName(ctx); ok {
@@ -365,7 +365,7 @@ func telemetryRequestReceived(ctx context.Context) (context.Context, error) {
 
 func telemetryRequestRouted(ctx context.Context) (context.Context, error) {
 	if meth, ok := twirp.MethodName(ctx); ok {
-		a, ok := ctx.Value(twirpTelemetryKey{}).(*livekit.APICallInfo)
+		a, ok := ctx.Value(twirpTelemetryKey{}).(*voicekit.APICallInfo)
 		if !ok || a == nil {
 			return ctx, nil
 		}
@@ -377,11 +377,11 @@ func telemetryRequestRouted(ctx context.Context) (context.Context, error) {
 
 func telemetryResponseSent(
 	ctx context.Context,
-	nodeID livekit.NodeID,
+	nodeID voicekit.NodeID,
 	getProjectID func(ctx context.Context) string,
 	telemetry telemetry.TelemetryService,
 ) {
-	a, ok := ctx.Value(twirpTelemetryKey{}).(*livekit.APICallInfo)
+	a, ok := ctx.Value(twirpTelemetryKey{}).(*voicekit.APICallInfo)
 	if !ok || a == nil {
 		return
 	}
@@ -402,7 +402,7 @@ func telemetryResponseSent(
 }
 
 func telemetryErrorReceived(ctx context.Context, e twirp.Error) context.Context {
-	a, ok := ctx.Value(twirpTelemetryKey{}).(*livekit.APICallInfo)
+	a, ok := ctx.Value(twirpTelemetryKey{}).(*voicekit.APICallInfo)
 	if !ok || a == nil {
 		return ctx
 	}

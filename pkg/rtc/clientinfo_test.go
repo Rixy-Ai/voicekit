@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 LiveKit, Inc
+ * Copyright 2022 VoiceKit, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func TestClientInfo_CompareVersion(t *testing.T) {
 	c := ClientInfo{
-		ClientInfo: &livekit.ClientInfo{
+		ClientInfo: &voicekit.ClientInfo{
 			Version: "1",
 		},
 	}
@@ -38,8 +38,8 @@ func TestClientInfo_CompareVersion(t *testing.T) {
 func TestClientInfo_SupportsICETCP(t *testing.T) {
 	t.Run("GO SDK cannot support TCP", func(t *testing.T) {
 		c := ClientInfo{
-			ClientInfo: &livekit.ClientInfo{
-				Sdk: livekit.ClientInfo_GO,
+			ClientInfo: &voicekit.ClientInfo{
+				Sdk: voicekit.ClientInfo_GO,
 			},
 		}
 		require.False(t, c.SupportsICETCP())
@@ -47,8 +47,8 @@ func TestClientInfo_SupportsICETCP(t *testing.T) {
 
 	t.Run("Swift SDK cannot support TCP before 1.0.5", func(t *testing.T) {
 		c := ClientInfo{
-			ClientInfo: &livekit.ClientInfo{
-				Sdk:     livekit.ClientInfo_SWIFT,
+			ClientInfo: &voicekit.ClientInfo{
+				Sdk:     voicekit.ClientInfo_SWIFT,
 				Version: "1.0.4",
 			},
 		}

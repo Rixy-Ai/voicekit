@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,16 +19,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func TestTrackInfo(t *testing.T) {
 	// ensures that persisted trackinfo is being returned
-	ti := livekit.TrackInfo{
+	ti := voicekit.TrackInfo{
 		Sid:       "testsid",
 		Name:      "testtrack",
-		Source:    livekit.TrackSource_SCREEN_SHARE,
-		Type:      livekit.TrackType_VIDEO,
+		Source:    voicekit.TrackSource_SCREEN_SHARE,
+		Type:      voicekit.TrackType_VIDEO,
 		Simulcast: false,
 		Width:     100,
 		Height:    80,
@@ -40,7 +40,7 @@ func TestTrackInfo(t *testing.T) {
 	require.Equal(t, ti.Muted, outInfo.Muted)
 	require.Equal(t, ti.Name, outInfo.Name)
 	require.Equal(t, ti.Name, mt.Name())
-	require.Equal(t, livekit.TrackID(ti.Sid), mt.ID())
+	require.Equal(t, voicekit.TrackID(ti.Sid), mt.ID())
 	require.Equal(t, ti.Type, outInfo.Type)
 	require.Equal(t, ti.Type, mt.Kind())
 	require.Equal(t, ti.Source, outInfo.Source)
@@ -55,120 +55,120 @@ func TestTrackInfo(t *testing.T) {
 
 func TestGetQualityForDimension(t *testing.T) {
 	t.Run("landscape source", func(t *testing.T) {
-		mt := NewMediaTrack(MediaTrackParams{}, &livekit.TrackInfo{
-			Type:   livekit.TrackType_VIDEO,
+		mt := NewMediaTrack(MediaTrackParams{}, &voicekit.TrackInfo{
+			Type:   voicekit.TrackType_VIDEO,
 			Width:  1080,
 			Height: 720,
 		})
 
-		require.Equal(t, livekit.VideoQuality_LOW, mt.GetQualityForDimension(120, 120))
-		require.Equal(t, livekit.VideoQuality_LOW, mt.GetQualityForDimension(300, 200))
-		require.Equal(t, livekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(200, 250))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(700, 480))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(500, 1000))
+		require.Equal(t, voicekit.VideoQuality_LOW, mt.GetQualityForDimension(120, 120))
+		require.Equal(t, voicekit.VideoQuality_LOW, mt.GetQualityForDimension(300, 200))
+		require.Equal(t, voicekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(200, 250))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(700, 480))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(500, 1000))
 	})
 
 	t.Run("portrait source", func(t *testing.T) {
-		mt := NewMediaTrack(MediaTrackParams{}, &livekit.TrackInfo{
-			Type:   livekit.TrackType_VIDEO,
+		mt := NewMediaTrack(MediaTrackParams{}, &voicekit.TrackInfo{
+			Type:   voicekit.TrackType_VIDEO,
 			Width:  540,
 			Height: 960,
 		})
 
-		require.Equal(t, livekit.VideoQuality_LOW, mt.GetQualityForDimension(200, 400))
-		require.Equal(t, livekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(400, 400))
-		require.Equal(t, livekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(400, 700))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(600, 900))
+		require.Equal(t, voicekit.VideoQuality_LOW, mt.GetQualityForDimension(200, 400))
+		require.Equal(t, voicekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(400, 400))
+		require.Equal(t, voicekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(400, 700))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(600, 900))
 	})
 
 	t.Run("layers provided", func(t *testing.T) {
-		mt := NewMediaTrack(MediaTrackParams{}, &livekit.TrackInfo{
-			Type:   livekit.TrackType_VIDEO,
+		mt := NewMediaTrack(MediaTrackParams{}, &voicekit.TrackInfo{
+			Type:   voicekit.TrackType_VIDEO,
 			Width:  1080,
 			Height: 720,
-			Layers: []*livekit.VideoLayer{
+			Layers: []*voicekit.VideoLayer{
 				{
-					Quality: livekit.VideoQuality_LOW,
+					Quality: voicekit.VideoQuality_LOW,
 					Width:   480,
 					Height:  270,
 				},
 				{
-					Quality: livekit.VideoQuality_MEDIUM,
+					Quality: voicekit.VideoQuality_MEDIUM,
 					Width:   960,
 					Height:  540,
 				},
 				{
-					Quality: livekit.VideoQuality_HIGH,
+					Quality: voicekit.VideoQuality_HIGH,
 					Width:   1080,
 					Height:  720,
 				},
 			},
 		})
 
-		require.Equal(t, livekit.VideoQuality_LOW, mt.GetQualityForDimension(120, 120))
-		require.Equal(t, livekit.VideoQuality_LOW, mt.GetQualityForDimension(300, 300))
-		require.Equal(t, livekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(800, 500))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(1000, 700))
+		require.Equal(t, voicekit.VideoQuality_LOW, mt.GetQualityForDimension(120, 120))
+		require.Equal(t, voicekit.VideoQuality_LOW, mt.GetQualityForDimension(300, 300))
+		require.Equal(t, voicekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(800, 500))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(1000, 700))
 	})
 
 	t.Run("highest layer with smallest dimensions", func(t *testing.T) {
-		mt := NewMediaTrack(MediaTrackParams{}, &livekit.TrackInfo{
-			Type:   livekit.TrackType_VIDEO,
+		mt := NewMediaTrack(MediaTrackParams{}, &voicekit.TrackInfo{
+			Type:   voicekit.TrackType_VIDEO,
 			Width:  1080,
 			Height: 720,
-			Layers: []*livekit.VideoLayer{
+			Layers: []*voicekit.VideoLayer{
 				{
-					Quality: livekit.VideoQuality_LOW,
+					Quality: voicekit.VideoQuality_LOW,
 					Width:   480,
 					Height:  270,
 				},
 				{
-					Quality: livekit.VideoQuality_MEDIUM,
+					Quality: voicekit.VideoQuality_MEDIUM,
 					Width:   1080,
 					Height:  720,
 				},
 				{
-					Quality: livekit.VideoQuality_HIGH,
+					Quality: voicekit.VideoQuality_HIGH,
 					Width:   1080,
 					Height:  720,
 				},
 			},
 		})
 
-		require.Equal(t, livekit.VideoQuality_LOW, mt.GetQualityForDimension(120, 120))
-		require.Equal(t, livekit.VideoQuality_LOW, mt.GetQualityForDimension(300, 300))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(800, 500))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(1000, 700))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(1200, 800))
+		require.Equal(t, voicekit.VideoQuality_LOW, mt.GetQualityForDimension(120, 120))
+		require.Equal(t, voicekit.VideoQuality_LOW, mt.GetQualityForDimension(300, 300))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(800, 500))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(1000, 700))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(1200, 800))
 
-		mt = NewMediaTrack(MediaTrackParams{}, &livekit.TrackInfo{
-			Type:   livekit.TrackType_VIDEO,
+		mt = NewMediaTrack(MediaTrackParams{}, &voicekit.TrackInfo{
+			Type:   voicekit.TrackType_VIDEO,
 			Width:  1080,
 			Height: 720,
-			Layers: []*livekit.VideoLayer{
+			Layers: []*voicekit.VideoLayer{
 				{
-					Quality: livekit.VideoQuality_LOW,
+					Quality: voicekit.VideoQuality_LOW,
 					Width:   480,
 					Height:  270,
 				},
 				{
-					Quality: livekit.VideoQuality_MEDIUM,
+					Quality: voicekit.VideoQuality_MEDIUM,
 					Width:   480,
 					Height:  270,
 				},
 				{
-					Quality: livekit.VideoQuality_HIGH,
+					Quality: voicekit.VideoQuality_HIGH,
 					Width:   1080,
 					Height:  720,
 				},
 			},
 		})
 
-		require.Equal(t, livekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(120, 120))
-		require.Equal(t, livekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(300, 300))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(800, 500))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(1000, 700))
-		require.Equal(t, livekit.VideoQuality_HIGH, mt.GetQualityForDimension(1200, 800))
+		require.Equal(t, voicekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(120, 120))
+		require.Equal(t, voicekit.VideoQuality_MEDIUM, mt.GetQualityForDimension(300, 300))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(800, 500))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(1000, 700))
+		require.Equal(t, voicekit.VideoQuality_HIGH, mt.GetQualityForDimension(1200, 800))
 	})
 
 }

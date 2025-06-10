@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import (
 	"testing"
 
 	"github.com/dennwc/iters"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/livekit-server/pkg/service"
+	"github.com/voicekit/voicekit-server/pkg/service"
 )
 
 func TestSIPStoreDispatch(t *testing.T) {
@@ -38,7 +38,7 @@ func TestSIPStoreDispatch(t *testing.T) {
 	id := guid.New(utils.SIPDispatchRulePrefix)
 
 	// No dispatch rules initially.
-	list, err := rs.ListSIPDispatchRule(ctx, &livekit.ListSIPDispatchRuleRequest{})
+	list, err := rs.ListSIPDispatchRule(ctx, &voicekit.ListSIPDispatchRuleRequest{})
 	require.NoError(t, err)
 	require.Empty(t, list.Items)
 
@@ -48,10 +48,10 @@ func TestSIPStoreDispatch(t *testing.T) {
 	require.Nil(t, got)
 
 	// Creation without ID should fail.
-	rule := &livekit.SIPDispatchRuleInfo{
+	rule := &voicekit.SIPDispatchRuleInfo{
 		TrunkIds: []string{"trunk"},
-		Rule: &livekit.SIPDispatchRule{Rule: &livekit.SIPDispatchRule_DispatchRuleDirect{
-			DispatchRuleDirect: &livekit.SIPDispatchRuleDirect{
+		Rule: &voicekit.SIPDispatchRule{Rule: &voicekit.SIPDispatchRule_DispatchRuleDirect{
+			DispatchRuleDirect: &voicekit.SIPDispatchRuleDirect{
 				RoomName: "room",
 				Pin:      "1234",
 			},
@@ -71,7 +71,7 @@ func TestSIPStoreDispatch(t *testing.T) {
 	require.True(t, proto.Equal(rule, got))
 
 	// Listing
-	list, err = rs.ListSIPDispatchRule(ctx, &livekit.ListSIPDispatchRuleRequest{})
+	list, err = rs.ListSIPDispatchRule(ctx, &voicekit.ListSIPDispatchRuleRequest{})
 	require.NoError(t, err)
 	require.Len(t, list.Items, 1)
 	require.True(t, proto.Equal(rule, list.Items[0]))
@@ -83,7 +83,7 @@ func TestSIPStoreDispatch(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that it's deleted.
-	list, err = rs.ListSIPDispatchRule(ctx, &livekit.ListSIPDispatchRuleRequest{})
+	list, err = rs.ListSIPDispatchRule(ctx, &voicekit.ListSIPDispatchRuleRequest{})
 	require.NoError(t, err)
 	require.Empty(t, list.Items)
 
@@ -102,7 +102,7 @@ func TestSIPStoreTrunk(t *testing.T) {
 
 	// No trunks initially. Check legacy, inbound, outbound.
 	// Loading non-existent trunk should return proper not found error.
-	oldList, err := rs.ListSIPTrunk(ctx, &livekit.ListSIPTrunkRequest{})
+	oldList, err := rs.ListSIPTrunk(ctx, &voicekit.ListSIPTrunkRequest{})
 	require.NoError(t, err)
 	require.Empty(t, oldList.Items)
 
@@ -110,7 +110,7 @@ func TestSIPStoreTrunk(t *testing.T) {
 	require.Equal(t, service.ErrSIPTrunkNotFound, err)
 	require.Nil(t, old)
 
-	inList, err := rs.ListSIPInboundTrunk(ctx, &livekit.ListSIPInboundTrunkRequest{})
+	inList, err := rs.ListSIPInboundTrunk(ctx, &voicekit.ListSIPInboundTrunkRequest{})
 	require.NoError(t, err)
 	require.Empty(t, inList.Items)
 
@@ -118,7 +118,7 @@ func TestSIPStoreTrunk(t *testing.T) {
 	require.Equal(t, service.ErrSIPTrunkNotFound, err)
 	require.Nil(t, in)
 
-	outList, err := rs.ListSIPOutboundTrunk(ctx, &livekit.ListSIPOutboundTrunkRequest{})
+	outList, err := rs.ListSIPOutboundTrunk(ctx, &voicekit.ListSIPOutboundTrunkRequest{})
 	require.NoError(t, err)
 	require.Empty(t, outList.Items)
 
@@ -127,19 +127,19 @@ func TestSIPStoreTrunk(t *testing.T) {
 	require.Nil(t, out)
 
 	// Creation without ID should fail.
-	oldT := &livekit.SIPTrunkInfo{
+	oldT := &voicekit.SIPTrunkInfo{
 		Name: "Legacy",
 	}
 	err = rs.StoreSIPTrunk(ctx, oldT)
 	require.Error(t, err)
 
-	inT := &livekit.SIPInboundTrunkInfo{
+	inT := &voicekit.SIPInboundTrunkInfo{
 		Name: "Inbound",
 	}
 	err = rs.StoreSIPInboundTrunk(ctx, inT)
 	require.Error(t, err)
 
-	outT := &livekit.SIPOutboundTrunkInfo{
+	outT := &voicekit.SIPOutboundTrunkInfo{
 		Name: "Outbound",
 	}
 	err = rs.StoreSIPOutboundTrunk(ctx, outT)
@@ -189,29 +189,29 @@ func TestSIPStoreTrunk(t *testing.T) {
 	require.True(t, proto.Equal(oldT.AsOutbound(), outT2))
 
 	// Listing (always shows legacy + new)
-	listOld, err := rs.ListSIPTrunk(ctx, &livekit.ListSIPTrunkRequest{})
+	listOld, err := rs.ListSIPTrunk(ctx, &voicekit.ListSIPTrunkRequest{})
 	require.NoError(t, err)
 	require.Len(t, listOld.Items, 3)
-	slices.SortFunc(listOld.Items, func(a, b *livekit.SIPTrunkInfo) int {
+	slices.SortFunc(listOld.Items, func(a, b *voicekit.SIPTrunkInfo) int {
 		return strings.Compare(a.Name, b.Name)
 	})
 	require.True(t, proto.Equal(inT.AsTrunkInfo(), listOld.Items[0]))
 	require.True(t, proto.Equal(oldT, listOld.Items[1]))
 	require.True(t, proto.Equal(outT.AsTrunkInfo(), listOld.Items[2]))
 
-	listIn, err := rs.ListSIPInboundTrunk(ctx, &livekit.ListSIPInboundTrunkRequest{})
+	listIn, err := rs.ListSIPInboundTrunk(ctx, &voicekit.ListSIPInboundTrunkRequest{})
 	require.NoError(t, err)
 	require.Len(t, listIn.Items, 2)
-	slices.SortFunc(listIn.Items, func(a, b *livekit.SIPInboundTrunkInfo) int {
+	slices.SortFunc(listIn.Items, func(a, b *voicekit.SIPInboundTrunkInfo) int {
 		return strings.Compare(a.Name, b.Name)
 	})
 	require.True(t, proto.Equal(inT, listIn.Items[0]))
 	require.True(t, proto.Equal(oldT.AsInbound(), listIn.Items[1]))
 
-	listOut, err := rs.ListSIPOutboundTrunk(ctx, &livekit.ListSIPOutboundTrunkRequest{})
+	listOut, err := rs.ListSIPOutboundTrunk(ctx, &voicekit.ListSIPOutboundTrunkRequest{})
 	require.NoError(t, err)
 	require.Len(t, listOut.Items, 2)
-	slices.SortFunc(listOut.Items, func(a, b *livekit.SIPOutboundTrunkInfo) int {
+	slices.SortFunc(listOut.Items, func(a, b *voicekit.SIPOutboundTrunkInfo) int {
 		return strings.Compare(a.Name, b.Name)
 	})
 	require.True(t, proto.Equal(oldT.AsOutbound(), listOut.Items[0]))
@@ -239,15 +239,15 @@ func TestSIPStoreTrunk(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check everything is deleted.
-	oldList, err = rs.ListSIPTrunk(ctx, &livekit.ListSIPTrunkRequest{})
+	oldList, err = rs.ListSIPTrunk(ctx, &voicekit.ListSIPTrunkRequest{})
 	require.NoError(t, err)
 	require.Empty(t, oldList.Items)
 
-	inList, err = rs.ListSIPInboundTrunk(ctx, &livekit.ListSIPInboundTrunkRequest{})
+	inList, err = rs.ListSIPInboundTrunk(ctx, &voicekit.ListSIPInboundTrunkRequest{})
 	require.NoError(t, err)
 	require.Empty(t, inList.Items)
 
-	outList, err = rs.ListSIPOutboundTrunk(ctx, &livekit.ListSIPOutboundTrunkRequest{})
+	outList, err = rs.ListSIPOutboundTrunk(ctx, &voicekit.ListSIPOutboundTrunkRequest{})
 	require.NoError(t, err)
 	require.Empty(t, outList.Items)
 
@@ -269,17 +269,17 @@ func TestSIPTrunkList(t *testing.T) {
 
 	testIter(t, func(ctx context.Context, id string) error {
 		if strings.HasSuffix(id, "0") {
-			return s.StoreSIPTrunk(ctx, &livekit.SIPTrunkInfo{
+			return s.StoreSIPTrunk(ctx, &voicekit.SIPTrunkInfo{
 				SipTrunkId:     id,
 				OutboundNumber: id,
 			})
 		}
-		return s.StoreSIPInboundTrunk(ctx, &livekit.SIPInboundTrunkInfo{
+		return s.StoreSIPInboundTrunk(ctx, &voicekit.SIPInboundTrunkInfo{
 			SipTrunkId: id,
 			Numbers:    []string{id},
 		})
-	}, func(ctx context.Context, page *livekit.Pagination, ids []string) iters.PageIter[*livekit.SIPInboundTrunkInfo] {
-		return livekit.ListPageIter(s.ListSIPInboundTrunk, &livekit.ListSIPInboundTrunkRequest{
+	}, func(ctx context.Context, page *voicekit.Pagination, ids []string) iters.PageIter[*voicekit.SIPInboundTrunkInfo] {
+		return voicekit.ListPageIter(s.ListSIPInboundTrunk, &voicekit.ListSIPInboundTrunkRequest{
 			TrunkIds: ids, Page: page,
 		})
 	})
@@ -289,12 +289,12 @@ func TestSIPRuleList(t *testing.T) {
 	s := redisStoreDocker(t)
 
 	testIter(t, func(ctx context.Context, id string) error {
-		return s.StoreSIPDispatchRule(ctx, &livekit.SIPDispatchRuleInfo{
+		return s.StoreSIPDispatchRule(ctx, &voicekit.SIPDispatchRuleInfo{
 			SipDispatchRuleId: id,
 			TrunkIds:          []string{id},
 		})
-	}, func(ctx context.Context, page *livekit.Pagination, ids []string) iters.PageIter[*livekit.SIPDispatchRuleInfo] {
-		return livekit.ListPageIter(s.ListSIPDispatchRule, &livekit.ListSIPDispatchRuleRequest{
+	}, func(ctx context.Context, page *voicekit.Pagination, ids []string) iters.PageIter[*voicekit.SIPDispatchRuleInfo] {
+		return voicekit.ListPageIter(s.ListSIPDispatchRule, &voicekit.ListSIPDispatchRuleRequest{
 			DispatchRuleIds: ids, Page: page,
 		})
 	})
@@ -316,7 +316,7 @@ func allIDs[T listItem](t testing.TB, it iters.PageIter[T]) []string {
 func testIter[T listItem](
 	t *testing.T,
 	create func(ctx context.Context, id string) error,
-	list func(ctx context.Context, page *livekit.Pagination, ids []string) iters.PageIter[T],
+	list func(ctx context.Context, page *voicekit.Pagination, ids []string) iters.PageIter[T],
 ) {
 	ctx := context.Background()
 	var all []string
@@ -333,17 +333,17 @@ func testIter[T listItem](
 	require.Equal(t, all, got)
 
 	// List with pagination enabled
-	it = list(ctx, &livekit.Pagination{Limit: 10}, nil)
+	it = list(ctx, &voicekit.Pagination{Limit: 10}, nil)
 	got = allIDs(t, it)
 	require.Equal(t, all, got)
 
 	// List with pagination enabled, custom ID
-	it = list(ctx, &livekit.Pagination{Limit: 10, AfterId: all[55]}, nil)
+	it = list(ctx, &voicekit.Pagination{Limit: 10, AfterId: all[55]}, nil)
 	got = allIDs(t, it)
 	require.Equal(t, all[56:], got)
 
 	// List fixed IDs
-	it = list(ctx, &livekit.Pagination{Limit: 10, AfterId: all[5]}, []string{
+	it = list(ctx, &voicekit.Pagination{Limit: 10, AfterId: all[5]}, []string{
 		all[10],
 		all[3],
 		"invalid",

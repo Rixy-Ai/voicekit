@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func HandleError(w http.ResponseWriter, r *http.Request, status int, err error, keysAndValues ...interface{}) {
@@ -69,7 +69,7 @@ func GetClientIP(r *http.Request) string {
 	return ip
 }
 
-func SetRoomConfiguration(createRequest *livekit.CreateRoomRequest, conf *livekit.RoomConfiguration) {
+func SetRoomConfiguration(createRequest *voicekit.CreateRoomRequest, conf *voicekit.RoomConfiguration) {
 	if conf == nil {
 		return
 	}

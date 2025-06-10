@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,20 +33,20 @@ import (
 	"go.uber.org/atomic"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/mono"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/ccutils"
-	"github.com/livekit/livekit-server/pkg/sfu/connectionquality"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/sfu/pacer"
-	act "github.com/livekit/livekit-server/pkg/sfu/rtpextension/abscapturetime"
-	dd "github.com/livekit/livekit-server/pkg/sfu/rtpextension/dependencydescriptor"
-	pd "github.com/livekit/livekit-server/pkg/sfu/rtpextension/playoutdelay"
-	"github.com/livekit/livekit-server/pkg/sfu/rtpstats"
-	"github.com/livekit/livekit-server/pkg/sfu/utils"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/ccutils"
+	"github.com/voicekit/voicekit-server/pkg/sfu/connectionquality"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/sfu/pacer"
+	act "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/abscapturetime"
+	dd "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/dependencydescriptor"
+	pd "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/playoutdelay"
+	"github.com/voicekit/voicekit-server/pkg/sfu/rtpstats"
+	"github.com/voicekit/voicekit-server/pkg/sfu/utils"
 )
 
 // TrackSender defines an interface send media to remote peer
@@ -61,12 +61,12 @@ type TrackSender interface {
 	IsClosed() bool
 	// ID is the globally unique identifier for this Track.
 	ID() string
-	SubscriberID() livekit.ParticipantID
+	SubscriberID() voicekit.ParticipantID
 	HandleRTCPSenderReportData(
 		payloadType webrtc.PayloadType,
 		isSVC bool,
 		layer int32,
-		publisherSRData *livekit.RTCPSenderReportState,
+		publisherSRData *voicekit.RTCPSenderReportState,
 	) error
 	Resync()
 	SetReceiver(TrackReceiver)
@@ -148,7 +148,7 @@ type DownTrackState struct {
 	DeltaStatsSenderSnapshotId    uint32
 	RTPStatsRTX                   *rtpstats.RTPStatsSender
 	DeltaStatsRTXSenderSnapshotId uint32
-	ForwarderState                *livekit.RTPForwarderState
+	ForwarderState                *voicekit.RTPForwarderState
 	PlayoutDelayControllerState   PlayoutDelayControllerState
 }
 
@@ -227,13 +227,13 @@ type ReceiverReportListener func(dt *DownTrack, report *rtcp.ReceiverReport)
 
 type DowntrackParams struct {
 	Codecs                         []webrtc.RTPCodecParameters
-	Source                         livekit.TrackSource
+	Source                         voicekit.TrackSource
 	Receiver                       TrackReceiver
 	BufferFactory                  *buffer.Factory
-	SubID                          livekit.ParticipantID
+	SubID                          voicekit.ParticipantID
 	StreamID                       string
 	MaxTrack                       int
-	PlayoutDelayLimit              *livekit.PlayoutDelay
+	PlayoutDelayLimit              *voicekit.PlayoutDelay
 	Pacer                          pacer.Pacer
 	Logger                         logger.Logger
 	Trailer                        []byte
@@ -252,7 +252,7 @@ type DowntrackParams struct {
 // once closed, a DownTrack cannot be re-used.
 type DownTrack struct {
 	params            DowntrackParams
-	id                livekit.TrackID
+	id                voicekit.TrackID
 	kind              webrtc.RTPCodecType
 	ssrc              uint32
 	ssrcRTX           uint32
@@ -335,7 +335,7 @@ type DownTrack struct {
 	keyFrameRequesterChClosed bool
 
 	cbMu                        sync.RWMutex
-	onStatsUpdate               func(dt *DownTrack, stat *livekit.AnalyticsStat)
+	onStatsUpdate               func(dt *DownTrack, stat *voicekit.AnalyticsStat)
 	onMaxSubscribedLayerChanged func(dt *DownTrack, layer int32)
 	onRttUpdate                 func(dt *DownTrack, rtt uint32)
 	onCloseHandler              func(isExpectedToResume bool)
@@ -411,7 +411,7 @@ func NewDownTrack(params DowntrackParams) (*DownTrack, error) {
 		SenderProvider: d,
 		Logger:         d.params.Logger.WithValues("direction", "down"),
 	})
-	d.connectionStats.OnStatsUpdate(func(_cs *connectionquality.ConnectionStats, stat *livekit.AnalyticsStat) {
+	d.connectionStats.OnStatsUpdate(func(_cs *connectionquality.ConnectionStats, stat *voicekit.AnalyticsStat) {
 		if onStatsUpdate := d.getOnStatsUpdate(); onStatsUpdate != nil {
 			onStatsUpdate(d, stat)
 		}
@@ -756,9 +756,9 @@ func (d *DownTrack) Mime() mime.MimeType {
 // StreamID is the group this track belongs too. This must be unique
 func (d *DownTrack) StreamID() string { return d.params.StreamID }
 
-func (d *DownTrack) SubscriberID() livekit.ParticipantID {
+func (d *DownTrack) SubscriberID() voicekit.ParticipantID {
 	// add `createdAt` to ensure repeated subscriptions from same subscriber to same publisher does not collide
-	return livekit.ParticipantID(fmt.Sprintf("%s:%d", d.params.SubID, d.createdAt))
+	return voicekit.ParticipantID(fmt.Sprintf("%s:%d", d.params.SubID, d.createdAt))
 }
 
 func (d *DownTrack) Receiver() TrackReceiver {
@@ -1516,14 +1516,14 @@ func (d *DownTrack) AddReceiverReportListener(listener ReceiverReportListener) {
 	d.receiverReportListeners = append(d.receiverReportListeners, listener)
 }
 
-func (d *DownTrack) OnStatsUpdate(fn func(dt *DownTrack, stat *livekit.AnalyticsStat)) {
+func (d *DownTrack) OnStatsUpdate(fn func(dt *DownTrack, stat *voicekit.AnalyticsStat)) {
 	d.cbMu.Lock()
 	defer d.cbMu.Unlock()
 
 	d.onStatsUpdate = fn
 }
 
-func (d *DownTrack) getOnStatsUpdate() func(dt *DownTrack, stat *livekit.AnalyticsStat) {
+func (d *DownTrack) getOnStatsUpdate() func(dt *DownTrack, stat *voicekit.AnalyticsStat) {
 	d.cbMu.RLock()
 	defer d.cbMu.RUnlock()
 
@@ -1927,7 +1927,7 @@ func (d *DownTrack) handleRTCP(bytes []byte) {
 				if d.playoutDelay != nil {
 					d.playoutDelay.OnSeqAcked(uint16(r.LastSequenceNumber))
 					// screen share track has inaccuracy jitter due to its low frame rate and bursty traffic
-					if d.params.Source != livekit.TrackSource_SCREEN_SHARE {
+					if d.params.Source != voicekit.TrackSource_SCREEN_SHARE {
 						jitterMs := uint64(r.Jitter*1e3) / uint64(d.clockRate)
 						d.playoutDelay.SetJitter(uint32(jitterMs))
 					}
@@ -2363,11 +2363,11 @@ func (d *DownTrack) DebugInfo() map[string]interface{} {
 	}
 }
 
-func (d *DownTrack) GetConnectionScoreAndQuality() (float32, livekit.ConnectionQuality) {
+func (d *DownTrack) GetConnectionScoreAndQuality() (float32, voicekit.ConnectionQuality) {
 	return d.connectionStats.GetScoreAndQuality()
 }
 
-func (d *DownTrack) GetTrackStats() *livekit.RTPStats {
+func (d *DownTrack) GetTrackStats() *voicekit.RTPStats {
 	return rtpstats.ReconcileRTPStatsWithRTX(d.rtpStats.ToProto(), d.rtpStatsRTX.ToProto())
 }
 
@@ -2522,7 +2522,7 @@ func (d *DownTrack) HandleRTCPSenderReportData(
 	_payloadType webrtc.PayloadType,
 	isSVC bool,
 	layer int32,
-	publisherSRData *livekit.RTCPSenderReportState,
+	publisherSRData *voicekit.RTCPSenderReportState,
 ) error {
 	d.forwarder.SetRefSenderReport(isSVC, layer, publisherSRData)
 
@@ -2533,7 +2533,7 @@ func (d *DownTrack) HandleRTCPSenderReportData(
 	return nil
 }
 
-func (d *DownTrack) handleRTCPSenderReportData(publisherSRData *livekit.RTCPSenderReportState, tsOffset uint64) {
+func (d *DownTrack) handleRTCPSenderReportData(publisherSRData *voicekit.RTCPSenderReportState, tsOffset uint64) {
 	d.rtpStats.MaybeAdjustFirstPacketTime(publisherSRData, tsOffset)
 }
 

@@ -5,16 +5,16 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type FakeIngressStore struct {
-	DeleteIngressStub        func(context.Context, *livekit.IngressInfo) error
+	DeleteIngressStub        func(context.Context, *voicekit.IngressInfo) error
 	deleteIngressMutex       sync.RWMutex
 	deleteIngressArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}
 	deleteIngressReturns struct {
 		result1 error
@@ -22,53 +22,53 @@ type FakeIngressStore struct {
 	deleteIngressReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ListIngressStub        func(context.Context, livekit.RoomName) ([]*livekit.IngressInfo, error)
+	ListIngressStub        func(context.Context, voicekit.RoomName) ([]*voicekit.IngressInfo, error)
 	listIngressMutex       sync.RWMutex
 	listIngressArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}
 	listIngressReturns struct {
-		result1 []*livekit.IngressInfo
+		result1 []*voicekit.IngressInfo
 		result2 error
 	}
 	listIngressReturnsOnCall map[int]struct {
-		result1 []*livekit.IngressInfo
+		result1 []*voicekit.IngressInfo
 		result2 error
 	}
-	LoadIngressStub        func(context.Context, string) (*livekit.IngressInfo, error)
+	LoadIngressStub        func(context.Context, string) (*voicekit.IngressInfo, error)
 	loadIngressMutex       sync.RWMutex
 	loadIngressArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 	}
 	loadIngressReturns struct {
-		result1 *livekit.IngressInfo
+		result1 *voicekit.IngressInfo
 		result2 error
 	}
 	loadIngressReturnsOnCall map[int]struct {
-		result1 *livekit.IngressInfo
+		result1 *voicekit.IngressInfo
 		result2 error
 	}
-	LoadIngressFromStreamKeyStub        func(context.Context, string) (*livekit.IngressInfo, error)
+	LoadIngressFromStreamKeyStub        func(context.Context, string) (*voicekit.IngressInfo, error)
 	loadIngressFromStreamKeyMutex       sync.RWMutex
 	loadIngressFromStreamKeyArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 	}
 	loadIngressFromStreamKeyReturns struct {
-		result1 *livekit.IngressInfo
+		result1 *voicekit.IngressInfo
 		result2 error
 	}
 	loadIngressFromStreamKeyReturnsOnCall map[int]struct {
-		result1 *livekit.IngressInfo
+		result1 *voicekit.IngressInfo
 		result2 error
 	}
-	StoreIngressStub        func(context.Context, *livekit.IngressInfo) error
+	StoreIngressStub        func(context.Context, *voicekit.IngressInfo) error
 	storeIngressMutex       sync.RWMutex
 	storeIngressArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}
 	storeIngressReturns struct {
 		result1 error
@@ -76,11 +76,11 @@ type FakeIngressStore struct {
 	storeIngressReturnsOnCall map[int]struct {
 		result1 error
 	}
-	UpdateIngressStub        func(context.Context, *livekit.IngressInfo) error
+	UpdateIngressStub        func(context.Context, *voicekit.IngressInfo) error
 	updateIngressMutex       sync.RWMutex
 	updateIngressArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}
 	updateIngressReturns struct {
 		result1 error
@@ -88,12 +88,12 @@ type FakeIngressStore struct {
 	updateIngressReturnsOnCall map[int]struct {
 		result1 error
 	}
-	UpdateIngressStateStub        func(context.Context, string, *livekit.IngressState) error
+	UpdateIngressStateStub        func(context.Context, string, *voicekit.IngressState) error
 	updateIngressStateMutex       sync.RWMutex
 	updateIngressStateArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 *livekit.IngressState
+		arg3 *voicekit.IngressState
 	}
 	updateIngressStateReturns struct {
 		result1 error
@@ -105,12 +105,12 @@ type FakeIngressStore struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeIngressStore) DeleteIngress(arg1 context.Context, arg2 *livekit.IngressInfo) error {
+func (fake *FakeIngressStore) DeleteIngress(arg1 context.Context, arg2 *voicekit.IngressInfo) error {
 	fake.deleteIngressMutex.Lock()
 	ret, specificReturn := fake.deleteIngressReturnsOnCall[len(fake.deleteIngressArgsForCall)]
 	fake.deleteIngressArgsForCall = append(fake.deleteIngressArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}{arg1, arg2})
 	stub := fake.DeleteIngressStub
 	fakeReturns := fake.deleteIngressReturns
@@ -131,13 +131,13 @@ func (fake *FakeIngressStore) DeleteIngressCallCount() int {
 	return len(fake.deleteIngressArgsForCall)
 }
 
-func (fake *FakeIngressStore) DeleteIngressCalls(stub func(context.Context, *livekit.IngressInfo) error) {
+func (fake *FakeIngressStore) DeleteIngressCalls(stub func(context.Context, *voicekit.IngressInfo) error) {
 	fake.deleteIngressMutex.Lock()
 	defer fake.deleteIngressMutex.Unlock()
 	fake.DeleteIngressStub = stub
 }
 
-func (fake *FakeIngressStore) DeleteIngressArgsForCall(i int) (context.Context, *livekit.IngressInfo) {
+func (fake *FakeIngressStore) DeleteIngressArgsForCall(i int) (context.Context, *voicekit.IngressInfo) {
 	fake.deleteIngressMutex.RLock()
 	defer fake.deleteIngressMutex.RUnlock()
 	argsForCall := fake.deleteIngressArgsForCall[i]
@@ -167,12 +167,12 @@ func (fake *FakeIngressStore) DeleteIngressReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIngressStore) ListIngress(arg1 context.Context, arg2 livekit.RoomName) ([]*livekit.IngressInfo, error) {
+func (fake *FakeIngressStore) ListIngress(arg1 context.Context, arg2 voicekit.RoomName) ([]*voicekit.IngressInfo, error) {
 	fake.listIngressMutex.Lock()
 	ret, specificReturn := fake.listIngressReturnsOnCall[len(fake.listIngressArgsForCall)]
 	fake.listIngressArgsForCall = append(fake.listIngressArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}{arg1, arg2})
 	stub := fake.ListIngressStub
 	fakeReturns := fake.listIngressReturns
@@ -193,46 +193,46 @@ func (fake *FakeIngressStore) ListIngressCallCount() int {
 	return len(fake.listIngressArgsForCall)
 }
 
-func (fake *FakeIngressStore) ListIngressCalls(stub func(context.Context, livekit.RoomName) ([]*livekit.IngressInfo, error)) {
+func (fake *FakeIngressStore) ListIngressCalls(stub func(context.Context, voicekit.RoomName) ([]*voicekit.IngressInfo, error)) {
 	fake.listIngressMutex.Lock()
 	defer fake.listIngressMutex.Unlock()
 	fake.ListIngressStub = stub
 }
 
-func (fake *FakeIngressStore) ListIngressArgsForCall(i int) (context.Context, livekit.RoomName) {
+func (fake *FakeIngressStore) ListIngressArgsForCall(i int) (context.Context, voicekit.RoomName) {
 	fake.listIngressMutex.RLock()
 	defer fake.listIngressMutex.RUnlock()
 	argsForCall := fake.listIngressArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIngressStore) ListIngressReturns(result1 []*livekit.IngressInfo, result2 error) {
+func (fake *FakeIngressStore) ListIngressReturns(result1 []*voicekit.IngressInfo, result2 error) {
 	fake.listIngressMutex.Lock()
 	defer fake.listIngressMutex.Unlock()
 	fake.ListIngressStub = nil
 	fake.listIngressReturns = struct {
-		result1 []*livekit.IngressInfo
+		result1 []*voicekit.IngressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIngressStore) ListIngressReturnsOnCall(i int, result1 []*livekit.IngressInfo, result2 error) {
+func (fake *FakeIngressStore) ListIngressReturnsOnCall(i int, result1 []*voicekit.IngressInfo, result2 error) {
 	fake.listIngressMutex.Lock()
 	defer fake.listIngressMutex.Unlock()
 	fake.ListIngressStub = nil
 	if fake.listIngressReturnsOnCall == nil {
 		fake.listIngressReturnsOnCall = make(map[int]struct {
-			result1 []*livekit.IngressInfo
+			result1 []*voicekit.IngressInfo
 			result2 error
 		})
 	}
 	fake.listIngressReturnsOnCall[i] = struct {
-		result1 []*livekit.IngressInfo
+		result1 []*voicekit.IngressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIngressStore) LoadIngress(arg1 context.Context, arg2 string) (*livekit.IngressInfo, error) {
+func (fake *FakeIngressStore) LoadIngress(arg1 context.Context, arg2 string) (*voicekit.IngressInfo, error) {
 	fake.loadIngressMutex.Lock()
 	ret, specificReturn := fake.loadIngressReturnsOnCall[len(fake.loadIngressArgsForCall)]
 	fake.loadIngressArgsForCall = append(fake.loadIngressArgsForCall, struct {
@@ -258,7 +258,7 @@ func (fake *FakeIngressStore) LoadIngressCallCount() int {
 	return len(fake.loadIngressArgsForCall)
 }
 
-func (fake *FakeIngressStore) LoadIngressCalls(stub func(context.Context, string) (*livekit.IngressInfo, error)) {
+func (fake *FakeIngressStore) LoadIngressCalls(stub func(context.Context, string) (*voicekit.IngressInfo, error)) {
 	fake.loadIngressMutex.Lock()
 	defer fake.loadIngressMutex.Unlock()
 	fake.LoadIngressStub = stub
@@ -271,33 +271,33 @@ func (fake *FakeIngressStore) LoadIngressArgsForCall(i int) (context.Context, st
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIngressStore) LoadIngressReturns(result1 *livekit.IngressInfo, result2 error) {
+func (fake *FakeIngressStore) LoadIngressReturns(result1 *voicekit.IngressInfo, result2 error) {
 	fake.loadIngressMutex.Lock()
 	defer fake.loadIngressMutex.Unlock()
 	fake.LoadIngressStub = nil
 	fake.loadIngressReturns = struct {
-		result1 *livekit.IngressInfo
+		result1 *voicekit.IngressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIngressStore) LoadIngressReturnsOnCall(i int, result1 *livekit.IngressInfo, result2 error) {
+func (fake *FakeIngressStore) LoadIngressReturnsOnCall(i int, result1 *voicekit.IngressInfo, result2 error) {
 	fake.loadIngressMutex.Lock()
 	defer fake.loadIngressMutex.Unlock()
 	fake.LoadIngressStub = nil
 	if fake.loadIngressReturnsOnCall == nil {
 		fake.loadIngressReturnsOnCall = make(map[int]struct {
-			result1 *livekit.IngressInfo
+			result1 *voicekit.IngressInfo
 			result2 error
 		})
 	}
 	fake.loadIngressReturnsOnCall[i] = struct {
-		result1 *livekit.IngressInfo
+		result1 *voicekit.IngressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIngressStore) LoadIngressFromStreamKey(arg1 context.Context, arg2 string) (*livekit.IngressInfo, error) {
+func (fake *FakeIngressStore) LoadIngressFromStreamKey(arg1 context.Context, arg2 string) (*voicekit.IngressInfo, error) {
 	fake.loadIngressFromStreamKeyMutex.Lock()
 	ret, specificReturn := fake.loadIngressFromStreamKeyReturnsOnCall[len(fake.loadIngressFromStreamKeyArgsForCall)]
 	fake.loadIngressFromStreamKeyArgsForCall = append(fake.loadIngressFromStreamKeyArgsForCall, struct {
@@ -323,7 +323,7 @@ func (fake *FakeIngressStore) LoadIngressFromStreamKeyCallCount() int {
 	return len(fake.loadIngressFromStreamKeyArgsForCall)
 }
 
-func (fake *FakeIngressStore) LoadIngressFromStreamKeyCalls(stub func(context.Context, string) (*livekit.IngressInfo, error)) {
+func (fake *FakeIngressStore) LoadIngressFromStreamKeyCalls(stub func(context.Context, string) (*voicekit.IngressInfo, error)) {
 	fake.loadIngressFromStreamKeyMutex.Lock()
 	defer fake.loadIngressFromStreamKeyMutex.Unlock()
 	fake.LoadIngressFromStreamKeyStub = stub
@@ -336,38 +336,38 @@ func (fake *FakeIngressStore) LoadIngressFromStreamKeyArgsForCall(i int) (contex
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIngressStore) LoadIngressFromStreamKeyReturns(result1 *livekit.IngressInfo, result2 error) {
+func (fake *FakeIngressStore) LoadIngressFromStreamKeyReturns(result1 *voicekit.IngressInfo, result2 error) {
 	fake.loadIngressFromStreamKeyMutex.Lock()
 	defer fake.loadIngressFromStreamKeyMutex.Unlock()
 	fake.LoadIngressFromStreamKeyStub = nil
 	fake.loadIngressFromStreamKeyReturns = struct {
-		result1 *livekit.IngressInfo
+		result1 *voicekit.IngressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIngressStore) LoadIngressFromStreamKeyReturnsOnCall(i int, result1 *livekit.IngressInfo, result2 error) {
+func (fake *FakeIngressStore) LoadIngressFromStreamKeyReturnsOnCall(i int, result1 *voicekit.IngressInfo, result2 error) {
 	fake.loadIngressFromStreamKeyMutex.Lock()
 	defer fake.loadIngressFromStreamKeyMutex.Unlock()
 	fake.LoadIngressFromStreamKeyStub = nil
 	if fake.loadIngressFromStreamKeyReturnsOnCall == nil {
 		fake.loadIngressFromStreamKeyReturnsOnCall = make(map[int]struct {
-			result1 *livekit.IngressInfo
+			result1 *voicekit.IngressInfo
 			result2 error
 		})
 	}
 	fake.loadIngressFromStreamKeyReturnsOnCall[i] = struct {
-		result1 *livekit.IngressInfo
+		result1 *voicekit.IngressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIngressStore) StoreIngress(arg1 context.Context, arg2 *livekit.IngressInfo) error {
+func (fake *FakeIngressStore) StoreIngress(arg1 context.Context, arg2 *voicekit.IngressInfo) error {
 	fake.storeIngressMutex.Lock()
 	ret, specificReturn := fake.storeIngressReturnsOnCall[len(fake.storeIngressArgsForCall)]
 	fake.storeIngressArgsForCall = append(fake.storeIngressArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}{arg1, arg2})
 	stub := fake.StoreIngressStub
 	fakeReturns := fake.storeIngressReturns
@@ -388,13 +388,13 @@ func (fake *FakeIngressStore) StoreIngressCallCount() int {
 	return len(fake.storeIngressArgsForCall)
 }
 
-func (fake *FakeIngressStore) StoreIngressCalls(stub func(context.Context, *livekit.IngressInfo) error) {
+func (fake *FakeIngressStore) StoreIngressCalls(stub func(context.Context, *voicekit.IngressInfo) error) {
 	fake.storeIngressMutex.Lock()
 	defer fake.storeIngressMutex.Unlock()
 	fake.StoreIngressStub = stub
 }
 
-func (fake *FakeIngressStore) StoreIngressArgsForCall(i int) (context.Context, *livekit.IngressInfo) {
+func (fake *FakeIngressStore) StoreIngressArgsForCall(i int) (context.Context, *voicekit.IngressInfo) {
 	fake.storeIngressMutex.RLock()
 	defer fake.storeIngressMutex.RUnlock()
 	argsForCall := fake.storeIngressArgsForCall[i]
@@ -424,12 +424,12 @@ func (fake *FakeIngressStore) StoreIngressReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIngressStore) UpdateIngress(arg1 context.Context, arg2 *livekit.IngressInfo) error {
+func (fake *FakeIngressStore) UpdateIngress(arg1 context.Context, arg2 *voicekit.IngressInfo) error {
 	fake.updateIngressMutex.Lock()
 	ret, specificReturn := fake.updateIngressReturnsOnCall[len(fake.updateIngressArgsForCall)]
 	fake.updateIngressArgsForCall = append(fake.updateIngressArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}{arg1, arg2})
 	stub := fake.UpdateIngressStub
 	fakeReturns := fake.updateIngressReturns
@@ -450,13 +450,13 @@ func (fake *FakeIngressStore) UpdateIngressCallCount() int {
 	return len(fake.updateIngressArgsForCall)
 }
 
-func (fake *FakeIngressStore) UpdateIngressCalls(stub func(context.Context, *livekit.IngressInfo) error) {
+func (fake *FakeIngressStore) UpdateIngressCalls(stub func(context.Context, *voicekit.IngressInfo) error) {
 	fake.updateIngressMutex.Lock()
 	defer fake.updateIngressMutex.Unlock()
 	fake.UpdateIngressStub = stub
 }
 
-func (fake *FakeIngressStore) UpdateIngressArgsForCall(i int) (context.Context, *livekit.IngressInfo) {
+func (fake *FakeIngressStore) UpdateIngressArgsForCall(i int) (context.Context, *voicekit.IngressInfo) {
 	fake.updateIngressMutex.RLock()
 	defer fake.updateIngressMutex.RUnlock()
 	argsForCall := fake.updateIngressArgsForCall[i]
@@ -486,13 +486,13 @@ func (fake *FakeIngressStore) UpdateIngressReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIngressStore) UpdateIngressState(arg1 context.Context, arg2 string, arg3 *livekit.IngressState) error {
+func (fake *FakeIngressStore) UpdateIngressState(arg1 context.Context, arg2 string, arg3 *voicekit.IngressState) error {
 	fake.updateIngressStateMutex.Lock()
 	ret, specificReturn := fake.updateIngressStateReturnsOnCall[len(fake.updateIngressStateArgsForCall)]
 	fake.updateIngressStateArgsForCall = append(fake.updateIngressStateArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 *livekit.IngressState
+		arg3 *voicekit.IngressState
 	}{arg1, arg2, arg3})
 	stub := fake.UpdateIngressStateStub
 	fakeReturns := fake.updateIngressStateReturns
@@ -513,13 +513,13 @@ func (fake *FakeIngressStore) UpdateIngressStateCallCount() int {
 	return len(fake.updateIngressStateArgsForCall)
 }
 
-func (fake *FakeIngressStore) UpdateIngressStateCalls(stub func(context.Context, string, *livekit.IngressState) error) {
+func (fake *FakeIngressStore) UpdateIngressStateCalls(stub func(context.Context, string, *voicekit.IngressState) error) {
 	fake.updateIngressStateMutex.Lock()
 	defer fake.updateIngressStateMutex.Unlock()
 	fake.UpdateIngressStateStub = stub
 }
 
-func (fake *FakeIngressStore) UpdateIngressStateArgsForCall(i int) (context.Context, string, *livekit.IngressState) {
+func (fake *FakeIngressStore) UpdateIngressStateArgsForCall(i int) (context.Context, string, *voicekit.IngressState) {
 	fake.updateIngressStateMutex.RLock()
 	defer fake.updateIngressStateMutex.RUnlock()
 	argsForCall := fake.updateIngressStateArgsForCall[i]

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package prometheus
 import (
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 var (
@@ -25,16 +25,16 @@ var (
 	qualityScore  prometheus.Histogram
 )
 
-func initQualityStats(nodeID string, nodeType livekit.NodeType) {
+func initQualityStats(nodeID string, nodeType voicekit.NodeType) {
 	qualityRating = prometheus.NewHistogram(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "quality",
 		Name:        "rating",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 		Buckets:     []float64{0, 1, 2},
 	})
 	qualityScore = prometheus.NewHistogram(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "quality",
 		Name:        "score",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -45,7 +45,7 @@ func initQualityStats(nodeID string, nodeType livekit.NodeType) {
 	prometheus.MustRegister(qualityScore)
 }
 
-func RecordQuality(rating livekit.ConnectionQuality, score float32) {
+func RecordQuality(rating voicekit.ConnectionQuality, score float32) {
 	qualityRating.Observe(float64(rating))
 	qualityScore.Observe(float64(score))
 }

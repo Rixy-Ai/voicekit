@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,20 +19,20 @@ import (
 
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
 )
 
 //counterfeiter:generate . IOClient
 type IOClient interface {
-	CreateEgress(ctx context.Context, info *livekit.EgressInfo) (*emptypb.Empty, error)
-	GetEgress(ctx context.Context, req *rpc.GetEgressRequest) (*livekit.EgressInfo, error)
-	ListEgress(ctx context.Context, req *livekit.ListEgressRequest) (*livekit.ListEgressResponse, error)
-	CreateIngress(ctx context.Context, req *livekit.IngressInfo) (*emptypb.Empty, error)
+	CreateEgress(ctx context.Context, info *voicekit.EgressInfo) (*emptypb.Empty, error)
+	GetEgress(ctx context.Context, req *rpc.GetEgressRequest) (*voicekit.EgressInfo, error)
+	ListEgress(ctx context.Context, req *voicekit.ListEgressRequest) (*voicekit.ListEgressResponse, error)
+	CreateIngress(ctx context.Context, req *voicekit.IngressInfo) (*emptypb.Empty, error)
 	UpdateIngressState(ctx context.Context, req *rpc.UpdateIngressStateRequest) (*emptypb.Empty, error)
 }
 
@@ -51,7 +51,7 @@ func NewEgressLauncher(client rpc.EgressClient, io IOClient) rtc.EgressLauncher 
 	}
 }
 
-func (s *egressLauncher) StartEgress(ctx context.Context, req *rpc.StartEgressRequest) (*livekit.EgressInfo, error) {
+func (s *egressLauncher) StartEgress(ctx context.Context, req *rpc.StartEgressRequest) (*voicekit.EgressInfo, error) {
 	if s.client == nil {
 		return nil, ErrEgressNotConnected
 	}

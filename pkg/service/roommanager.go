@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,30 +24,30 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/exp/maps"
 
-	"github.com/livekit/livekit-server/pkg/agent"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	sutils "github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/mediatransportutil/pkg/rtcconfig"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/observability"
-	"github.com/livekit/protocol/observability/roomobs"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/protocol/utils/must"
-	"github.com/livekit/psrpc"
-	"github.com/livekit/psrpc/pkg/middleware"
+	"github.com/voicekit/voicekit-server/pkg/agent"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	sutils "github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/mediatransportutil/pkg/rtcconfig"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/observability"
+	"github.com/voicekit/protocol/observability/roomobs"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/utils/must"
+	"github.com/voicekit/psrpc"
+	"github.com/voicekit/psrpc/pkg/middleware"
 
-	"github.com/livekit/livekit-server/pkg/clientconfiguration"
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/livekit-server/version"
+	"github.com/voicekit/voicekit-server/pkg/clientconfiguration"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/version"
 )
 
 const (
@@ -56,8 +56,8 @@ const (
 )
 
 type iceConfigCacheKey struct {
-	roomName            livekit.RoomName
-	participantIdentity livekit.ParticipantIdentity
+	roomName            voicekit.RoomName
+	participantIdentity voicekit.ParticipantIdentity
 }
 
 // RoomManager manages rooms and its interaction with participants.
@@ -67,12 +67,12 @@ type RoomManager struct {
 
 	config            *config.Config
 	rtcConfig         *rtc.WebRTCConfig
-	serverInfo        *livekit.ServerInfo
+	serverInfo        *voicekit.ServerInfo
 	currentNode       routing.LocalNode
 	router            routing.Router
 	roomAllocator     RoomAllocator
 	roomManagerServer rpc.TypedRoomManagerServer
-	rtcRestServer     rpc.RTCRestServer[livekit.NodeID]
+	rtcRestServer     rpc.RTCRestServer[voicekit.NodeID]
 	roomStore         ObjectStore
 	telemetry         telemetry.TelemetryService
 	recorder          observability.Reporter
@@ -84,7 +84,7 @@ type RoomManager struct {
 	turnAuthHandler   *TURNAuthHandler
 	bus               psrpc.MessageBus
 
-	rooms map[livekit.RoomName]*rtc.Room
+	rooms map[voicekit.RoomName]*rtc.Room
 
 	roomServers               utils.MultitonService[rpc.RoomTopic]
 	agentDispatchServers      utils.MultitonService[rpc.RoomTopic]
@@ -134,12 +134,12 @@ func NewLocalRoomManager(
 		bus:               bus,
 		forwardStats:      forwardStats,
 
-		rooms: make(map[livekit.RoomName]*rtc.Room),
+		rooms: make(map[voicekit.RoomName]*rtc.Room),
 
 		iceConfigCache: sutils.NewIceConfigCache[iceConfigCacheKey](0),
 
-		serverInfo: &livekit.ServerInfo{
-			Edition:       livekit.ServerInfo_Standard,
+		serverInfo: &voicekit.ServerInfo{
+			Edition:       voicekit.ServerInfo_Standard,
 			Version:       version.Version,
 			Protocol:      types.CurrentProtocol,
 			AgentProtocol: agent.CurrentProtocol,
@@ -156,7 +156,7 @@ func NewLocalRoomManager(
 		return nil, err
 	}
 
-	r.rtcRestServer, err = rpc.NewRTCRestServer[livekit.NodeID](rtcRestService{r}, bus, rpc.WithDefaultServerOptions(conf.PSRPC, logger.GetLogger()))
+	r.rtcRestServer, err = rpc.NewRTCRestServer[voicekit.NodeID](rtcRestService{r}, bus, rpc.WithDefaultServerOptions(conf.PSRPC, logger.GetLogger()))
 	if err != nil {
 		return nil, err
 	}
@@ -167,14 +167,14 @@ func NewLocalRoomManager(
 	return r, nil
 }
 
-func (r *RoomManager) GetRoom(_ context.Context, roomName livekit.RoomName) *rtc.Room {
+func (r *RoomManager) GetRoom(_ context.Context, roomName voicekit.RoomName) *rtc.Room {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 	return r.rooms[roomName]
 }
 
 // deleteRoom completely deletes all room information, including active sessions, room store, and routing info
-func (r *RoomManager) deleteRoom(ctx context.Context, roomName livekit.RoomName) error {
+func (r *RoomManager) deleteRoom(ctx context.Context, roomName voicekit.RoomName) error {
 	logger.Infow("deleting room state", "room", roomName)
 	r.lock.Lock()
 	delete(r.rooms, roomName)
@@ -257,7 +257,7 @@ func (r *RoomManager) Stop() {
 	}
 }
 
-func (r *RoomManager) CreateRoom(ctx context.Context, req *livekit.CreateRoomRequest) (*livekit.Room, error) {
+func (r *RoomManager) CreateRoom(ctx context.Context, req *voicekit.CreateRoomRequest) (*voicekit.Room, error) {
 	room, err := r.getOrCreateRoom(ctx, req)
 	if err != nil {
 		return nil, err
@@ -313,21 +313,21 @@ func (r *RoomManager) StartSession(
 					"reason", pi.ReconnectReason,
 				)
 
-				var leave *livekit.LeaveRequest
+				var leave *voicekit.LeaveRequest
 				pv := types.ProtocolVersion(pi.Client.Protocol)
 				if pv.SupportsRegionsInLeaveRequest() {
-					leave = &livekit.LeaveRequest{
-						Reason: livekit.DisconnectReason_STATE_MISMATCH,
-						Action: livekit.LeaveRequest_RECONNECT,
+					leave = &voicekit.LeaveRequest{
+						Reason: voicekit.DisconnectReason_STATE_MISMATCH,
+						Action: voicekit.LeaveRequest_RECONNECT,
 					}
 				} else {
-					leave = &livekit.LeaveRequest{
+					leave = &voicekit.LeaveRequest{
 						CanReconnect: true,
-						Reason:       livekit.DisconnectReason_STATE_MISMATCH,
+						Reason:       voicekit.DisconnectReason_STATE_MISMATCH,
 					}
 				}
-				_ = responseSink.WriteMessage(&livekit.SignalResponse{
-					Message: &livekit.SignalResponse_Leave{
+				_ = responseSink.WriteMessage(&voicekit.SignalResponse{
+					Message: &voicekit.SignalResponse_Leave{
 						Leave: leave,
 					},
 				})
@@ -348,7 +348,7 @@ func (r *RoomManager) StartSession(
 				r.iceServersForParticipant(
 					apiKey,
 					participant,
-					iceConfig.PreferenceSubscriber == livekit.ICECandidateType_ICT_TLS,
+					iceConfig.PreferenceSubscriber == voicekit.ICECandidateType_ICT_TLS,
 				),
 				pi.ReconnectReason,
 			); err != nil {
@@ -366,28 +366,28 @@ func (r *RoomManager) StartSession(
 	} else if pi.Reconnect {
 		// send leave request if participant is trying to reconnect without keep subscribe state
 		// but missing from the room
-		var leave *livekit.LeaveRequest
+		var leave *voicekit.LeaveRequest
 		pv := types.ProtocolVersion(pi.Client.Protocol)
 		if pv.SupportsRegionsInLeaveRequest() {
-			leave = &livekit.LeaveRequest{
-				Reason: livekit.DisconnectReason_STATE_MISMATCH,
-				Action: livekit.LeaveRequest_RECONNECT,
+			leave = &voicekit.LeaveRequest{
+				Reason: voicekit.DisconnectReason_STATE_MISMATCH,
+				Action: voicekit.LeaveRequest_RECONNECT,
 			}
 		} else {
-			leave = &livekit.LeaveRequest{
+			leave = &voicekit.LeaveRequest{
 				CanReconnect: true,
-				Reason:       livekit.DisconnectReason_STATE_MISMATCH,
+				Reason:       voicekit.DisconnectReason_STATE_MISMATCH,
 			}
 		}
-		_ = responseSink.WriteMessage(&livekit.SignalResponse{
-			Message: &livekit.SignalResponse_Leave{
+		_ = responseSink.WriteMessage(&voicekit.SignalResponse{
+			Message: &voicekit.SignalResponse_Leave{
 				Leave: leave,
 			},
 		})
 		return errors.New("could not restart participant")
 	}
 
-	sid := livekit.ParticipantID(guid.New(utils.ParticipantPrefix))
+	sid := voicekit.ParticipantID(guid.New(utils.ParticipantPrefix))
 	pLogger := rtc.LoggerWithParticipant(
 		rtc.LoggerWithRoom(logger.GetLogger(), room.Name(), room.ID()),
 		pi.Identity,
@@ -489,7 +489,7 @@ func (r *RoomManager) StartSession(
 	opts := rtc.ParticipantOptions{
 		AutoSubscribe: pi.AutoSubscribe,
 	}
-	iceServers := r.iceServersForParticipant(apiKey, participant, iceConfig.PreferenceSubscriber == livekit.ICECandidateType_ICT_TLS)
+	iceServers := r.iceServersForParticipant(apiKey, participant, iceConfig.PreferenceSubscriber == voicekit.ICECandidateType_ICT_TLS)
 	if err = room.Join(participant, requestSource, &opts, iceServers); err != nil {
 		pLogger.Errorw("could not join room", err)
 		_ = participant.Close(true, types.ParticipantCloseReasonJoinFailed, false)
@@ -522,7 +522,7 @@ func (r *RoomManager) StartSession(
 		pLogger.Errorw("could not store participant", err)
 	}
 
-	persistRoomForParticipantCount := func(proto *livekit.Room) {
+	persistRoomForParticipantCount := func(proto *voicekit.Room) {
 		if !participant.Hidden() && !room.IsClosed() {
 			err = r.roomStore.StoreRoom(ctx, proto, room.Internal())
 			if err != nil {
@@ -534,7 +534,7 @@ func (r *RoomManager) StartSession(
 	// update room store with new numParticipants
 	persistRoomForParticipantCount(room.ToProto())
 
-	clientMeta := &livekit.AnalyticsClientMeta{Region: r.currentNode.Region(), Node: string(r.currentNode.NodeID())}
+	clientMeta := &voicekit.AnalyticsClientMeta{Region: r.currentNode.Region(), Node: string(r.currentNode.NodeID())}
 	r.telemetry.ParticipantJoined(ctx, protoRoom, participant.ToProto(), pi.Client, clientMeta, true)
 	participant.OnClose(func(p types.LocalParticipant) {
 		participantServerClosers.Close()
@@ -554,7 +554,7 @@ func (r *RoomManager) StartSession(
 			pLogger.Errorw("could not refresh token", err)
 		}
 	})
-	participant.OnICEConfigChanged(func(participant types.LocalParticipant, iceConfig *livekit.ICEConfig) {
+	participant.OnICEConfigChanged(func(participant types.LocalParticipant, iceConfig *voicekit.ICEConfig) {
 		r.iceConfigCache.Put(iceConfigCacheKey{room.Name(), participant.Identity()}, iceConfig)
 	})
 
@@ -563,8 +563,8 @@ func (r *RoomManager) StartSession(
 }
 
 // create the actual room object, to be used on RTC node
-func (r *RoomManager) getOrCreateRoom(ctx context.Context, createRoom *livekit.CreateRoomRequest) (*rtc.Room, error) {
-	roomName := livekit.RoomName(createRoom.Name)
+func (r *RoomManager) getOrCreateRoom(ctx context.Context, createRoom *voicekit.CreateRoomRequest) (*rtc.Room, error) {
+	roomName := voicekit.RoomName(createRoom.Name)
 
 	r.lock.RLock()
 	lastSeenRoom := r.rooms[roomName]
@@ -709,7 +709,7 @@ func (r *RoomManager) rtcSessionWorker(room *rtc.Room, participant types.LocalPa
 				return
 			}
 
-			req := obj.(*livekit.SignalRequest)
+			req := obj.(*voicekit.SignalRequest)
 			if err := rtc.HandleParticipantSignal(room, participant, req, pLogger); err != nil {
 				// more specific errors are already logged
 				// treat errors returned as fatal
@@ -725,12 +725,12 @@ type participantReq interface {
 }
 
 func (r *RoomManager) roomAndParticipantForReq(ctx context.Context, req participantReq) (*rtc.Room, types.LocalParticipant, error) {
-	room := r.GetRoom(ctx, livekit.RoomName(req.GetRoom()))
+	room := r.GetRoom(ctx, voicekit.RoomName(req.GetRoom()))
 	if room == nil {
 		return nil, nil, ErrRoomNotFound
 	}
 
-	participant := room.GetParticipant(livekit.ParticipantIdentity(req.GetIdentity()))
+	participant := room.GetParticipant(voicekit.ParticipantIdentity(req.GetIdentity()))
 	if participant == nil {
 		return nil, nil, ErrParticipantNotFound
 	}
@@ -738,18 +738,18 @@ func (r *RoomManager) roomAndParticipantForReq(ctx context.Context, req particip
 	return room, participant, nil
 }
 
-func (r *RoomManager) RemoveParticipant(ctx context.Context, req *livekit.RoomParticipantIdentity) (*livekit.RemoveParticipantResponse, error) {
+func (r *RoomManager) RemoveParticipant(ctx context.Context, req *voicekit.RoomParticipantIdentity) (*voicekit.RemoveParticipantResponse, error) {
 	room, participant, err := r.roomAndParticipantForReq(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	participant.GetLogger().Infow("removing participant")
-	room.RemoveParticipant(livekit.ParticipantIdentity(req.Identity), "", types.ParticipantCloseReasonServiceRequestRemoveParticipant)
-	return &livekit.RemoveParticipantResponse{}, nil
+	room.RemoveParticipant(voicekit.ParticipantIdentity(req.Identity), "", types.ParticipantCloseReasonServiceRequestRemoveParticipant)
+	return &voicekit.RemoveParticipantResponse{}, nil
 }
 
-func (r *RoomManager) MutePublishedTrack(ctx context.Context, req *livekit.MuteRoomTrackRequest) (*livekit.MuteRoomTrackResponse, error) {
+func (r *RoomManager) MutePublishedTrack(ctx context.Context, req *voicekit.MuteRoomTrackRequest) (*voicekit.MuteRoomTrackResponse, error) {
 	_, participant, err := r.roomAndParticipantForReq(ctx, req)
 	if err != nil {
 		return nil, err
@@ -761,11 +761,11 @@ func (r *RoomManager) MutePublishedTrack(ctx context.Context, req *livekit.MuteR
 		participant.GetLogger().Errorw("cannot unmute track, remote unmute is disabled", nil)
 		return nil, ErrRemoteUnmuteNoteEnabled
 	}
-	track := participant.SetTrackMuted(livekit.TrackID(req.TrackSid), req.Muted, true)
-	return &livekit.MuteRoomTrackResponse{Track: track}, nil
+	track := participant.SetTrackMuted(voicekit.TrackID(req.TrackSid), req.Muted, true)
+	return &voicekit.MuteRoomTrackResponse{Track: track}, nil
 }
 
-func (r *RoomManager) UpdateParticipant(ctx context.Context, req *livekit.UpdateParticipantRequest) (*livekit.ParticipantInfo, error) {
+func (r *RoomManager) UpdateParticipant(ctx context.Context, req *voicekit.UpdateParticipantRequest) (*voicekit.ParticipantInfo, error) {
 	_, participant, err := r.roomAndParticipantForReq(ctx, req)
 	if err != nil {
 		return nil, err
@@ -796,20 +796,20 @@ func (r *RoomManager) UpdateParticipant(ctx context.Context, req *livekit.Update
 	return participant.ToProto(), nil
 }
 
-func (r *RoomManager) ForwardParticipant(ctx context.Context, req *livekit.ForwardParticipantRequest) (*livekit.ForwardParticipantResponse, error) {
+func (r *RoomManager) ForwardParticipant(ctx context.Context, req *voicekit.ForwardParticipantRequest) (*voicekit.ForwardParticipantResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (r *RoomManager) MoveParticipant(ctx context.Context, req *livekit.MoveParticipantRequest) (*livekit.MoveParticipantResponse, error) {
+func (r *RoomManager) MoveParticipant(ctx context.Context, req *voicekit.MoveParticipantRequest) (*voicekit.MoveParticipantResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (r *RoomManager) DeleteRoom(ctx context.Context, req *livekit.DeleteRoomRequest) (*livekit.DeleteRoomResponse, error) {
-	room := r.GetRoom(ctx, livekit.RoomName(req.Room))
+func (r *RoomManager) DeleteRoom(ctx context.Context, req *voicekit.DeleteRoomRequest) (*voicekit.DeleteRoomResponse, error) {
+	room := r.GetRoom(ctx, voicekit.RoomName(req.Room))
 	if room == nil {
 		// special case of a non-RTC room e.g. room created but no participants joined
 		logger.Debugw("Deleting non-rtc room, loading from roomstore")
-		err := r.roomStore.DeleteRoom(ctx, livekit.RoomName(req.Room))
+		err := r.roomStore.DeleteRoom(ctx, voicekit.RoomName(req.Room))
 		if err != nil {
 			logger.Debugw("Error deleting non-rtc room", "err", err)
 			return nil, err
@@ -818,10 +818,10 @@ func (r *RoomManager) DeleteRoom(ctx context.Context, req *livekit.DeleteRoomReq
 		room.Logger().Infow("deleting room")
 		room.Close(types.ParticipantCloseReasonServiceRequestDeleteRoom)
 	}
-	return &livekit.DeleteRoomResponse{}, nil
+	return &voicekit.DeleteRoomResponse{}, nil
 }
 
-func (r *RoomManager) UpdateSubscriptions(ctx context.Context, req *livekit.UpdateSubscriptionsRequest) (*livekit.UpdateSubscriptionsResponse, error) {
+func (r *RoomManager) UpdateSubscriptions(ctx context.Context, req *voicekit.UpdateSubscriptionsRequest) (*voicekit.UpdateSubscriptionsResponse, error) {
 	room, participant, err := r.roomAndParticipantForReq(ctx, req)
 	if err != nil {
 		return nil, err
@@ -830,25 +830,25 @@ func (r *RoomManager) UpdateSubscriptions(ctx context.Context, req *livekit.Upda
 	participant.GetLogger().Debugw("updating participant subscriptions")
 	room.UpdateSubscriptions(
 		participant,
-		livekit.StringsAsIDs[livekit.TrackID](req.TrackSids),
+		voicekit.StringsAsIDs[voicekit.TrackID](req.TrackSids),
 		req.ParticipantTracks,
 		req.Subscribe,
 	)
-	return &livekit.UpdateSubscriptionsResponse{}, nil
+	return &voicekit.UpdateSubscriptionsResponse{}, nil
 }
 
-func (r *RoomManager) SendData(ctx context.Context, req *livekit.SendDataRequest) (*livekit.SendDataResponse, error) {
-	room := r.GetRoom(ctx, livekit.RoomName(req.Room))
+func (r *RoomManager) SendData(ctx context.Context, req *voicekit.SendDataRequest) (*voicekit.SendDataResponse, error) {
+	room := r.GetRoom(ctx, voicekit.RoomName(req.Room))
 	if room == nil {
 		return nil, ErrRoomNotFound
 	}
 
 	room.Logger().Debugw("api send data", "size", len(req.Data))
-	room.SendDataPacket(&livekit.DataPacket{
+	room.SendDataPacket(&voicekit.DataPacket{
 		Kind:                  req.Kind,
 		DestinationIdentities: req.DestinationIdentities,
-		Value: &livekit.DataPacket_User{
-			User: &livekit.UserPacket{
+		Value: &voicekit.DataPacket_User{
+			User: &voicekit.UserPacket{
 				Payload:               req.Data,
 				DestinationSids:       req.DestinationSids,
 				DestinationIdentities: req.DestinationIdentities,
@@ -857,11 +857,11 @@ func (r *RoomManager) SendData(ctx context.Context, req *livekit.SendDataRequest
 			},
 		},
 	}, req.Kind)
-	return &livekit.SendDataResponse{}, nil
+	return &voicekit.SendDataResponse{}, nil
 }
 
-func (r *RoomManager) UpdateRoomMetadata(ctx context.Context, req *livekit.UpdateRoomMetadataRequest) (*livekit.Room, error) {
-	room := r.GetRoom(ctx, livekit.RoomName(req.Room))
+func (r *RoomManager) UpdateRoomMetadata(ctx context.Context, req *voicekit.UpdateRoomMetadataRequest) (*voicekit.Room, error) {
+	room := r.GetRoom(ctx, voicekit.RoomName(req.Room))
 	if room == nil {
 		return nil, ErrRoomNotFound
 	}
@@ -873,8 +873,8 @@ func (r *RoomManager) UpdateRoomMetadata(ctx context.Context, req *livekit.Updat
 	return room.ToProto(), nil
 }
 
-func (r *RoomManager) ListDispatch(ctx context.Context, req *livekit.ListAgentDispatchRequest) (*livekit.ListAgentDispatchResponse, error) {
-	room := r.GetRoom(ctx, livekit.RoomName(req.Room))
+func (r *RoomManager) ListDispatch(ctx context.Context, req *voicekit.ListAgentDispatchRequest) (*voicekit.ListAgentDispatchResponse, error) {
+	room := r.GetRoom(ctx, voicekit.RoomName(req.Room))
 	if room == nil {
 		return nil, ErrRoomNotFound
 	}
@@ -884,15 +884,15 @@ func (r *RoomManager) ListDispatch(ctx context.Context, req *livekit.ListAgentDi
 		return nil, err
 	}
 
-	ret := &livekit.ListAgentDispatchResponse{
+	ret := &voicekit.ListAgentDispatchResponse{
 		AgentDispatches: disp,
 	}
 
 	return ret, nil
 }
 
-func (r *RoomManager) CreateDispatch(ctx context.Context, req *livekit.AgentDispatch) (*livekit.AgentDispatch, error) {
-	room := r.GetRoom(ctx, livekit.RoomName(req.Room))
+func (r *RoomManager) CreateDispatch(ctx context.Context, req *voicekit.AgentDispatch) (*voicekit.AgentDispatch, error) {
+	room := r.GetRoom(ctx, voicekit.RoomName(req.Room))
 	if room == nil {
 		return nil, ErrRoomNotFound
 	}
@@ -905,8 +905,8 @@ func (r *RoomManager) CreateDispatch(ctx context.Context, req *livekit.AgentDisp
 	return disp, nil
 }
 
-func (r *RoomManager) DeleteDispatch(ctx context.Context, req *livekit.DeleteAgentDispatchRequest) (*livekit.AgentDispatch, error) {
-	room := r.GetRoom(ctx, livekit.RoomName(req.Room))
+func (r *RoomManager) DeleteDispatch(ctx context.Context, req *voicekit.DeleteAgentDispatchRequest) (*voicekit.AgentDispatch, error) {
+	room := r.GetRoom(ctx, voicekit.RoomName(req.Room))
 	if room == nil {
 		return nil, ErrRoomNotFound
 	}
@@ -919,8 +919,8 @@ func (r *RoomManager) DeleteDispatch(ctx context.Context, req *livekit.DeleteAge
 	return disp, nil
 }
 
-func (r *RoomManager) iceServersForParticipant(apiKey string, participant types.LocalParticipant, tlsOnly bool) []*livekit.ICEServer {
-	var iceServers []*livekit.ICEServer
+func (r *RoomManager) iceServersForParticipant(apiKey string, participant types.LocalParticipant, tlsOnly bool) []*voicekit.ICEServer {
+	var iceServers []*voicekit.ICEServer
 	rtcConf := r.config.RTC
 
 	if tlsOnly && r.config.TURN.TLSPort == 0 {
@@ -947,7 +947,7 @@ func (r *RoomManager) iceServersForParticipant(apiKey string, participant types.
 				hasSTUN = false
 			} else {
 				logger.Infow("created TURN password", "username", username, "password", password)
-				iceServers = append(iceServers, &livekit.ICEServer{
+				iceServers = append(iceServers, &voicekit.ICEServer{
 					Urls:       urls,
 					Username:   username,
 					Credential: password,
@@ -966,7 +966,7 @@ func (r *RoomManager) iceServersForParticipant(apiKey string, participant types.
 			} else if s.Protocol == "udp" {
 				transport = "udp"
 			}
-			is := &livekit.ICEServer{
+			is := &voicekit.ICEServer{
 				Urls: []string{
 					fmt.Sprintf("%s:%s:%d?transport=%s", scheme, s.Host, s.Port, transport),
 				},
@@ -1015,13 +1015,13 @@ func (r *RoomManager) refreshToken(participant types.LocalParticipant) error {
 	return nil
 }
 
-func (r *RoomManager) setIceConfig(roomName livekit.RoomName, participant types.LocalParticipant) *livekit.ICEConfig {
+func (r *RoomManager) setIceConfig(roomName voicekit.RoomName, participant types.LocalParticipant) *voicekit.ICEConfig {
 	iceConfig := r.getIceConfig(roomName, participant)
 	participant.SetICEConfig(iceConfig)
 	return iceConfig
 }
 
-func (r *RoomManager) getIceConfig(roomName livekit.RoomName, participant types.LocalParticipant) *livekit.ICEConfig {
+func (r *RoomManager) getIceConfig(roomName voicekit.RoomName, participant types.LocalParticipant) *voicekit.ICEConfig {
 	return r.iceConfigCache.Get(iceConfigCacheKey{roomName, participant.Identity()})
 }
 
@@ -1034,8 +1034,8 @@ func (r *RoomManager) getFirstKeyPair() (string, string, error) {
 
 // ------------------------------------
 
-func iceServerForStunServers(servers []string) *livekit.ICEServer {
-	iceServer := &livekit.ICEServer{}
+func iceServerForStunServers(servers []string) *voicekit.ICEServer {
+	iceServer := &voicekit.ICEServer{}
 	for _, stunServer := range servers {
 		iceServer.Urls = append(iceServer.Urls, fmt.Sprintf("stun:%s", stunServer))
 	}
@@ -1047,22 +1047,22 @@ type roomManagerParticipantHelper struct {
 	codecRegressionThreshold int
 }
 
-func (h *roomManagerParticipantHelper) GetParticipantInfo(pID livekit.ParticipantID) *livekit.ParticipantInfo {
+func (h *roomManagerParticipantHelper) GetParticipantInfo(pID voicekit.ParticipantID) *voicekit.ParticipantInfo {
 	if p := h.room.GetParticipantByID(pID); p != nil {
 		return p.ToProto()
 	}
 	return nil
 }
 
-func (h *roomManagerParticipantHelper) GetRegionSettings(ip string) *livekit.RegionSettings {
+func (h *roomManagerParticipantHelper) GetRegionSettings(ip string) *voicekit.RegionSettings {
 	return nil
 }
 
-func (h *roomManagerParticipantHelper) GetSubscriberForwarderState(lp types.LocalParticipant) (map[livekit.TrackID]*livekit.RTPForwarderState, error) {
+func (h *roomManagerParticipantHelper) GetSubscriberForwarderState(lp types.LocalParticipant) (map[voicekit.TrackID]*voicekit.RTPForwarderState, error) {
 	return nil, nil
 }
 
-func (h *roomManagerParticipantHelper) ResolveMediaTrack(lp types.LocalParticipant, trackID livekit.TrackID) types.MediaResolverResult {
+func (h *roomManagerParticipantHelper) ResolveMediaTrack(lp types.LocalParticipant, trackID voicekit.TrackID) types.MediaResolverResult {
 	return h.room.ResolveMediaTrackForSubscriber(lp, trackID)
 }
 

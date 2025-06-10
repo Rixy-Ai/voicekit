@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import (
 
 	"github.com/pion/webrtc/v4"
 
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 var OpusCodecCapability = webrtc.RTPCodecCapability{
@@ -41,7 +41,7 @@ var videoRTX = webrtc.RTPCodecCapability{
 	ClockRate: 90000,
 }
 
-func registerCodecs(me *webrtc.MediaEngine, codecs []*livekit.Codec, rtcpFeedback RTCPFeedbackConfig, filterOutH264HighProfile bool) error {
+func registerCodecs(me *webrtc.MediaEngine, codecs []*voicekit.Codec, rtcpFeedback RTCPFeedbackConfig, filterOutH264HighProfile bool) error {
 	opusCodec := OpusCodecCapability
 	opusCodec.RTCPFeedback = rtcpFeedback.Audio
 	var opusPayload webrtc.PayloadType
@@ -181,7 +181,7 @@ func registerHeaderExtensions(me *webrtc.MediaEngine, rtpHeaderExtension RTPHead
 	return nil
 }
 
-func createMediaEngine(codecs []*livekit.Codec, config DirectionConfig, filterOutH264HighProfile bool) (*webrtc.MediaEngine, error) {
+func createMediaEngine(codecs []*voicekit.Codec, config DirectionConfig, filterOutH264HighProfile bool) (*webrtc.MediaEngine, error) {
 	me := &webrtc.MediaEngine{}
 	if err := registerCodecs(me, codecs, config.RTCPFeedback, filterOutH264HighProfile); err != nil {
 		return nil, err
@@ -194,7 +194,7 @@ func createMediaEngine(codecs []*livekit.Codec, config DirectionConfig, filterOu
 	return me, nil
 }
 
-func IsCodecEnabled(codecs []*livekit.Codec, cap webrtc.RTPCodecCapability) bool {
+func IsCodecEnabled(codecs []*voicekit.Codec, cap webrtc.RTPCodecCapability) bool {
 	for _, codec := range codecs {
 		if !mime.IsMimeTypeStringEqual(codec.Mime, cap.MimeType) {
 			continue
@@ -206,7 +206,7 @@ func IsCodecEnabled(codecs []*livekit.Codec, cap webrtc.RTPCodecCapability) bool
 	return false
 }
 
-func selectAlternativeVideoCodec(enabledCodecs []*livekit.Codec) string {
+func selectAlternativeVideoCodec(enabledCodecs []*voicekit.Codec) string {
 	for _, c := range enabledCodecs {
 		if mime.IsMimeTypeStringVideo(c.Mime) {
 			return c.Mime

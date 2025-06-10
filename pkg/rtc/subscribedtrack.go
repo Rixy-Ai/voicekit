@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/proto"
 
-	sutils "github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	sutils "github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
 )
 
 const (
@@ -38,8 +38,8 @@ const (
 )
 
 type SubscribedTrackParams struct {
-	PublisherID       livekit.ParticipantID
-	PublisherIdentity livekit.ParticipantIdentity
+	PublisherID       voicekit.ParticipantID
+	PublisherIdentity voicekit.ParticipantIdentity
 	PublisherVersion  uint32
 	Subscriber        types.LocalParticipant
 	MediaTrack        types.MediaTrack
@@ -55,7 +55,7 @@ type SubscribedTrack struct {
 
 	versionGenerator utils.TimedVersionGenerator
 	settingsLock     sync.Mutex
-	settings         *livekit.UpdateTrackSettings
+	settings         *voicekit.UpdateTrackSettings
 	settingsVersion  utils.TimedVersion
 
 	bindLock        sync.Mutex
@@ -106,7 +106,7 @@ func (t *SubscribedTrack) Bound(err error) {
 	t.onBindCallbacks = nil
 	t.bindLock.Unlock()
 
-	if err == nil && t.MediaTrack().Kind() == livekit.TrackType_VIDEO {
+	if err == nil && t.MediaTrack().Kind() == voicekit.TrackType_VIDEO {
 		// When AdaptiveStream is enabled, default the subscriber to LOW quality stream
 		// we would want LOW instead of OFF for a couple of reasons
 		// 1. when a subscriber unsubscribes from a track, we would forget their previously defined settings
@@ -124,9 +124,9 @@ func (t *SubscribedTrack) Bound(err error) {
 			}
 		} else {
 			if t.params.AdaptiveStream {
-				t.settings = &livekit.UpdateTrackSettings{Quality: livekit.VideoQuality_LOW}
+				t.settings = &voicekit.UpdateTrackSettings{Quality: voicekit.VideoQuality_LOW}
 			} else {
-				t.settings = &livekit.UpdateTrackSettings{Quality: livekit.VideoQuality_HIGH}
+				t.settings = &voicekit.UpdateTrackSettings{Quality: voicekit.VideoQuality_HIGH}
 			}
 		}
 		t.settingsLock.Unlock()
@@ -156,15 +156,15 @@ func (t *SubscribedTrack) IsBound() bool {
 	return t.bound
 }
 
-func (t *SubscribedTrack) ID() livekit.TrackID {
-	return livekit.TrackID(t.params.DownTrack.ID())
+func (t *SubscribedTrack) ID() voicekit.TrackID {
+	return voicekit.TrackID(t.params.DownTrack.ID())
 }
 
-func (t *SubscribedTrack) PublisherID() livekit.ParticipantID {
+func (t *SubscribedTrack) PublisherID() voicekit.ParticipantID {
 	return t.params.PublisherID
 }
 
-func (t *SubscribedTrack) PublisherIdentity() livekit.ParticipantIdentity {
+func (t *SubscribedTrack) PublisherIdentity() voicekit.ParticipantIdentity {
 	return t.params.PublisherIdentity
 }
 
@@ -172,11 +172,11 @@ func (t *SubscribedTrack) PublisherVersion() uint32 {
 	return t.params.PublisherVersion
 }
 
-func (t *SubscribedTrack) SubscriberID() livekit.ParticipantID {
+func (t *SubscribedTrack) SubscriberID() voicekit.ParticipantID {
 	return t.params.Subscriber.ID()
 }
 
-func (t *SubscribedTrack) SubscriberIdentity() livekit.ParticipantIdentity {
+func (t *SubscribedTrack) SubscriberIdentity() voicekit.ParticipantIdentity {
 	return t.params.Subscriber.Identity()
 }
 
@@ -212,7 +212,7 @@ func (t *SubscribedTrack) SetPublisherMuted(muted bool) {
 	t.DownTrack().PubMute(muted)
 }
 
-func (t *SubscribedTrack) UpdateSubscriberSettings(settings *livekit.UpdateTrackSettings, isImmediate bool) {
+func (t *SubscribedTrack) UpdateSubscriberSettings(settings *voicekit.UpdateTrackSettings, isImmediate bool) {
 	t.settingsLock.Lock()
 	if proto.Equal(t.settings, settings) {
 		t.settingsLock.Unlock()

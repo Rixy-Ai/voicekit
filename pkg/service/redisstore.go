@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,18 +27,18 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/protocol/ingress"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/protocol/ingress"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/psrpc"
 
-	"github.com/livekit/livekit-server/version"
+	"github.com/voicekit/voicekit-server/version"
 )
 
 const (
-	VersionKey = "livekit_version"
+	VersionKey = "voicekit_version"
 
 	// RoomsKey is hash of room_name => Room proto
 	RoomsKey        = "rooms"
@@ -122,7 +122,7 @@ func (s *RedisStore) Stop() {
 	}
 }
 
-func (s *RedisStore) StoreRoom(_ context.Context, room *livekit.Room, internal *livekit.RoomInternal) error {
+func (s *RedisStore) StoreRoom(_ context.Context, room *voicekit.Room, internal *voicekit.RoomInternal) error {
 	if room.CreationTime == 0 {
 		now := time.Now()
 		room.CreationTime = now.Unix()
@@ -154,7 +154,7 @@ func (s *RedisStore) StoreRoom(_ context.Context, room *livekit.Room, internal *
 	return nil
 }
 
-func (s *RedisStore) LoadRoom(_ context.Context, roomName livekit.RoomName, includeInternal bool) (*livekit.Room, *livekit.RoomInternal, error) {
+func (s *RedisStore) LoadRoom(_ context.Context, roomName voicekit.RoomName, includeInternal bool) (*voicekit.Room, *voicekit.RoomInternal, error) {
 	pp := s.rc.Pipeline()
 	pp.HGet(s.ctx, RoomsKey, string(roomName))
 	if includeInternal {
@@ -167,7 +167,7 @@ func (s *RedisStore) LoadRoom(_ context.Context, roomName livekit.RoomName, incl
 		return nil, nil, err
 	}
 
-	room := &livekit.Room{}
+	room := &voicekit.Room{}
 	roomData, err := res[0].(*redis.StringCmd).Result()
 	if err != nil {
 		if err == redis.Nil {
@@ -179,11 +179,11 @@ func (s *RedisStore) LoadRoom(_ context.Context, roomName livekit.RoomName, incl
 		return nil, nil, err
 	}
 
-	var internal *livekit.RoomInternal
+	var internal *voicekit.RoomInternal
 	if includeInternal {
 		internalData, err := res[1].(*redis.StringCmd).Result()
 		if err == nil {
-			internal = &livekit.RoomInternal{}
+			internal = &voicekit.RoomInternal{}
 			if err = proto.Unmarshal([]byte(internalData), internal); err != nil {
 				return nil, nil, err
 			}
@@ -195,7 +195,7 @@ func (s *RedisStore) LoadRoom(_ context.Context, roomName livekit.RoomName, incl
 	return room, internal, nil
 }
 
-func (s *RedisStore) ListRooms(_ context.Context, roomNames []livekit.RoomName) ([]*livekit.Room, error) {
+func (s *RedisStore) ListRooms(_ context.Context, roomNames []voicekit.RoomName) ([]*voicekit.Room, error) {
 	var items []string
 	var err error
 	if roomNames == nil {
@@ -204,7 +204,7 @@ func (s *RedisStore) ListRooms(_ context.Context, roomNames []livekit.RoomName) 
 			return nil, errors.Wrap(err, "could not get rooms")
 		}
 	} else {
-		names := livekit.IDsAsStrings(roomNames)
+		names := voicekit.IDsAsStrings(roomNames)
 		var results []interface{}
 		results, err = s.rc.HMGet(s.ctx, RoomsKey, names...).Result()
 		if err != nil && err != redis.Nil {
@@ -217,10 +217,10 @@ func (s *RedisStore) ListRooms(_ context.Context, roomNames []livekit.RoomName) 
 		}
 	}
 
-	rooms := make([]*livekit.Room, 0, len(items))
+	rooms := make([]*voicekit.Room, 0, len(items))
 
 	for _, item := range items {
-		room := livekit.Room{}
+		room := voicekit.Room{}
 		err := proto.Unmarshal([]byte(item), &room)
 		if err != nil {
 			return nil, err
@@ -230,7 +230,7 @@ func (s *RedisStore) ListRooms(_ context.Context, roomNames []livekit.RoomName) 
 	return rooms, nil
 }
 
-func (s *RedisStore) DeleteRoom(ctx context.Context, roomName livekit.RoomName) error {
+func (s *RedisStore) DeleteRoom(ctx context.Context, roomName voicekit.RoomName) error {
 	_, _, err := s.LoadRoom(ctx, roomName, false)
 	if err == ErrRoomNotFound {
 		return nil
@@ -247,7 +247,7 @@ func (s *RedisStore) DeleteRoom(ctx context.Context, roomName livekit.RoomName) 
 	return err
 }
 
-func (s *RedisStore) LockRoom(_ context.Context, roomName livekit.RoomName, duration time.Duration) (string, error) {
+func (s *RedisStore) LockRoom(_ context.Context, roomName voicekit.RoomName, duration time.Duration) (string, error) {
 	token := guid.New("LOCK")
 	key := RoomLockPrefix + string(roomName)
 
@@ -272,7 +272,7 @@ func (s *RedisStore) LockRoom(_ context.Context, roomName livekit.RoomName, dura
 	return "", ErrRoomLockFailed
 }
 
-func (s *RedisStore) UnlockRoom(_ context.Context, roomName livekit.RoomName, uid string) error {
+func (s *RedisStore) UnlockRoom(_ context.Context, roomName voicekit.RoomName, uid string) error {
 	key := RoomLockPrefix + string(roomName)
 	res, err := s.unlockScript.Run(s.ctx, s.rc, []string{key}, uid).Result()
 	if err != nil {
@@ -287,7 +287,7 @@ func (s *RedisStore) UnlockRoom(_ context.Context, roomName livekit.RoomName, ui
 	return nil
 }
 
-func (s *RedisStore) StoreParticipant(_ context.Context, roomName livekit.RoomName, participant *livekit.ParticipantInfo) error {
+func (s *RedisStore) StoreParticipant(_ context.Context, roomName voicekit.RoomName, participant *voicekit.ParticipantInfo) error {
 	key := RoomParticipantsPrefix + string(roomName)
 
 	data, err := proto.Marshal(participant)
@@ -298,7 +298,7 @@ func (s *RedisStore) StoreParticipant(_ context.Context, roomName livekit.RoomNa
 	return s.rc.HSet(s.ctx, key, participant.Identity, data).Err()
 }
 
-func (s *RedisStore) LoadParticipant(_ context.Context, roomName livekit.RoomName, identity livekit.ParticipantIdentity) (*livekit.ParticipantInfo, error) {
+func (s *RedisStore) LoadParticipant(_ context.Context, roomName voicekit.RoomName, identity voicekit.ParticipantIdentity) (*voicekit.ParticipantInfo, error) {
 	key := RoomParticipantsPrefix + string(roomName)
 	data, err := s.rc.HGet(s.ctx, key, string(identity)).Result()
 	if err == redis.Nil {
@@ -307,19 +307,19 @@ func (s *RedisStore) LoadParticipant(_ context.Context, roomName livekit.RoomNam
 		return nil, err
 	}
 
-	pi := livekit.ParticipantInfo{}
+	pi := voicekit.ParticipantInfo{}
 	if err := proto.Unmarshal([]byte(data), &pi); err != nil {
 		return nil, err
 	}
 	return &pi, nil
 }
 
-func (s *RedisStore) HasParticipant(ctx context.Context, roomName livekit.RoomName, identity livekit.ParticipantIdentity) (bool, error) {
+func (s *RedisStore) HasParticipant(ctx context.Context, roomName voicekit.RoomName, identity voicekit.ParticipantIdentity) (bool, error) {
 	p, err := s.LoadParticipant(ctx, roomName, identity)
 	return p != nil, utils.ScreenError(err, ErrParticipantNotFound)
 }
 
-func (s *RedisStore) ListParticipants(_ context.Context, roomName livekit.RoomName) ([]*livekit.ParticipantInfo, error) {
+func (s *RedisStore) ListParticipants(_ context.Context, roomName voicekit.RoomName) ([]*voicekit.ParticipantInfo, error) {
 	key := RoomParticipantsPrefix + string(roomName)
 	items, err := s.rc.HVals(s.ctx, key).Result()
 	if err == redis.Nil {
@@ -328,9 +328,9 @@ func (s *RedisStore) ListParticipants(_ context.Context, roomName livekit.RoomNa
 		return nil, err
 	}
 
-	participants := make([]*livekit.ParticipantInfo, 0, len(items))
+	participants := make([]*voicekit.ParticipantInfo, 0, len(items))
 	for _, item := range items {
-		pi := livekit.ParticipantInfo{}
+		pi := voicekit.ParticipantInfo{}
 		if err := proto.Unmarshal([]byte(item), &pi); err != nil {
 			return nil, err
 		}
@@ -339,13 +339,13 @@ func (s *RedisStore) ListParticipants(_ context.Context, roomName livekit.RoomNa
 	return participants, nil
 }
 
-func (s *RedisStore) DeleteParticipant(_ context.Context, roomName livekit.RoomName, identity livekit.ParticipantIdentity) error {
+func (s *RedisStore) DeleteParticipant(_ context.Context, roomName voicekit.RoomName, identity voicekit.ParticipantIdentity) error {
 	key := RoomParticipantsPrefix + string(roomName)
 
 	return s.rc.HDel(s.ctx, key, string(identity)).Err()
 }
 
-func (s *RedisStore) StoreEgress(_ context.Context, info *livekit.EgressInfo) error {
+func (s *RedisStore) StoreEgress(_ context.Context, info *voicekit.EgressInfo) error {
 	data, err := proto.Marshal(info)
 	if err != nil {
 		return err
@@ -361,11 +361,11 @@ func (s *RedisStore) StoreEgress(_ context.Context, info *livekit.EgressInfo) er
 	return nil
 }
 
-func (s *RedisStore) LoadEgress(_ context.Context, egressID string) (*livekit.EgressInfo, error) {
+func (s *RedisStore) LoadEgress(_ context.Context, egressID string) (*voicekit.EgressInfo, error) {
 	data, err := s.rc.HGet(s.ctx, EgressKey, egressID).Result()
 	switch err {
 	case nil:
-		info := &livekit.EgressInfo{}
+		info := &voicekit.EgressInfo{}
 		err = proto.Unmarshal([]byte(data), info)
 		if err != nil {
 			return nil, err
@@ -380,8 +380,8 @@ func (s *RedisStore) LoadEgress(_ context.Context, egressID string) (*livekit.Eg
 	}
 }
 
-func (s *RedisStore) ListEgress(_ context.Context, roomName livekit.RoomName, active bool) ([]*livekit.EgressInfo, error) {
-	var infos []*livekit.EgressInfo
+func (s *RedisStore) ListEgress(_ context.Context, roomName voicekit.RoomName, active bool) ([]*voicekit.EgressInfo, error) {
+	var infos []*voicekit.EgressInfo
 
 	if roomName == "" {
 		data, err := s.rc.HGetAll(s.ctx, EgressKey).Result()
@@ -393,14 +393,14 @@ func (s *RedisStore) ListEgress(_ context.Context, roomName livekit.RoomName, ac
 		}
 
 		for _, d := range data {
-			info := &livekit.EgressInfo{}
+			info := &voicekit.EgressInfo{}
 			err = proto.Unmarshal([]byte(d), info)
 			if err != nil {
 				return nil, err
 			}
 
 			// if active, filter status starting, active, and ending
-			if !active || int32(info.Status) < int32(livekit.EgressStatus_EGRESS_COMPLETE) {
+			if !active || int32(info.Status) < int32(voicekit.EgressStatus_EGRESS_COMPLETE) {
 				infos = append(infos, info)
 			}
 		}
@@ -418,14 +418,14 @@ func (s *RedisStore) ListEgress(_ context.Context, roomName livekit.RoomName, ac
 			if d == nil {
 				continue
 			}
-			info := &livekit.EgressInfo{}
+			info := &voicekit.EgressInfo{}
 			err = proto.Unmarshal([]byte(d.(string)), info)
 			if err != nil {
 				return nil, err
 			}
 
 			// if active, filter status starting, active, and ending
-			if !active || int32(info.Status) < int32(livekit.EgressStatus_EGRESS_COMPLETE) {
+			if !active || int32(info.Status) < int32(voicekit.EgressStatus_EGRESS_COMPLETE) {
 				infos = append(infos, info)
 			}
 		}
@@ -434,7 +434,7 @@ func (s *RedisStore) ListEgress(_ context.Context, roomName livekit.RoomName, ac
 	return infos, nil
 }
 
-func (s *RedisStore) UpdateEgress(_ context.Context, info *livekit.EgressInfo) error {
+func (s *RedisStore) UpdateEgress(_ context.Context, info *voicekit.EgressInfo) error {
 	data, err := proto.Marshal(info)
 	if err != nil {
 		return err
@@ -518,7 +518,7 @@ func parseEgressEnded(value string) (roomName string, endedAt int64, err error) 
 	return
 }
 
-func (s *RedisStore) StoreIngress(ctx context.Context, info *livekit.IngressInfo) error {
+func (s *RedisStore) StoreIngress(ctx context.Context, info *voicekit.IngressInfo) error {
 	err := s.storeIngress(ctx, info)
 	if err != nil {
 		return err
@@ -527,11 +527,11 @@ func (s *RedisStore) StoreIngress(ctx context.Context, info *livekit.IngressInfo
 	return s.storeIngressState(ctx, info.IngressId, nil)
 }
 
-func (s *RedisStore) storeIngress(_ context.Context, info *livekit.IngressInfo) error {
+func (s *RedisStore) storeIngress(_ context.Context, info *voicekit.IngressInfo) error {
 	if info.IngressId == "" {
 		return errors.New("Missing IngressId")
 	}
-	if info.StreamKey == "" && info.InputType != livekit.IngressInput_URL_INPUT {
+	if info.StreamKey == "" && info.InputType != voicekit.IngressInput_URL_INPUT {
 		return errors.New("Missing StreamKey")
 	}
 
@@ -604,13 +604,13 @@ func (s *RedisStore) storeIngress(_ context.Context, info *livekit.IngressInfo) 
 	return nil
 }
 
-func (s *RedisStore) storeIngressState(_ context.Context, ingressId string, state *livekit.IngressState) error {
+func (s *RedisStore) storeIngressState(_ context.Context, ingressId string, state *voicekit.IngressState) error {
 	if ingressId == "" {
 		return errors.New("Missing IngressId")
 	}
 
 	if state == nil {
-		state = &livekit.IngressState{}
+		state = &voicekit.IngressState{}
 	}
 
 	data, err := proto.Marshal(state)
@@ -679,11 +679,11 @@ func (s *RedisStore) storeIngressState(_ context.Context, ingressId string, stat
 	return nil
 }
 
-func (s *RedisStore) loadIngress(c redis.Cmdable, ingressId string) (*livekit.IngressInfo, error) {
+func (s *RedisStore) loadIngress(c redis.Cmdable, ingressId string) (*voicekit.IngressInfo, error) {
 	data, err := c.HGet(s.ctx, IngressKey, ingressId).Result()
 	switch err {
 	case nil:
-		info := &livekit.IngressInfo{}
+		info := &voicekit.IngressInfo{}
 		err = proto.Unmarshal([]byte(data), info)
 		if err != nil {
 			return nil, err
@@ -698,11 +698,11 @@ func (s *RedisStore) loadIngress(c redis.Cmdable, ingressId string) (*livekit.In
 	}
 }
 
-func (s *RedisStore) loadIngressState(c redis.Cmdable, ingressId string) (*livekit.IngressState, error) {
+func (s *RedisStore) loadIngressState(c redis.Cmdable, ingressId string) (*voicekit.IngressState, error) {
 	data, err := c.Get(s.ctx, IngressStatePrefix+ingressId).Result()
 	switch err {
 	case nil:
-		state := &livekit.IngressState{}
+		state := &voicekit.IngressState{}
 		err = proto.Unmarshal([]byte(data), state)
 		if err != nil {
 			return nil, err
@@ -717,7 +717,7 @@ func (s *RedisStore) loadIngressState(c redis.Cmdable, ingressId string) (*livek
 	}
 }
 
-func (s *RedisStore) LoadIngress(_ context.Context, ingressId string) (*livekit.IngressInfo, error) {
+func (s *RedisStore) LoadIngress(_ context.Context, ingressId string) (*voicekit.IngressInfo, error) {
 	info, err := s.loadIngress(s.rc, ingressId)
 	if err != nil {
 		return nil, err
@@ -735,7 +735,7 @@ func (s *RedisStore) LoadIngress(_ context.Context, ingressId string) (*livekit.
 	return info, nil
 }
 
-func (s *RedisStore) LoadIngressFromStreamKey(_ context.Context, streamKey string) (*livekit.IngressInfo, error) {
+func (s *RedisStore) LoadIngressFromStreamKey(_ context.Context, streamKey string) (*voicekit.IngressInfo, error) {
 	ingressID, err := s.rc.HGet(s.ctx, StreamKeyKey, streamKey).Result()
 	switch err {
 	case nil:
@@ -749,8 +749,8 @@ func (s *RedisStore) LoadIngressFromStreamKey(_ context.Context, streamKey strin
 	}
 }
 
-func (s *RedisStore) ListIngress(_ context.Context, roomName livekit.RoomName) ([]*livekit.IngressInfo, error) {
-	var infos []*livekit.IngressInfo
+func (s *RedisStore) ListIngress(_ context.Context, roomName voicekit.RoomName) ([]*voicekit.IngressInfo, error) {
+	var infos []*voicekit.IngressInfo
 
 	if roomName == "" {
 		data, err := s.rc.HGetAll(s.ctx, IngressKey).Result()
@@ -762,7 +762,7 @@ func (s *RedisStore) ListIngress(_ context.Context, roomName livekit.RoomName) (
 		}
 
 		for _, d := range data {
-			info := &livekit.IngressInfo{}
+			info := &voicekit.IngressInfo{}
 			err = proto.Unmarshal([]byte(d), info)
 			if err != nil {
 				return nil, err
@@ -793,7 +793,7 @@ func (s *RedisStore) ListIngress(_ context.Context, roomName livekit.RoomName) (
 			if d == nil {
 				continue
 			}
-			info := &livekit.IngressInfo{}
+			info := &voicekit.IngressInfo{}
 			err = proto.Unmarshal([]byte(d.(string)), info)
 			if err != nil {
 				return nil, err
@@ -815,15 +815,15 @@ func (s *RedisStore) ListIngress(_ context.Context, roomName livekit.RoomName) (
 	return infos, nil
 }
 
-func (s *RedisStore) UpdateIngress(ctx context.Context, info *livekit.IngressInfo) error {
+func (s *RedisStore) UpdateIngress(ctx context.Context, info *voicekit.IngressInfo) error {
 	return s.storeIngress(ctx, info)
 }
 
-func (s *RedisStore) UpdateIngressState(ctx context.Context, ingressId string, state *livekit.IngressState) error {
+func (s *RedisStore) UpdateIngressState(ctx context.Context, ingressId string, state *voicekit.IngressState) error {
 	return s.storeIngressState(ctx, ingressId, state)
 }
 
-func (s *RedisStore) DeleteIngress(_ context.Context, info *livekit.IngressInfo) error {
+func (s *RedisStore) DeleteIngress(_ context.Context, info *voicekit.IngressInfo) error {
 	tx := s.rc.TxPipeline()
 	tx.SRem(s.ctx, RoomIngressPrefix+info.RoomName, info.IngressId)
 	if info.StreamKey != "" {
@@ -838,7 +838,7 @@ func (s *RedisStore) DeleteIngress(_ context.Context, info *livekit.IngressInfo)
 	return nil
 }
 
-func (s *RedisStore) StoreAgentDispatch(_ context.Context, dispatch *livekit.AgentDispatch) error {
+func (s *RedisStore) StoreAgentDispatch(_ context.Context, dispatch *voicekit.AgentDispatch) error {
 	di := utils.CloneProto(dispatch)
 
 	// Do not store jobs with the dispatch
@@ -857,25 +857,25 @@ func (s *RedisStore) StoreAgentDispatch(_ context.Context, dispatch *livekit.Age
 }
 
 // This will not delete the jobs created by the dispatch
-func (s *RedisStore) DeleteAgentDispatch(_ context.Context, dispatch *livekit.AgentDispatch) error {
+func (s *RedisStore) DeleteAgentDispatch(_ context.Context, dispatch *voicekit.AgentDispatch) error {
 	key := AgentDispatchPrefix + string(dispatch.Room)
 	return s.rc.HDel(s.ctx, key, dispatch.Id).Err()
 }
 
-func (s *RedisStore) ListAgentDispatches(_ context.Context, roomName livekit.RoomName) ([]*livekit.AgentDispatch, error) {
+func (s *RedisStore) ListAgentDispatches(_ context.Context, roomName voicekit.RoomName) ([]*voicekit.AgentDispatch, error) {
 	key := AgentDispatchPrefix + string(roomName)
-	dispatches, err := redisLoadAll[livekit.AgentDispatch](s.ctx, s, key)
+	dispatches, err := redisLoadAll[voicekit.AgentDispatch](s.ctx, s, key)
 	if err != nil {
 		return nil, err
 	}
 
-	dMap := make(map[string]*livekit.AgentDispatch)
+	dMap := make(map[string]*voicekit.AgentDispatch)
 	for _, di := range dispatches {
 		dMap[di.Id] = di
 	}
 
 	key = AgentJobPrefix + string(roomName)
-	jobs, err := redisLoadAll[livekit.Job](s.ctx, s, key)
+	jobs, err := redisLoadAll[voicekit.Job](s.ctx, s, key)
 	if err != nil {
 		return nil, err
 	}
@@ -887,7 +887,7 @@ func (s *RedisStore) ListAgentDispatches(_ context.Context, roomName livekit.Roo
 			continue
 		}
 		if di.State == nil {
-			di.State = &livekit.AgentDispatchState{}
+			di.State = &voicekit.AgentDispatchState{}
 		}
 		di.State.Jobs = append(di.State.Jobs, jb)
 	}
@@ -895,7 +895,7 @@ func (s *RedisStore) ListAgentDispatches(_ context.Context, roomName livekit.Roo
 	return dispatches, nil
 }
 
-func (s *RedisStore) StoreAgentJob(_ context.Context, job *livekit.Job) error {
+func (s *RedisStore) StoreAgentJob(_ context.Context, job *voicekit.Job) error {
 	if job.Room == nil {
 		return psrpc.NewErrorf(psrpc.InvalidArgument, "job doesn't have a valid Room field")
 	}
@@ -909,7 +909,7 @@ func (s *RedisStore) StoreAgentJob(_ context.Context, job *livekit.Job) error {
 
 	// Only store the participant identity
 	if jb.Participant != nil {
-		jb.Participant = &livekit.ParticipantInfo{
+		jb.Participant = &voicekit.ParticipantInfo{
 			Identity: jb.Participant.Identity,
 		}
 	}
@@ -922,7 +922,7 @@ func (s *RedisStore) StoreAgentJob(_ context.Context, job *livekit.Job) error {
 	return s.rc.HSet(s.ctx, key, job.Id, data).Err()
 }
 
-func (s *RedisStore) DeleteAgentJob(_ context.Context, job *livekit.Job) error {
+func (s *RedisStore) DeleteAgentJob(_ context.Context, job *voicekit.Job) error {
 	if job.Room == nil {
 		return psrpc.NewErrorf(psrpc.InvalidArgument, "job doesn't have a valid Room field")
 	}
@@ -1035,7 +1035,7 @@ type protoEntity[T any] interface {
 	ID() string
 }
 
-func redisIterPage[T any, P protoEntity[T]](ctx context.Context, s *RedisStore, key string, page *livekit.Pagination) ([]P, error) {
+func redisIterPage[T any, P protoEntity[T]](ctx context.Context, s *RedisStore, key string, page *voicekit.Pagination) ([]P, error) {
 	if page == nil {
 		return redisLoadAll[T, P](ctx, s, key)
 	}
@@ -1072,7 +1072,7 @@ func sortProtos[T any, P protoEntity[T]](arr []P) {
 	})
 }
 
-func sortPage[T any, P protoEntity[T]](items []P, page *livekit.Pagination) []P {
+func sortPage[T any, P protoEntity[T]](items []P, page *voicekit.Pagination) []P {
 	sortProtos(items)
 	if page != nil {
 		if limit := int(page.Limit); limit > 0 && len(items) > limit {

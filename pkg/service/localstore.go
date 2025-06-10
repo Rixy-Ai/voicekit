@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,20 +21,20 @@ import (
 
 	"github.com/thoas/go-funk"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/utils"
 )
 
 // encapsulates CRUD operations for room settings
 type LocalStore struct {
 	// map of roomName => room
-	rooms        map[livekit.RoomName]*livekit.Room
-	roomInternal map[livekit.RoomName]*livekit.RoomInternal
+	rooms        map[voicekit.RoomName]*voicekit.Room
+	roomInternal map[voicekit.RoomName]*voicekit.RoomInternal
 	// map of roomName => { identity: participant }
-	participants map[livekit.RoomName]map[livekit.ParticipantIdentity]*livekit.ParticipantInfo
+	participants map[voicekit.RoomName]map[voicekit.ParticipantIdentity]*voicekit.ParticipantInfo
 
-	agentDispatches map[livekit.RoomName]map[string]*livekit.AgentDispatch
-	agentJobs       map[livekit.RoomName]map[string]*livekit.Job
+	agentDispatches map[voicekit.RoomName]map[string]*voicekit.AgentDispatch
+	agentJobs       map[voicekit.RoomName]map[string]*voicekit.Job
 
 	lock       sync.RWMutex
 	globalLock sync.Mutex
@@ -42,22 +42,22 @@ type LocalStore struct {
 
 func NewLocalStore() *LocalStore {
 	return &LocalStore{
-		rooms:           make(map[livekit.RoomName]*livekit.Room),
-		roomInternal:    make(map[livekit.RoomName]*livekit.RoomInternal),
-		participants:    make(map[livekit.RoomName]map[livekit.ParticipantIdentity]*livekit.ParticipantInfo),
-		agentDispatches: make(map[livekit.RoomName]map[string]*livekit.AgentDispatch),
-		agentJobs:       make(map[livekit.RoomName]map[string]*livekit.Job),
+		rooms:           make(map[voicekit.RoomName]*voicekit.Room),
+		roomInternal:    make(map[voicekit.RoomName]*voicekit.RoomInternal),
+		participants:    make(map[voicekit.RoomName]map[voicekit.ParticipantIdentity]*voicekit.ParticipantInfo),
+		agentDispatches: make(map[voicekit.RoomName]map[string]*voicekit.AgentDispatch),
+		agentJobs:       make(map[voicekit.RoomName]map[string]*voicekit.Job),
 		lock:            sync.RWMutex{},
 	}
 }
 
-func (s *LocalStore) StoreRoom(_ context.Context, room *livekit.Room, internal *livekit.RoomInternal) error {
+func (s *LocalStore) StoreRoom(_ context.Context, room *voicekit.Room, internal *voicekit.RoomInternal) error {
 	if room.CreationTime == 0 {
 		now := time.Now()
 		room.CreationTime = now.Unix()
 		room.CreationTimeMs = now.UnixMilli()
 	}
-	roomName := livekit.RoomName(room.Name)
+	roomName := voicekit.RoomName(room.Name)
 
 	s.lock.Lock()
 	s.rooms[roomName] = room
@@ -67,7 +67,7 @@ func (s *LocalStore) StoreRoom(_ context.Context, room *livekit.Room, internal *
 	return nil
 }
 
-func (s *LocalStore) LoadRoom(_ context.Context, roomName livekit.RoomName, includeInternal bool) (*livekit.Room, *livekit.RoomInternal, error) {
+func (s *LocalStore) LoadRoom(_ context.Context, roomName voicekit.RoomName, includeInternal bool) (*voicekit.Room, *voicekit.RoomInternal, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -76,7 +76,7 @@ func (s *LocalStore) LoadRoom(_ context.Context, roomName livekit.RoomName, incl
 		return nil, nil, ErrRoomNotFound
 	}
 
-	var internal *livekit.RoomInternal
+	var internal *voicekit.RoomInternal
 	if includeInternal {
 		internal = s.roomInternal[roomName]
 	}
@@ -84,19 +84,19 @@ func (s *LocalStore) LoadRoom(_ context.Context, roomName livekit.RoomName, incl
 	return room, internal, nil
 }
 
-func (s *LocalStore) ListRooms(_ context.Context, roomNames []livekit.RoomName) ([]*livekit.Room, error) {
+func (s *LocalStore) ListRooms(_ context.Context, roomNames []voicekit.RoomName) ([]*voicekit.Room, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	rooms := make([]*livekit.Room, 0, len(s.rooms))
+	rooms := make([]*voicekit.Room, 0, len(s.rooms))
 	for _, r := range s.rooms {
-		if roomNames == nil || funk.Contains(roomNames, livekit.RoomName(r.Name)) {
+		if roomNames == nil || funk.Contains(roomNames, voicekit.RoomName(r.Name)) {
 			rooms = append(rooms, r)
 		}
 	}
 	return rooms, nil
 }
 
-func (s *LocalStore) DeleteRoom(ctx context.Context, roomName livekit.RoomName) error {
+func (s *LocalStore) DeleteRoom(ctx context.Context, roomName voicekit.RoomName) error {
 	room, _, err := s.LoadRoom(ctx, roomName, false)
 	if err == ErrRoomNotFound {
 		return nil
@@ -107,38 +107,38 @@ func (s *LocalStore) DeleteRoom(ctx context.Context, roomName livekit.RoomName) 
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	delete(s.participants, livekit.RoomName(room.Name))
-	delete(s.rooms, livekit.RoomName(room.Name))
-	delete(s.roomInternal, livekit.RoomName(room.Name))
-	delete(s.agentDispatches, livekit.RoomName(room.Name))
-	delete(s.agentJobs, livekit.RoomName(room.Name))
+	delete(s.participants, voicekit.RoomName(room.Name))
+	delete(s.rooms, voicekit.RoomName(room.Name))
+	delete(s.roomInternal, voicekit.RoomName(room.Name))
+	delete(s.agentDispatches, voicekit.RoomName(room.Name))
+	delete(s.agentJobs, voicekit.RoomName(room.Name))
 	return nil
 }
 
-func (s *LocalStore) LockRoom(_ context.Context, _ livekit.RoomName, _ time.Duration) (string, error) {
+func (s *LocalStore) LockRoom(_ context.Context, _ voicekit.RoomName, _ time.Duration) (string, error) {
 	// local rooms lock & unlock globally
 	s.globalLock.Lock()
 	return "", nil
 }
 
-func (s *LocalStore) UnlockRoom(_ context.Context, _ livekit.RoomName, _ string) error {
+func (s *LocalStore) UnlockRoom(_ context.Context, _ voicekit.RoomName, _ string) error {
 	s.globalLock.Unlock()
 	return nil
 }
 
-func (s *LocalStore) StoreParticipant(_ context.Context, roomName livekit.RoomName, participant *livekit.ParticipantInfo) error {
+func (s *LocalStore) StoreParticipant(_ context.Context, roomName voicekit.RoomName, participant *voicekit.ParticipantInfo) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	roomParticipants := s.participants[roomName]
 	if roomParticipants == nil {
-		roomParticipants = make(map[livekit.ParticipantIdentity]*livekit.ParticipantInfo)
+		roomParticipants = make(map[voicekit.ParticipantIdentity]*voicekit.ParticipantInfo)
 		s.participants[roomName] = roomParticipants
 	}
-	roomParticipants[livekit.ParticipantIdentity(participant.Identity)] = participant
+	roomParticipants[voicekit.ParticipantIdentity(participant.Identity)] = participant
 	return nil
 }
 
-func (s *LocalStore) LoadParticipant(_ context.Context, roomName livekit.RoomName, identity livekit.ParticipantIdentity) (*livekit.ParticipantInfo, error) {
+func (s *LocalStore) LoadParticipant(_ context.Context, roomName voicekit.RoomName, identity voicekit.ParticipantIdentity) (*voicekit.ParticipantInfo, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -153,12 +153,12 @@ func (s *LocalStore) LoadParticipant(_ context.Context, roomName livekit.RoomNam
 	return participant, nil
 }
 
-func (s *LocalStore) HasParticipant(ctx context.Context, roomName livekit.RoomName, identity livekit.ParticipantIdentity) (bool, error) {
+func (s *LocalStore) HasParticipant(ctx context.Context, roomName voicekit.RoomName, identity voicekit.ParticipantIdentity) (bool, error) {
 	p, err := s.LoadParticipant(ctx, roomName, identity)
 	return p != nil, utils.ScreenError(err, ErrParticipantNotFound)
 }
 
-func (s *LocalStore) ListParticipants(_ context.Context, roomName livekit.RoomName) ([]*livekit.ParticipantInfo, error) {
+func (s *LocalStore) ListParticipants(_ context.Context, roomName voicekit.RoomName) ([]*voicekit.ParticipantInfo, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -168,7 +168,7 @@ func (s *LocalStore) ListParticipants(_ context.Context, roomName livekit.RoomNa
 		return nil, nil
 	}
 
-	items := make([]*livekit.ParticipantInfo, 0, len(roomParticipants))
+	items := make([]*voicekit.ParticipantInfo, 0, len(roomParticipants))
 	for _, p := range roomParticipants {
 		items = append(items, p)
 	}
@@ -176,7 +176,7 @@ func (s *LocalStore) ListParticipants(_ context.Context, roomName livekit.RoomNa
 	return items, nil
 }
 
-func (s *LocalStore) DeleteParticipant(_ context.Context, roomName livekit.RoomName, identity livekit.ParticipantIdentity) error {
+func (s *LocalStore) DeleteParticipant(_ context.Context, roomName voicekit.RoomName, identity voicekit.ParticipantIdentity) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -187,7 +187,7 @@ func (s *LocalStore) DeleteParticipant(_ context.Context, roomName livekit.RoomN
 	return nil
 }
 
-func (s *LocalStore) StoreAgentDispatch(ctx context.Context, dispatch *livekit.AgentDispatch) error {
+func (s *LocalStore) StoreAgentDispatch(ctx context.Context, dispatch *voicekit.AgentDispatch) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -196,21 +196,21 @@ func (s *LocalStore) StoreAgentDispatch(ctx context.Context, dispatch *livekit.A
 		clone.State.Jobs = nil
 	}
 
-	roomDispatches := s.agentDispatches[livekit.RoomName(dispatch.Room)]
+	roomDispatches := s.agentDispatches[voicekit.RoomName(dispatch.Room)]
 	if roomDispatches == nil {
-		roomDispatches = make(map[string]*livekit.AgentDispatch)
-		s.agentDispatches[livekit.RoomName(dispatch.Room)] = roomDispatches
+		roomDispatches = make(map[string]*voicekit.AgentDispatch)
+		s.agentDispatches[voicekit.RoomName(dispatch.Room)] = roomDispatches
 	}
 
 	roomDispatches[clone.Id] = clone
 	return nil
 }
 
-func (s *LocalStore) DeleteAgentDispatch(ctx context.Context, dispatch *livekit.AgentDispatch) error {
+func (s *LocalStore) DeleteAgentDispatch(ctx context.Context, dispatch *voicekit.AgentDispatch) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	roomDispatches := s.agentDispatches[livekit.RoomName(dispatch.Room)]
+	roomDispatches := s.agentDispatches[voicekit.RoomName(dispatch.Room)]
 	if roomDispatches != nil {
 		delete(roomDispatches, dispatch.Id)
 	}
@@ -218,7 +218,7 @@ func (s *LocalStore) DeleteAgentDispatch(ctx context.Context, dispatch *livekit.
 	return nil
 }
 
-func (s *LocalStore) ListAgentDispatches(ctx context.Context, roomName livekit.RoomName) ([]*livekit.AgentDispatch, error) {
+func (s *LocalStore) ListAgentDispatches(ctx context.Context, roomName voicekit.RoomName) ([]*voicekit.AgentDispatch, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -228,15 +228,15 @@ func (s *LocalStore) ListAgentDispatches(ctx context.Context, roomName livekit.R
 	}
 	agentJobs := s.agentJobs[roomName]
 
-	var js []*livekit.Job
+	var js []*voicekit.Job
 	if agentJobs != nil {
 		for _, j := range agentJobs {
 			js = append(js, utils.CloneProto(j))
 		}
 	}
-	var ds []*livekit.AgentDispatch
+	var ds []*voicekit.AgentDispatch
 
-	m := make(map[string]*livekit.AgentDispatch)
+	m := make(map[string]*voicekit.AgentDispatch)
 	for _, d := range agentDispatches {
 		clone := utils.CloneProto(d)
 		m[d.Id] = clone
@@ -253,33 +253,33 @@ func (s *LocalStore) ListAgentDispatches(ctx context.Context, roomName livekit.R
 	return ds, nil
 }
 
-func (s *LocalStore) StoreAgentJob(ctx context.Context, job *livekit.Job) error {
+func (s *LocalStore) StoreAgentJob(ctx context.Context, job *voicekit.Job) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	clone := utils.CloneProto(job)
 	clone.Room = nil
 	if clone.Participant != nil {
-		clone.Participant = &livekit.ParticipantInfo{
+		clone.Participant = &voicekit.ParticipantInfo{
 			Identity: clone.Participant.Identity,
 		}
 	}
 
-	roomJobs := s.agentJobs[livekit.RoomName(job.Room.Name)]
+	roomJobs := s.agentJobs[voicekit.RoomName(job.Room.Name)]
 	if roomJobs == nil {
-		roomJobs = make(map[string]*livekit.Job)
-		s.agentJobs[livekit.RoomName(job.Room.Name)] = roomJobs
+		roomJobs = make(map[string]*voicekit.Job)
+		s.agentJobs[voicekit.RoomName(job.Room.Name)] = roomJobs
 	}
 	roomJobs[clone.Id] = clone
 
 	return nil
 }
 
-func (s *LocalStore) DeleteAgentJob(ctx context.Context, job *livekit.Job) error {
+func (s *LocalStore) DeleteAgentJob(ctx context.Context, job *voicekit.Job) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	roomJobs := s.agentJobs[livekit.RoomName(job.Room.Name)]
+	roomJobs := s.agentJobs[voicekit.RoomName(job.Room.Name)]
 	if roomJobs != nil {
 		delete(roomJobs, job.Id)
 	}

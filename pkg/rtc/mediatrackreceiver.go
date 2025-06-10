@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,17 +28,17 @@ import (
 	"golang.org/x/exp/slices"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/sfu/rtpstats"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	sutils "github.com/livekit/livekit-server/pkg/utils"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/sfu/rtpstats"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	sutils "github.com/voicekit/voicekit-server/pkg/utils"
 )
 
 const (
@@ -121,8 +121,8 @@ func (r *simulcastReceiver) IsRegressed() bool {
 type MediaTrackReceiverParams struct {
 	MediaTrack            types.MediaTrack
 	IsRelayed             bool
-	ParticipantID         func() livekit.ParticipantID
-	ParticipantIdentity   livekit.ParticipantIdentity
+	ParticipantID         func() voicekit.ParticipantID
+	ParticipantIdentity   voicekit.ParticipantIdentity
 	ParticipantVersion    uint32
 	ReceiverConfig        ReceiverConfig
 	SubscriberConfig      DirectionConfig
@@ -137,7 +137,7 @@ type MediaTrackReceiver struct {
 
 	lock               sync.RWMutex
 	receivers          []*simulcastReceiver
-	trackInfo          atomic.Pointer[livekit.TrackInfo]
+	trackInfo          atomic.Pointer[voicekit.TrackInfo]
 	potentialCodecs    []webrtc.RTPCodecParameters
 	state              mediaTrackReceiverState
 	isExpectedToResume bool
@@ -150,7 +150,7 @@ type MediaTrackReceiver struct {
 	*MediaTrackSubscriptions
 }
 
-func NewMediaTrackReceiver(params MediaTrackReceiverParams, ti *livekit.TrackInfo) *MediaTrackReceiver {
+func NewMediaTrackReceiver(params MediaTrackReceiverParams, ti *voicekit.TrackInfo) *MediaTrackReceiver {
 	t := &MediaTrackReceiver{
 		params: params,
 		state:  mediaTrackReceiverStateOpen,
@@ -174,7 +174,7 @@ func NewMediaTrackReceiver(params MediaTrackReceiverParams, ti *livekit.TrackInf
 }
 
 func (t *MediaTrackReceiver) Restart() {
-	hq := buffer.VideoQualityToSpatialLayer(livekit.VideoQuality_HIGH, t.TrackInfo())
+	hq := buffer.VideoQualityToSpatialLayer(voicekit.VideoQuality_HIGH, t.TrackInfo())
 
 	for _, receiver := range t.loadReceivers() {
 		receiver.SetMaxExpectedSpatialLayer(hq)
@@ -463,15 +463,15 @@ func (t *MediaTrackReceiver) Close(isExpectedToResume bool) {
 	}
 }
 
-func (t *MediaTrackReceiver) ID() livekit.TrackID {
-	return livekit.TrackID(t.TrackInfo().Sid)
+func (t *MediaTrackReceiver) ID() voicekit.TrackID {
+	return voicekit.TrackID(t.TrackInfo().Sid)
 }
 
-func (t *MediaTrackReceiver) Kind() livekit.TrackType {
+func (t *MediaTrackReceiver) Kind() voicekit.TrackType {
 	return t.TrackInfo().Type
 }
 
-func (t *MediaTrackReceiver) Source() livekit.TrackSource {
+func (t *MediaTrackReceiver) Source() voicekit.TrackSource {
 	return t.TrackInfo().Source
 }
 
@@ -479,11 +479,11 @@ func (t *MediaTrackReceiver) Stream() string {
 	return t.TrackInfo().Stream
 }
 
-func (t *MediaTrackReceiver) PublisherID() livekit.ParticipantID {
+func (t *MediaTrackReceiver) PublisherID() voicekit.ParticipantID {
 	return t.params.ParticipantID()
 }
 
-func (t *MediaTrackReceiver) PublisherIdentity() livekit.ParticipantIdentity {
+func (t *MediaTrackReceiver) PublisherIdentity() voicekit.ParticipantIdentity {
 	return t.params.ParticipantIdentity
 }
 
@@ -529,7 +529,7 @@ func (t *MediaTrackReceiver) SetMuted(muted bool) {
 }
 
 func (t *MediaTrackReceiver) IsEncrypted() bool {
-	return t.TrackInfo().Encryption != livekit.Encryption_NONE
+	return t.TrackInfo().Encryption != voicekit.Encryption_NONE
 }
 
 func (t *MediaTrackReceiver) AddOnClose(f func(isExpectedToResume bool)) {
@@ -618,7 +618,7 @@ func (t *MediaTrackReceiver) AddSubscriber(sub types.LocalParticipant) (types.Su
 
 // RemoveSubscriber removes participant from subscription
 // stop all forwarders to the client
-func (t *MediaTrackReceiver) RemoveSubscriber(subscriberID livekit.ParticipantID, isExpectedToResume bool) {
+func (t *MediaTrackReceiver) RemoveSubscriber(subscriberID voicekit.ParticipantID, isExpectedToResume bool) {
 	_ = t.MediaTrackSubscriptions.RemoveSubscriber(subscriberID, isExpectedToResume)
 }
 
@@ -629,8 +629,8 @@ func (t *MediaTrackReceiver) removeAllSubscribersForMime(mime mime.MimeType, isE
 	}
 }
 
-func (t *MediaTrackReceiver) RevokeDisallowedSubscribers(allowedSubscriberIdentities []livekit.ParticipantIdentity) []livekit.ParticipantIdentity {
-	var revokedSubscriberIdentities []livekit.ParticipantIdentity
+func (t *MediaTrackReceiver) RevokeDisallowedSubscribers(allowedSubscriberIdentities []voicekit.ParticipantIdentity) []voicekit.ParticipantIdentity {
+	var revokedSubscriberIdentities []voicekit.ParticipantIdentity
 
 	// LK-TODO: large number of subscribers needs to be solved for this loop
 	for _, subTrack := range t.MediaTrackSubscriptions.getAllSubscribedTracks() {
@@ -682,7 +682,7 @@ func (t *MediaTrackReceiver) SetLayerSsrc(mimeType mime.MimeType, rid string, ss
 		}
 
 		// if origin layer has ssrc, don't override it
-		var matchingLayer *livekit.VideoLayer
+		var matchingLayer *voicekit.VideoLayer
 		ssrcFound := false
 		for _, l := range ci.Layers {
 			if l.Quality == quality {
@@ -709,7 +709,7 @@ func (t *MediaTrackReceiver) SetLayerSsrc(mimeType mime.MimeType, rid string, ss
 	t.updateTrackInfoOfReceivers()
 }
 
-func (t *MediaTrackReceiver) UpdateCodecCid(codecs []*livekit.SimulcastCodec) {
+func (t *MediaTrackReceiver) UpdateCodecCid(codecs []*voicekit.SimulcastCodec) {
 	t.lock.Lock()
 	trackInfo := t.TrackInfoClone()
 	for _, c := range codecs {
@@ -726,7 +726,7 @@ func (t *MediaTrackReceiver) UpdateCodecCid(codecs []*livekit.SimulcastCodec) {
 	t.updateTrackInfoOfReceivers()
 }
 
-func (t *MediaTrackReceiver) UpdateTrackInfo(ti *livekit.TrackInfo) {
+func (t *MediaTrackReceiver) UpdateTrackInfo(ti *voicekit.TrackInfo) {
 	updateMute := false
 	clonedInfo := utils.CloneProto(ti)
 
@@ -774,8 +774,8 @@ func (t *MediaTrackReceiver) UpdateTrackInfo(ti *livekit.TrackInfo) {
 	t.updateTrackInfoOfReceivers()
 }
 
-func (t *MediaTrackReceiver) UpdateAudioTrack(update *livekit.UpdateLocalAudioTrack) {
-	if t.Kind() != livekit.TrackType_AUDIO {
+func (t *MediaTrackReceiver) UpdateAudioTrack(update *voicekit.UpdateLocalAudioTrack) {
+	if t.Kind() != voicekit.TrackType_AUDIO {
 		return
 	}
 
@@ -789,9 +789,9 @@ func (t *MediaTrackReceiver) UpdateAudioTrack(update *livekit.UpdateLocalAudioTr
 	clonedInfo.DisableDtx = false
 	for _, feature := range update.Features {
 		switch feature {
-		case livekit.AudioTrackFeature_TF_STEREO:
+		case voicekit.AudioTrackFeature_TF_STEREO:
 			clonedInfo.Stereo = true
-		case livekit.AudioTrackFeature_TF_NO_DTX:
+		case voicekit.AudioTrackFeature_TF_NO_DTX:
 			clonedInfo.DisableDtx = true
 		}
 	}
@@ -810,8 +810,8 @@ func (t *MediaTrackReceiver) UpdateAudioTrack(update *livekit.UpdateLocalAudioTr
 	t.params.Logger.Debugw("updated audio track", "before", logger.Proto(trackInfo), "after", logger.Proto(clonedInfo))
 }
 
-func (t *MediaTrackReceiver) UpdateVideoTrack(update *livekit.UpdateLocalVideoTrack) {
-	if t.Kind() != livekit.TrackType_VIDEO {
+func (t *MediaTrackReceiver) UpdateVideoTrack(update *voicekit.UpdateLocalVideoTrack) {
+	if t.Kind() != voicekit.TrackType_VIDEO {
 		return
 	}
 
@@ -834,23 +834,23 @@ func (t *MediaTrackReceiver) UpdateVideoTrack(update *livekit.UpdateLocalVideoTr
 	t.params.Logger.Debugw("updated video track", "before", logger.Proto(trackInfo), "after", logger.Proto(clonedInfo))
 }
 
-func (t *MediaTrackReceiver) TrackInfo() *livekit.TrackInfo {
+func (t *MediaTrackReceiver) TrackInfo() *voicekit.TrackInfo {
 	return t.trackInfo.Load()
 }
 
-func (t *MediaTrackReceiver) TrackInfoClone() *livekit.TrackInfo {
+func (t *MediaTrackReceiver) TrackInfoClone() *voicekit.TrackInfo {
 	return utils.CloneProto(t.TrackInfo())
 }
 
 func (t *MediaTrackReceiver) NotifyMaxLayerChange(maxLayer int32) {
 	trackInfo := t.TrackInfo()
 	quality := buffer.SpatialLayerToVideoQuality(maxLayer, trackInfo)
-	ti := &livekit.TrackInfo{
+	ti := &voicekit.TrackInfo{
 		Sid:    trackInfo.Sid,
 		Type:   trackInfo.Type,
-		Layers: []*livekit.VideoLayer{{Quality: quality}},
+		Layers: []*voicekit.VideoLayer{{Quality: quality}},
 	}
-	if quality != livekit.VideoQuality_OFF {
+	if quality != voicekit.VideoQuality_OFF {
 		for _, layer := range trackInfo.Layers {
 			if layer.Quality == quality {
 				ti.Layers[0].Width = layer.Width
@@ -865,9 +865,9 @@ func (t *MediaTrackReceiver) NotifyMaxLayerChange(maxLayer int32) {
 
 // GetQualityForDimension finds the closest quality to use for desired dimensions
 // affords a 20% tolerance on dimension
-func (t *MediaTrackReceiver) GetQualityForDimension(width, height uint32) livekit.VideoQuality {
-	quality := livekit.VideoQuality_HIGH
-	if t.Kind() == livekit.TrackType_AUDIO {
+func (t *MediaTrackReceiver) GetQualityForDimension(width, height uint32) voicekit.VideoQuality {
+	quality := voicekit.VideoQuality_HIGH
+	if t.Kind() == voicekit.TrackType_AUDIO {
 		return quality
 	}
 
@@ -902,7 +902,7 @@ func (t *MediaTrackReceiver) GetQualityForDimension(width, height uint32) liveki
 	// finds the highest layer with smallest dimensions that still satisfy client demands
 	requestedSize = uint32(float32(requestedSize) * layerSelectionTolerance)
 	for i, s := range layerSizes {
-		quality = livekit.VideoQuality(i)
+		quality = voicekit.VideoQuality(i)
 		if i == len(layerSizes)-1 {
 			break
 		} else if s >= requestedSize && s != layerSizes[i+1] {
@@ -923,7 +923,7 @@ func (t *MediaTrackReceiver) GetAudioLevel() (float64, bool) {
 }
 
 func (t *MediaTrackReceiver) onDownTrackCreated(downTrack *sfu.DownTrack) {
-	if t.Kind() == livekit.TrackType_AUDIO {
+	if t.Kind() == voicekit.TrackType_AUDIO {
 		downTrack.AddReceiverReportListener(func(dt *sfu.DownTrack, rr *rtcp.ReceiverReport) {
 			if t.onMediaLossFeedback != nil {
 				t.onMediaLossFeedback(dt, rr)
@@ -1010,9 +1010,9 @@ func (t *MediaTrackReceiver) GetTemporalLayerForSpatialFps(spatial int32, fps ui
 	return buffer.DefaultMaxLayerTemporal
 }
 
-func (t *MediaTrackReceiver) GetTrackStats() *livekit.RTPStats {
+func (t *MediaTrackReceiver) GetTrackStats() *voicekit.RTPStats {
 	receivers := t.loadReceivers()
-	stats := make([]*livekit.RTPStats, 0, len(receivers))
+	stats := make([]*voicekit.RTPStats, 0, len(receivers))
 	for _, receiver := range receivers {
 		receiverStats := receiver.GetTrackStats()
 		if receiverStats != nil {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 LiveKit, Inc
+ * Copyright 2025 Rixy Ai
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/rtc/types/typesfakes"
-	"github.com/livekit/livekit-server/pkg/telemetry/telemetryfakes"
-	"github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types/typesfakes"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/telemetryfakes"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 )
 
 func init() {
@@ -54,12 +54,12 @@ func TestSubscribe(t *testing.T) {
 		sm.params.OnTrackSubscribed = func(subTrack types.SubscribedTrack) {
 			subCount.Add(1)
 		}
-		sm.params.OnSubscriptionError = func(trackID livekit.TrackID, fatal bool, err error) {
+		sm.params.OnSubscriptionError = func(trackID voicekit.TrackID, fatal bool, err error) {
 			failed.Store(true)
 		}
 		numParticipantSubscribed := atomic.Int32{}
 		numParticipantUnsubscribed := atomic.Int32{}
-		sm.OnSubscribeStatusChanged(func(pubID livekit.ParticipantID, subscribed bool) {
+		sm.OnSubscribeStatusChanged(func(pubID voicekit.ParticipantID, subscribed bool) {
 			if subscribed {
 				numParticipantSubscribed.Add(1)
 			} else {
@@ -123,7 +123,7 @@ func TestSubscribe(t *testing.T) {
 		resolver := newTestResolver(false, true, "pub", "pubID")
 		sm.params.TrackResolver = resolver.Resolve
 		failed := atomic.Bool{}
-		sm.params.OnSubscriptionError = func(trackID livekit.TrackID, fatal bool, err error) {
+		sm.params.OnSubscriptionError = func(trackID voicekit.TrackID, fatal bool, err error) {
 			failed.Store(true)
 		}
 
@@ -164,7 +164,7 @@ func TestSubscribe(t *testing.T) {
 		resolver := newTestResolver(true, true, "pub", "pubID")
 		sm.params.TrackResolver = resolver.Resolve
 		failed := atomic.Bool{}
-		sm.params.OnSubscriptionError = func(trackID livekit.TrackID, fatal bool, err error) {
+		sm.params.OnSubscriptionError = func(trackID voicekit.TrackID, fatal bool, err error) {
 			failed.Store(true)
 		}
 
@@ -217,7 +217,7 @@ func TestUnsubscribe(t *testing.T) {
 	st.OnClose(func(isExpectedToResume bool) {
 		sm.handleSubscribedTrackClose(s, isExpectedToResume)
 	})
-	res.Track.(*typesfakes.FakeMediaTrack).RemoveSubscriberCalls(func(pID livekit.ParticipantID, isExpectedToResume bool) {
+	res.Track.(*typesfakes.FakeMediaTrack).RemoveSubscriberCalls(func(pID voicekit.ParticipantID, isExpectedToResume bool) {
 		setTestSubscribedTrackClosed(t, st, isExpectedToResume)
 	})
 
@@ -263,7 +263,7 @@ func TestSubscribeStatusChanged(t *testing.T) {
 	sm.params.TrackResolver = resolver.Resolve
 	numParticipantSubscribed := atomic.Int32{}
 	numParticipantUnsubscribed := atomic.Int32{}
-	sm.OnSubscribeStatusChanged(func(pubID livekit.ParticipantID, subscribed bool) {
+	sm.OnSubscribeStatusChanged(func(pubID voicekit.ParticipantID, subscribed bool) {
 		if subscribed {
 			numParticipantSubscribed.Add(1)
 		} else {
@@ -286,10 +286,10 @@ func TestSubscribeStatusChanged(t *testing.T) {
 	st2.OnClose(func(isExpectedToResume bool) {
 		sm.handleSubscribedTrackClose(s2, isExpectedToResume)
 	})
-	st1.MediaTrack().(*typesfakes.FakeMediaTrack).RemoveSubscriberCalls(func(pID livekit.ParticipantID, isExpectedToResume bool) {
+	st1.MediaTrack().(*typesfakes.FakeMediaTrack).RemoveSubscriberCalls(func(pID voicekit.ParticipantID, isExpectedToResume bool) {
 		setTestSubscribedTrackClosed(t, st1, isExpectedToResume)
 	})
-	st2.MediaTrack().(*typesfakes.FakeMediaTrack).RemoveSubscriberCalls(func(pID livekit.ParticipantID, isExpectedToResume bool) {
+	st2.MediaTrack().(*typesfakes.FakeMediaTrack).RemoveSubscriberCalls(func(pID voicekit.ParticipantID, isExpectedToResume bool) {
 		setTestSubscribedTrackClosed(t, st2, isExpectedToResume)
 	})
 
@@ -325,7 +325,7 @@ func TestUpdateSettingsBeforeSubscription(t *testing.T) {
 	resolver := newTestResolver(true, true, "pub", "pubID")
 	sm.params.TrackResolver = resolver.Resolve
 
-	settings := &livekit.UpdateTrackSettings{
+	settings := &voicekit.UpdateTrackSettings{
 		Disabled: true,
 		Width:    100,
 		Height:   100,
@@ -363,12 +363,12 @@ func TestSubscriptionLimits(t *testing.T) {
 	sm.params.OnTrackSubscribed = func(subTrack types.SubscribedTrack) {
 		subCount.Add(1)
 	}
-	sm.params.OnSubscriptionError = func(trackID livekit.TrackID, fatal bool, err error) {
+	sm.params.OnSubscriptionError = func(trackID voicekit.TrackID, fatal bool, err error) {
 		failed.Store(true)
 	}
 	numParticipantSubscribed := atomic.Int32{}
 	numParticipantUnsubscribed := atomic.Int32{}
-	sm.OnSubscribeStatusChanged(func(pubID livekit.ParticipantID, subscribed bool) {
+	sm.OnSubscribeStatusChanged(func(pubID voicekit.ParticipantID, subscribed bool) {
 		if subscribed {
 			numParticipantSubscribed.Add(1)
 		} else {
@@ -461,14 +461,14 @@ func newTestSubscriptionManagerWithParams(params testSubscriptionParams) *Subscr
 	p.CanSubscribeReturns(true)
 	p.IDReturns("subID")
 	p.IdentityReturns("sub")
-	p.KindReturns(livekit.ParticipantInfo_STANDARD)
+	p.KindReturns(voicekit.ParticipantInfo_STANDARD)
 	return NewSubscriptionManager(SubscriptionManagerParams{
 		Participant:         p,
 		Logger:              logger.GetLogger(),
 		OnTrackSubscribed:   func(subTrack types.SubscribedTrack) {},
 		OnTrackUnsubscribed: func(subTrack types.SubscribedTrack) {},
-		OnSubscriptionError: func(trackID livekit.TrackID, fatal bool, err error) {},
-		TrackResolver: func(sub types.LocalParticipant, trackID livekit.TrackID) types.MediaResolverResult {
+		OnSubscriptionError: func(trackID voicekit.TrackID, fatal bool, err error) {},
+		TrackResolver: func(sub types.LocalParticipant, trackID voicekit.TrackID) types.MediaResolverResult {
 			return types.MediaResolverResult{}
 		},
 		Telemetry:              &telemetryfakes.FakeTelemetryService{},
@@ -481,13 +481,13 @@ type testResolver struct {
 	lock          sync.Mutex
 	hasPermission bool
 	hasTrack      bool
-	pubIdentity   livekit.ParticipantIdentity
-	pubID         livekit.ParticipantID
+	pubIdentity   voicekit.ParticipantIdentity
+	pubID         voicekit.ParticipantID
 
 	paused bool
 }
 
-func newTestResolver(hasPermission bool, hasTrack bool, pubIdentity livekit.ParticipantIdentity, pubID livekit.ParticipantID) *testResolver {
+func newTestResolver(hasPermission bool, hasTrack bool, pubIdentity voicekit.ParticipantIdentity, pubID voicekit.ParticipantID) *testResolver {
 	return &testResolver{
 		hasPermission: hasPermission,
 		hasTrack:      hasTrack,
@@ -502,7 +502,7 @@ func (t *testResolver) SetPause(paused bool) {
 	t.paused = paused
 }
 
-func (t *testResolver) Resolve(_subscriber types.LocalParticipant, trackID livekit.TrackID) types.MediaResolverResult {
+func (t *testResolver) Resolve(_subscriber types.LocalParticipant, trackID voicekit.TrackID) types.MediaResolverResult {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 	res := types.MediaResolverResult{

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,17 +21,17 @@ import (
 	"github.com/pion/rtcp"
 	"github.com/pion/webrtc/v4"
 
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/observability/roomobs"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/observability/roomobs"
+	"github.com/voicekit/protocol/utils"
 
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/sfu/pacer"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/sfu/pacer"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -47,7 +47,7 @@ type WebsocketClient interface {
 
 type AddSubscriberParams struct {
 	AllTracks bool
-	TrackIDs  []livekit.TrackID
+	TrackIDs  []voicekit.TrackID
 }
 
 // ---------------------------------------------
@@ -77,7 +77,7 @@ func (m MigrateState) String() string {
 
 type SubscribedCodecQuality struct {
 	CodecMime mime.MimeType
-	Quality   livekit.VideoQuality
+	Quality   voicekit.VideoQuality
 }
 
 // ---------------------------------------------
@@ -178,41 +178,41 @@ func (p ParticipantCloseReason) String() string {
 	}
 }
 
-func (p ParticipantCloseReason) ToDisconnectReason() livekit.DisconnectReason {
+func (p ParticipantCloseReason) ToDisconnectReason() voicekit.DisconnectReason {
 	switch p {
 	case ParticipantCloseReasonClientRequestLeave, ParticipantCloseReasonSimulateLeaveRequest:
-		return livekit.DisconnectReason_CLIENT_INITIATED
+		return voicekit.DisconnectReason_CLIENT_INITIATED
 	case ParticipantCloseReasonRoomManagerStop:
-		return livekit.DisconnectReason_SERVER_SHUTDOWN
+		return voicekit.DisconnectReason_SERVER_SHUTDOWN
 	case ParticipantCloseReasonVerifyFailed, ParticipantCloseReasonJoinFailed, ParticipantCloseReasonJoinTimeout, ParticipantCloseReasonMessageBusFailed:
 		// expected to be connected but is not
-		return livekit.DisconnectReason_JOIN_FAILURE
+		return voicekit.DisconnectReason_JOIN_FAILURE
 	case ParticipantCloseReasonPeerConnectionDisconnected:
-		return livekit.DisconnectReason_CONNECTION_TIMEOUT
+		return voicekit.DisconnectReason_CONNECTION_TIMEOUT
 	case ParticipantCloseReasonDuplicateIdentity, ParticipantCloseReasonStale:
-		return livekit.DisconnectReason_DUPLICATE_IDENTITY
+		return voicekit.DisconnectReason_DUPLICATE_IDENTITY
 	case ParticipantCloseReasonMigrationRequested, ParticipantCloseReasonMigrationComplete, ParticipantCloseReasonSimulateMigration:
-		return livekit.DisconnectReason_MIGRATION
+		return voicekit.DisconnectReason_MIGRATION
 	case ParticipantCloseReasonServiceRequestRemoveParticipant:
-		return livekit.DisconnectReason_PARTICIPANT_REMOVED
+		return voicekit.DisconnectReason_PARTICIPANT_REMOVED
 	case ParticipantCloseReasonServiceRequestDeleteRoom:
-		return livekit.DisconnectReason_ROOM_DELETED
+		return voicekit.DisconnectReason_ROOM_DELETED
 	case ParticipantCloseReasonSimulateNodeFailure, ParticipantCloseReasonSimulateServerLeave:
-		return livekit.DisconnectReason_SERVER_SHUTDOWN
+		return voicekit.DisconnectReason_SERVER_SHUTDOWN
 	case ParticipantCloseReasonNegotiateFailed, ParticipantCloseReasonPublicationError, ParticipantCloseReasonSubscriptionError,
 		ParticipantCloseReasonDataChannelError, ParticipantCloseReasonMigrateCodecMismatch, ParticipantCloseReasonMoveFailed:
-		return livekit.DisconnectReason_STATE_MISMATCH
+		return voicekit.DisconnectReason_STATE_MISMATCH
 	case ParticipantCloseReasonSignalSourceClose:
-		return livekit.DisconnectReason_SIGNAL_CLOSE
+		return voicekit.DisconnectReason_SIGNAL_CLOSE
 	case ParticipantCloseReasonRoomClosed:
-		return livekit.DisconnectReason_ROOM_CLOSED
+		return voicekit.DisconnectReason_ROOM_CLOSED
 	case ParticipantCloseReasonUserUnavailable:
-		return livekit.DisconnectReason_USER_UNAVAILABLE
+		return voicekit.DisconnectReason_USER_UNAVAILABLE
 	case ParticipantCloseReasonUserRejected:
-		return livekit.DisconnectReason_USER_REJECTED
+		return voicekit.DisconnectReason_USER_REJECTED
 	default:
 		// the other types will map to unknown reason
-		return livekit.DisconnectReason_UNKNOWN_REASON
+		return voicekit.DisconnectReason_UNKNOWN_REASON
 	}
 }
 
@@ -267,22 +267,22 @@ func (s SignallingCloseReason) String() string {
 
 //counterfeiter:generate . Participant
 type Participant interface {
-	ID() livekit.ParticipantID
-	Identity() livekit.ParticipantIdentity
-	State() livekit.ParticipantInfo_State
+	ID() voicekit.ParticipantID
+	Identity() voicekit.ParticipantIdentity
+	State() voicekit.ParticipantInfo_State
 	ConnectedAt() time.Time
 	CloseReason() ParticipantCloseReason
-	Kind() livekit.ParticipantInfo_Kind
+	Kind() voicekit.ParticipantInfo_Kind
 	IsRecorder() bool
 	IsDependent() bool
 	IsAgent() bool
 
 	CanSkipBroadcast() bool
 	Version() utils.TimedVersion
-	ToProto() *livekit.ParticipantInfo
+	ToProto() *voicekit.ParticipantInfo
 
 	IsPublisher() bool
-	GetPublishedTrack(trackID livekit.TrackID) MediaTrack
+	GetPublishedTrack(trackID voicekit.TrackID) MediaTrack
 	GetPublishedTracks() []MediaTrack
 	RemovePublishedTrack(track MediaTrack, isExpectedToResume bool, shouldClose bool)
 
@@ -290,25 +290,25 @@ type Participant interface {
 
 	// HasPermission checks permission of the subscriber by identity. Returns true if subscriber is allowed to subscribe
 	// to the track with trackID
-	HasPermission(trackID livekit.TrackID, subIdentity livekit.ParticipantIdentity) bool
+	HasPermission(trackID voicekit.TrackID, subIdentity voicekit.ParticipantIdentity) bool
 
 	// permissions
 	Hidden() bool
 
 	Close(sendLeave bool, reason ParticipantCloseReason, isExpectedToResume bool) error
 
-	SubscriptionPermission() (*livekit.SubscriptionPermission, utils.TimedVersion)
+	SubscriptionPermission() (*voicekit.SubscriptionPermission, utils.TimedVersion)
 
 	// updates from remotes
 	UpdateSubscriptionPermission(
-		subscriptionPermission *livekit.SubscriptionPermission,
+		subscriptionPermission *voicekit.SubscriptionPermission,
 		timedVersion utils.TimedVersion,
-		resolverBySid func(participantID livekit.ParticipantID) LocalParticipant,
+		resolverBySid func(participantID voicekit.ParticipantID) LocalParticipant,
 	) error
 
 	DebugInfo() map[string]interface{}
 
-	OnMetrics(callback func(Participant, *livekit.DataPacket))
+	OnMetrics(callback func(Participant, *voicekit.DataPacket))
 }
 
 // -------------------------------------------------------
@@ -319,17 +319,17 @@ type AddTrackParams struct {
 }
 
 type MoveToRoomParams struct {
-	RoomName      livekit.RoomName
-	ParticipantID livekit.ParticipantID
+	RoomName      voicekit.RoomName
+	ParticipantID voicekit.ParticipantID
 	Helper        LocalParticipantHelper
 }
 
 //counterfeiter:generate . LocalParticipantHelper
 type LocalParticipantHelper interface {
-	ResolveMediaTrack(LocalParticipant, livekit.TrackID) MediaResolverResult
-	GetParticipantInfo(pID livekit.ParticipantID) *livekit.ParticipantInfo
-	GetRegionSettings(ip string) *livekit.RegionSettings
-	GetSubscriberForwarderState(p LocalParticipant) (map[livekit.TrackID]*livekit.RTPForwarderState, error)
+	ResolveMediaTrack(LocalParticipant, voicekit.TrackID) MediaResolverResult
+	GetParticipantInfo(pID voicekit.ParticipantID) *voicekit.ParticipantInfo
+	GetRegionSettings(ip string) *voicekit.RegionSettings
+	GetSubscriberForwarderState(p LocalParticipant) (map[voicekit.TrackID]*voicekit.RTPForwarderState, error)
 	ShouldRegressCodec() bool
 }
 
@@ -337,7 +337,7 @@ type LocalParticipantHelper interface {
 type LocalParticipant interface {
 	Participant
 
-	ToProtoWithVersion() (*livekit.ParticipantInfo, utils.TimedVersion)
+	ToProtoWithVersion() (*voicekit.ParticipantInfo, utils.TimedVersion)
 
 	// getters
 	GetTrailer() []byte
@@ -355,14 +355,14 @@ type LocalParticipant interface {
 	Disconnected() <-chan struct{}
 	IsIdle() bool
 	SubscriberAsPrimary() bool
-	GetClientInfo() *livekit.ClientInfo
-	GetClientConfiguration() *livekit.ClientConfiguration
+	GetClientInfo() *voicekit.ClientInfo
+	GetClientConfiguration() *voicekit.ClientConfiguration
 	GetBufferFactory() *buffer.Factory
-	GetPlayoutDelayConfig() *livekit.PlayoutDelay
-	GetPendingTrack(trackID livekit.TrackID) *livekit.TrackInfo
+	GetPlayoutDelayConfig() *voicekit.PlayoutDelay
+	GetPendingTrack(trackID voicekit.TrackID) *voicekit.TrackInfo
 	GetICEConnectionInfo() []*ICEConnectionInfo
 	HasConnected() bool
-	GetEnabledPublishCodecs() []*livekit.Codec
+	GetEnabledPublishCodecs() []*voicekit.Codec
 	GetPublisherICESessionUfrag() (string, error)
 	SupportsMoving() bool
 
@@ -377,29 +377,29 @@ type LocalParticipant interface {
 	SetName(name string)
 	SetMetadata(metadata string)
 	SetAttributes(attributes map[string]string)
-	UpdateAudioTrack(update *livekit.UpdateLocalAudioTrack) error
-	UpdateVideoTrack(update *livekit.UpdateLocalVideoTrack) error
+	UpdateAudioTrack(update *voicekit.UpdateLocalAudioTrack) error
+	UpdateVideoTrack(update *voicekit.UpdateLocalVideoTrack) error
 
 	// permissions
 	ClaimGrants() *auth.ClaimGrants
-	SetPermission(permission *livekit.ParticipantPermission) bool
+	SetPermission(permission *voicekit.ParticipantPermission) bool
 	CanPublish() bool
-	CanPublishSource(source livekit.TrackSource) bool
+	CanPublishSource(source voicekit.TrackSource) bool
 	CanSubscribe() bool
 	CanPublishData() bool
 
 	// PeerConnection
-	AddICECandidate(candidate webrtc.ICECandidateInit, target livekit.SignalTarget)
+	AddICECandidate(candidate webrtc.ICECandidateInit, target voicekit.SignalTarget)
 	HandleOffer(sdp webrtc.SessionDescription) error
 	GetAnswer() (webrtc.SessionDescription, error)
 	HandleICETrickleSDPFragment(sdpFragment string) error
 	HandleICERestartSDPFragment(sdpFragment string) (string, error)
-	AddTrack(req *livekit.AddTrackRequest)
-	SetTrackMuted(trackID livekit.TrackID, muted bool, fromAdmin bool) *livekit.TrackInfo
+	AddTrack(req *voicekit.AddTrackRequest)
+	SetTrackMuted(trackID voicekit.TrackID, muted bool, fromAdmin bool) *voicekit.TrackInfo
 
 	HandleAnswer(sdp webrtc.SessionDescription)
 	Negotiate(force bool)
-	ICERestart(iceConfig *livekit.ICEConfig)
+	ICERestart(iceConfig *voicekit.ICEConfig)
 	AddTrackLocal(trackLocal webrtc.TrackLocal, params AddTrackParams) (*webrtc.RTPSender, *webrtc.RTPTransceiver, error)
 	AddTransceiverFromTrackLocal(trackLocal webrtc.TrackLocal, params AddTrackParams) (*webrtc.RTPSender, *webrtc.RTPTransceiver, error)
 	RemoveTrackLocal(sender *webrtc.RTPSender) error
@@ -407,39 +407,39 @@ type LocalParticipant interface {
 	WriteSubscriberRTCP(pkts []rtcp.Packet) error
 
 	// subscriptions
-	SubscribeToTrack(trackID livekit.TrackID)
-	UnsubscribeFromTrack(trackID livekit.TrackID)
-	UpdateSubscribedTrackSettings(trackID livekit.TrackID, settings *livekit.UpdateTrackSettings)
+	SubscribeToTrack(trackID voicekit.TrackID)
+	UnsubscribeFromTrack(trackID voicekit.TrackID)
+	UpdateSubscribedTrackSettings(trackID voicekit.TrackID, settings *voicekit.UpdateTrackSettings)
 	GetSubscribedTracks() []SubscribedTrack
-	IsTrackNameSubscribed(publisherIdentity livekit.ParticipantIdentity, trackName string) bool
+	IsTrackNameSubscribed(publisherIdentity voicekit.ParticipantIdentity, trackName string) bool
 	Verify() bool
-	VerifySubscribeParticipantInfo(pID livekit.ParticipantID, version uint32)
+	VerifySubscribeParticipantInfo(pID voicekit.ParticipantID, version uint32)
 	// WaitUntilSubscribed waits until all subscriptions have been settled, or if the timeout
 	// has been reached. If the timeout expires, it will return an error.
 	WaitUntilSubscribed(timeout time.Duration) error
-	StopAndGetSubscribedTracksForwarderState() map[livekit.TrackID]*livekit.RTPForwarderState
+	StopAndGetSubscribedTracksForwarderState() map[voicekit.TrackID]*voicekit.RTPForwarderState
 	SupportsCodecChange() bool
 
 	// returns list of participant identities that the current participant is subscribed to
-	GetSubscribedParticipants() []livekit.ParticipantID
-	IsSubscribedTo(sid livekit.ParticipantID) bool
+	GetSubscribedParticipants() []voicekit.ParticipantID
+	IsSubscribedTo(sid voicekit.ParticipantID) bool
 
-	GetConnectionQuality() *livekit.ConnectionQualityInfo
+	GetConnectionQuality() *voicekit.ConnectionQualityInfo
 
 	// server sent messages
-	SendJoinResponse(joinResponse *livekit.JoinResponse) error
-	SendParticipantUpdate(participants []*livekit.ParticipantInfo) error
-	SendSpeakerUpdate(speakers []*livekit.SpeakerInfo, force bool) error
-	SendDataMessage(kind livekit.DataPacket_Kind, data []byte) error
-	SendDataMessageUnlabeled(data []byte, useRaw bool, sender livekit.ParticipantIdentity) error
-	SendRoomUpdate(room *livekit.Room) error
-	SendConnectionQualityUpdate(update *livekit.ConnectionQualityUpdate) error
-	SubscriptionPermissionUpdate(publisherID livekit.ParticipantID, trackID livekit.TrackID, allowed bool)
+	SendJoinResponse(joinResponse *voicekit.JoinResponse) error
+	SendParticipantUpdate(participants []*voicekit.ParticipantInfo) error
+	SendSpeakerUpdate(speakers []*voicekit.SpeakerInfo, force bool) error
+	SendDataMessage(kind voicekit.DataPacket_Kind, data []byte) error
+	SendDataMessageUnlabeled(data []byte, useRaw bool, sender voicekit.ParticipantIdentity) error
+	SendRoomUpdate(room *voicekit.Room) error
+	SendConnectionQualityUpdate(update *voicekit.ConnectionQualityUpdate) error
+	SubscriptionPermissionUpdate(publisherID voicekit.ParticipantID, trackID voicekit.TrackID, allowed bool)
 	SendRefreshToken(token string) error
-	SendRequestResponse(requestResponse *livekit.RequestResponse) error
-	HandleReconnectAndSendResponse(reconnectReason livekit.ReconnectReason, reconnectResponse *livekit.ReconnectResponse) error
+	SendRequestResponse(requestResponse *voicekit.RequestResponse) error
+	HandleReconnectAndSendResponse(reconnectReason voicekit.ReconnectReason, reconnectResponse *voicekit.ReconnectResponse) error
 	IssueFullReconnect(reason ParticipantCloseReason)
-	SendRoomMovedResponse(moved *livekit.RoomMovedResponse) error
+	SendRoomMovedResponse(moved *voicekit.RoomMovedResponse) error
 
 	// callbacks
 	OnStateChange(func(p LocalParticipant))
@@ -453,9 +453,9 @@ type LocalParticipant interface {
 	OnTrackUnpublished(callback func(LocalParticipant, MediaTrack))
 	// OnParticipantUpdate - metadata or permission is updated
 	OnParticipantUpdate(callback func(LocalParticipant))
-	OnDataPacket(callback func(LocalParticipant, livekit.DataPacket_Kind, *livekit.DataPacket))
+	OnDataPacket(callback func(LocalParticipant, voicekit.DataPacket_Kind, *voicekit.DataPacket))
 	OnDataMessage(callback func(LocalParticipant, []byte))
-	OnSubscribeStatusChanged(fn func(publisherID livekit.ParticipantID, subscribed bool))
+	OnSubscribeStatusChanged(fn func(publisherID voicekit.ParticipantID, subscribed bool))
 	OnClose(callback func(LocalParticipant))
 	OnClaimsChanged(callback func(LocalParticipant))
 
@@ -468,8 +468,8 @@ type LocalParticipant interface {
 	MigrateState() MigrateState
 	SetMigrateInfo(
 		previousOffer, previousAnswer *webrtc.SessionDescription,
-		mediaTracks []*livekit.TrackPublishedResponse,
-		dataChannels []*livekit.DataChannelInfo,
+		mediaTracks []*voicekit.TrackPublishedResponse,
+		dataChannels []*voicekit.DataChannelInfo,
 	)
 	IsReconnect() bool
 	MoveToRoom(params MoveToRoomParams)
@@ -477,16 +477,16 @@ type LocalParticipant interface {
 	UpdateMediaRTT(rtt uint32)
 	UpdateSignalingRTT(rtt uint32)
 
-	CacheDownTrack(trackID livekit.TrackID, rtpTransceiver *webrtc.RTPTransceiver, downTrackState sfu.DownTrackState)
+	CacheDownTrack(trackID voicekit.TrackID, rtpTransceiver *webrtc.RTPTransceiver, downTrackState sfu.DownTrackState)
 	UncacheDownTrack(rtpTransceiver *webrtc.RTPTransceiver)
-	GetCachedDownTrack(trackID livekit.TrackID) (*webrtc.RTPTransceiver, sfu.DownTrackState)
+	GetCachedDownTrack(trackID voicekit.TrackID) (*webrtc.RTPTransceiver, sfu.DownTrackState)
 
-	SetICEConfig(iceConfig *livekit.ICEConfig)
-	GetICEConfig() *livekit.ICEConfig
-	OnICEConfigChanged(callback func(participant LocalParticipant, iceConfig *livekit.ICEConfig))
+	SetICEConfig(iceConfig *voicekit.ICEConfig)
+	GetICEConfig() *voicekit.ICEConfig
+	OnICEConfigChanged(callback func(participant LocalParticipant, iceConfig *voicekit.ICEConfig))
 
-	UpdateSubscribedQuality(nodeID livekit.NodeID, trackID livekit.TrackID, maxQualities []SubscribedCodecQuality) error
-	UpdateMediaLoss(nodeID livekit.NodeID, trackID livekit.TrackID, fractionalLoss uint32) error
+	UpdateSubscribedQuality(nodeID voicekit.NodeID, trackID voicekit.TrackID, maxQualities []SubscribedCodecQuality) error
+	UpdateMediaLoss(nodeID voicekit.NodeID, trackID voicekit.TrackID, fractionalLoss uint32) error
 
 	// down stream bandwidth management
 	SetSubscriberAllowPause(allowPause bool)
@@ -496,42 +496,42 @@ type LocalParticipant interface {
 
 	GetDisableSenderReportPassThrough() bool
 
-	HandleMetrics(senderParticipantID livekit.ParticipantID, batch *livekit.MetricsBatch) error
+	HandleMetrics(senderParticipantID voicekit.ParticipantID, batch *voicekit.MetricsBatch) error
 }
 
 // Room is a container of participants, and can provide room-level actions
 //
 //counterfeiter:generate . Room
 type Room interface {
-	Name() livekit.RoomName
-	ID() livekit.RoomID
-	RemoveParticipant(identity livekit.ParticipantIdentity, pID livekit.ParticipantID, reason ParticipantCloseReason)
-	UpdateSubscriptions(participant LocalParticipant, trackIDs []livekit.TrackID, participantTracks []*livekit.ParticipantTracks, subscribe bool)
-	UpdateSubscriptionPermission(participant LocalParticipant, permissions *livekit.SubscriptionPermission) error
-	SyncState(participant LocalParticipant, state *livekit.SyncState) error
-	SimulateScenario(participant LocalParticipant, scenario *livekit.SimulateScenario) error
-	ResolveMediaTrackForSubscriber(sub LocalParticipant, trackID livekit.TrackID) MediaResolverResult
+	Name() voicekit.RoomName
+	ID() voicekit.RoomID
+	RemoveParticipant(identity voicekit.ParticipantIdentity, pID voicekit.ParticipantID, reason ParticipantCloseReason)
+	UpdateSubscriptions(participant LocalParticipant, trackIDs []voicekit.TrackID, participantTracks []*voicekit.ParticipantTracks, subscribe bool)
+	UpdateSubscriptionPermission(participant LocalParticipant, permissions *voicekit.SubscriptionPermission) error
+	SyncState(participant LocalParticipant, state *voicekit.SyncState) error
+	SimulateScenario(participant LocalParticipant, scenario *voicekit.SimulateScenario) error
+	ResolveMediaTrackForSubscriber(sub LocalParticipant, trackID voicekit.TrackID) MediaResolverResult
 	GetLocalParticipants() []LocalParticipant
-	IsDataMessageUserPacketDuplicate(ip *livekit.UserPacket) bool
+	IsDataMessageUserPacketDuplicate(ip *voicekit.UserPacket) bool
 }
 
 // MediaTrack represents a media track
 //
 //counterfeiter:generate . MediaTrack
 type MediaTrack interface {
-	ID() livekit.TrackID
-	Kind() livekit.TrackType
+	ID() voicekit.TrackID
+	Kind() voicekit.TrackType
 	Name() string
-	Source() livekit.TrackSource
+	Source() voicekit.TrackSource
 	Stream() string
 
-	UpdateTrackInfo(ti *livekit.TrackInfo)
-	UpdateAudioTrack(update *livekit.UpdateLocalAudioTrack)
-	UpdateVideoTrack(update *livekit.UpdateLocalVideoTrack)
-	ToProto() *livekit.TrackInfo
+	UpdateTrackInfo(ti *voicekit.TrackInfo)
+	UpdateAudioTrack(update *voicekit.UpdateLocalAudioTrack)
+	UpdateVideoTrack(update *voicekit.UpdateLocalVideoTrack)
+	ToProto() *voicekit.TrackInfo
 
-	PublisherID() livekit.ParticipantID
-	PublisherIdentity() livekit.ParticipantIdentity
+	PublisherID() voicekit.ParticipantID
+	PublisherIdentity() voicekit.ParticipantIdentity
 	PublisherVersion() uint32
 	Logger() logger.Logger
 
@@ -550,15 +550,15 @@ type MediaTrack interface {
 
 	// subscribers
 	AddSubscriber(participant LocalParticipant) (SubscribedTrack, error)
-	RemoveSubscriber(participantID livekit.ParticipantID, isExpectedToResume bool)
-	IsSubscriber(subID livekit.ParticipantID) bool
-	RevokeDisallowedSubscribers(allowedSubscriberIdentities []livekit.ParticipantIdentity) []livekit.ParticipantIdentity
-	GetAllSubscribers() []livekit.ParticipantID
+	RemoveSubscriber(participantID voicekit.ParticipantID, isExpectedToResume bool)
+	IsSubscriber(subID voicekit.ParticipantID) bool
+	RevokeDisallowedSubscribers(allowedSubscriberIdentities []voicekit.ParticipantIdentity) []voicekit.ParticipantIdentity
+	GetAllSubscribers() []voicekit.ParticipantID
 	GetNumSubscribers() int
 	OnTrackSubscribed()
 
 	// returns quality information that's appropriate for width & height
-	GetQualityForDimension(width, height uint32) livekit.VideoQuality
+	GetQualityForDimension(width, height uint32) voicekit.VideoQuality
 
 	// returns temporal layer that's appropriate for fps
 	GetTemporalLayerForSpatialFps(spatial int32, fps uint32, mime mime.MimeType) int32
@@ -578,14 +578,14 @@ type LocalMediaTrack interface {
 	SignalCid() string
 	HasSdpCid(cid string) bool
 
-	GetConnectionScoreAndQuality() (float32, livekit.ConnectionQuality)
-	GetTrackStats() *livekit.RTPStats
+	GetConnectionScoreAndQuality() (float32, voicekit.ConnectionQuality)
+	GetTrackStats() *voicekit.RTPStats
 
 	SetRTT(rtt uint32)
 
-	NotifySubscriberNodeMaxQuality(nodeID livekit.NodeID, qualities []SubscribedCodecQuality)
+	NotifySubscriberNodeMaxQuality(nodeID voicekit.NodeID, qualities []SubscribedCodecQuality)
 	ClearSubscriberNodesMaxQuality()
-	NotifySubscriberNodeMediaLoss(nodeID livekit.NodeID, fractionalLoss uint8)
+	NotifySubscriberNodeMediaLoss(nodeID voicekit.NodeID, fractionalLoss uint8)
 }
 
 //counterfeiter:generate . SubscribedTrack
@@ -594,19 +594,19 @@ type SubscribedTrack interface {
 	IsBound() bool
 	Close(isExpectedToResume bool)
 	OnClose(f func(isExpectedToResume bool))
-	ID() livekit.TrackID
-	PublisherID() livekit.ParticipantID
-	PublisherIdentity() livekit.ParticipantIdentity
+	ID() voicekit.TrackID
+	PublisherID() voicekit.ParticipantID
+	PublisherIdentity() voicekit.ParticipantIdentity
 	PublisherVersion() uint32
-	SubscriberID() livekit.ParticipantID
-	SubscriberIdentity() livekit.ParticipantIdentity
+	SubscriberID() voicekit.ParticipantID
+	SubscriberIdentity() voicekit.ParticipantIdentity
 	Subscriber() LocalParticipant
 	DownTrack() *sfu.DownTrack
 	MediaTrack() MediaTrack
 	RTPSender() *webrtc.RTPSender
 	IsMuted() bool
 	SetPublisherMuted(muted bool)
-	UpdateSubscriberSettings(settings *livekit.UpdateTrackSettings, isImmediate bool)
+	UpdateSubscriberSettings(settings *voicekit.UpdateTrackSettings, isImmediate bool)
 	// selects appropriate video layer according to subscriber preferences
 	UpdateVideoLayer()
 	NeedsNegotiation() bool
@@ -625,12 +625,12 @@ type MediaResolverResult struct {
 	Track                MediaTrack
 	// is permission given to the requesting participant
 	HasPermission     bool
-	PublisherID       livekit.ParticipantID
-	PublisherIdentity livekit.ParticipantIdentity
+	PublisherID       voicekit.ParticipantID
+	PublisherIdentity voicekit.ParticipantIdentity
 }
 
 // MediaTrackResolver locates a specific media track for a subscriber
-type MediaTrackResolver func(LocalParticipant, livekit.TrackID) MediaResolverResult
+type MediaTrackResolver func(LocalParticipant, voicekit.TrackID) MediaResolverResult
 
 // Supervisor/operation monitor related definitions
 type OperationMonitorEvent int

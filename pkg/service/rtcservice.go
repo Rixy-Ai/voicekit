@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,17 +32,17 @@ import (
 	"go.uber.org/atomic"
 	"golang.org/x/exp/maps"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/psrpc"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/routing/selector"
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/livekit-server/pkg/utils"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/routing/selector"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/utils"
 )
 
 type RTCService struct {
@@ -115,7 +115,7 @@ func decodeAttributes(str string) (map[string]string, error) {
 	return attrs, nil
 }
 
-func (s *RTCService) validateInternal(log logger.Logger, r *http.Request, strict bool) (livekit.RoomName, routing.ParticipantInit, int, error) {
+func (s *RTCService) validateInternal(log logger.Logger, r *http.Request, strict bool) (voicekit.RoomName, routing.ParticipantInit, int, error) {
 	claims := GetGrants(r.Context())
 	var pi routing.ParticipantInit
 
@@ -143,7 +143,7 @@ func (s *RTCService) validateInternal(log logger.Logger, r *http.Request, strict
 		}
 	}
 
-	roomName := livekit.RoomName(r.FormValue("room"))
+	roomName := voicekit.RoomName(r.FormValue("room"))
 	reconnectParam := r.FormValue("reconnect")
 	reconnectReason, _ := strconv.Atoi(r.FormValue("reconnect_reason")) // 0 means unknown reason
 	autoSubParam := r.FormValue("auto_subscribe")
@@ -192,7 +192,7 @@ func (s *RTCService) validateInternal(log logger.Logger, r *http.Request, strict
 		}
 	}
 
-	createRequest := &livekit.CreateRoomRequest{
+	createRequest := &voicekit.CreateRoomRequest{
 		Name:       string(roomName),
 		RoomPreset: claims.RoomPreset,
 	}
@@ -225,9 +225,9 @@ func (s *RTCService) validateInternal(log logger.Logger, r *http.Request, strict
 
 	pi = routing.ParticipantInit{
 		Reconnect:       boolValue(reconnectParam),
-		ReconnectReason: livekit.ReconnectReason(reconnectReason),
-		Identity:        livekit.ParticipantIdentity(claims.Identity),
-		Name:            livekit.ParticipantName(claims.Name),
+		ReconnectReason: voicekit.ReconnectReason(reconnectReason),
+		Identity:        voicekit.ParticipantIdentity(claims.Identity),
+		Name:            voicekit.ParticipantName(claims.Name),
 		AutoSubscribe:   true,
 		Client:          s.ParseClientInfo(r),
 		Grants:          claims,
@@ -235,7 +235,7 @@ func (s *RTCService) validateInternal(log logger.Logger, r *http.Request, strict
 		CreateRoom:      createRequest,
 	}
 	if pi.Reconnect {
-		pi.ID = livekit.ParticipantID(participantID)
+		pi.ID = voicekit.ParticipantID(participantID)
 	}
 
 	if autoSubParam != "" {
@@ -263,10 +263,10 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		roomName            livekit.RoomName
-		roomID              livekit.RoomID
-		participantIdentity livekit.ParticipantIdentity
-		pID                 livekit.ParticipantID
+		roomName            voicekit.RoomName
+		roomID              voicekit.RoomID
+		participantIdentity voicekit.ParticipantIdentity
+		pID                 voicekit.ParticipantID
 		loggerResolved      bool
 
 		pi   routing.ParticipantInit
@@ -319,7 +319,7 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// give it a few attempts to start session
 	var cr connectionResult
-	var initialResponse *livekit.SignalResponse
+	var initialResponse *voicekit.SignalResponse
 	for attempt := 0; attempt < s.config.SignalRelay.ConnectAttempts; attempt++ {
 		connectionTimeout := 3 * time.Second * time.Duration(attempt+1)
 		ctx := utils.ContextWithAttempt(r.Context(), attempt)
@@ -344,12 +344,12 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	pLogger = pLogger.WithValues("connID", cr.ConnectionID)
 	if !pi.Reconnect && initialResponse.GetJoin() != nil {
-		joinRoomID := livekit.RoomID(initialResponse.GetJoin().GetRoom().GetSid())
+		joinRoomID := voicekit.RoomID(initialResponse.GetJoin().GetRoom().GetSid())
 		if joinRoomID != "" {
 			roomID = joinRoomID
 		}
 
-		pi.ID = livekit.ParticipantID(initialResponse.GetJoin().GetParticipant().GetSid())
+		pi.ID = voicekit.ParticipantID(initialResponse.GetJoin().GetParticipant().GetSid())
 		pID = pi.ID
 
 		resolveLogger(false)
@@ -361,7 +361,7 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		signalStats.ResolveParticipant(join.GetParticipant())
 	}
 	if pi.Reconnect && pi.ID != "" {
-		signalStats.ResolveParticipant(&livekit.ParticipantInfo{
+		signalStats.ResolveParticipant(&voicekit.ParticipantInfo{
 			Sid:      string(pi.ID),
 			Identity: string(pi.Identity),
 		})
@@ -440,7 +440,7 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					pLogger.Debugw("nothing to read from response source")
 					return
 				}
-				res, ok := msg.(*livekit.SignalResponse)
+				res, ok := msg.(*voicekit.SignalResponse)
 				if !ok {
 					pLogger.Errorw(
 						"unexpected message type", nil,
@@ -450,34 +450,34 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 
 				switch m := res.Message.(type) {
-				case *livekit.SignalResponse_Offer:
+				case *voicekit.SignalResponse_Offer:
 					pLogger.Debugw("sending offer", "offer", m)
-				case *livekit.SignalResponse_Answer:
+				case *voicekit.SignalResponse_Answer:
 					pLogger.Debugw("sending answer", "answer", m)
-				case *livekit.SignalResponse_Join:
+				case *voicekit.SignalResponse_Join:
 					pLogger.Debugw("sending join", "join", m)
 					signalStats.ResolveRoom(m.Join.GetRoom())
 					signalStats.ResolveParticipant(m.Join.GetParticipant())
-				case *livekit.SignalResponse_RoomUpdate:
-					updateRoomID := livekit.RoomID(m.RoomUpdate.GetRoom().GetSid())
+				case *voicekit.SignalResponse_RoomUpdate:
+					updateRoomID := voicekit.RoomID(m.RoomUpdate.GetRoom().GetSid())
 					if updateRoomID != "" {
 						roomID = updateRoomID
 						resolveLogger(false)
 					}
 					pLogger.Debugw("sending room update", "roomUpdate", m)
 					signalStats.ResolveRoom(m.RoomUpdate.GetRoom())
-				case *livekit.SignalResponse_Update:
+				case *voicekit.SignalResponse_Update:
 					pLogger.Debugw("sending participant update", "participantUpdate", m)
-				case *livekit.SignalResponse_RoomMoved:
+				case *voicekit.SignalResponse_RoomMoved:
 					resetLogger()
 					signalStats.Reset()
-					roomName = livekit.RoomName(m.RoomMoved.GetRoom().GetName())
-					moveRoomID := livekit.RoomID(m.RoomMoved.GetRoom().GetSid())
+					roomName = voicekit.RoomName(m.RoomMoved.GetRoom().GetName())
+					moveRoomID := voicekit.RoomID(m.RoomMoved.GetRoom().GetSid())
 					if moveRoomID != "" {
 						roomID = moveRoomID
 					}
-					participantIdentity = livekit.ParticipantIdentity(m.RoomMoved.GetParticipant().GetIdentity())
-					pID = livekit.ParticipantID(m.RoomMoved.GetParticipant().GetSid())
+					participantIdentity = voicekit.ParticipantIdentity(m.RoomMoved.GetParticipant().GetIdentity())
+					pID = voicekit.ParticipantID(m.RoomMoved.GetParticipant().GetSid())
 					resolveLogger(false)
 					signalStats.ResolveRoom(m.RoomMoved.GetRoom())
 					signalStats.ResolveParticipant(m.RoomMoved.GetParticipant())
@@ -508,9 +508,9 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		signalStats.AddBytes(uint64(count), false)
 
 		switch m := req.Message.(type) {
-		case *livekit.SignalRequest_Ping:
-			count, perr := sigConn.WriteResponse(&livekit.SignalResponse{
-				Message: &livekit.SignalResponse_Pong{
+		case *voicekit.SignalRequest_Ping:
+			count, perr := sigConn.WriteResponse(&voicekit.SignalResponse{
+				Message: &voicekit.SignalResponse_Pong{
 					//
 					// Although this field is int64, some clients (like JS) cause overflow if nanosecond granularity is used.
 					// So. use UnixMillis().
@@ -521,10 +521,10 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if perr == nil {
 				signalStats.AddBytes(uint64(count), true)
 			}
-		case *livekit.SignalRequest_PingReq:
-			count, perr := sigConn.WriteResponse(&livekit.SignalResponse{
-				Message: &livekit.SignalResponse_PongResp{
-					PongResp: &livekit.Pong{
+		case *voicekit.SignalRequest_PingReq:
+			count, perr := sigConn.WriteResponse(&voicekit.SignalResponse{
+				Message: &voicekit.SignalResponse_PongResp{
+					PongResp: &voicekit.Pong{
 						LastPingTimestamp: m.PingReq.Timestamp,
 						Timestamp:         time.Now().UnixMilli(),
 					},
@@ -536,9 +536,9 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		switch m := req.Message.(type) {
-		case *livekit.SignalRequest_Offer:
+		case *voicekit.SignalRequest_Offer:
 			pLogger.Debugw("received offer", "offer", m)
-		case *livekit.SignalRequest_Answer:
+		case *voicekit.SignalRequest_Answer:
 			pLogger.Debugw("received answer", "answer", m)
 		}
 
@@ -549,38 +549,38 @@ func (s *RTCService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *RTCService) ParseClientInfo(r *http.Request) *livekit.ClientInfo {
+func (s *RTCService) ParseClientInfo(r *http.Request) *voicekit.ClientInfo {
 	values := r.Form
-	ci := &livekit.ClientInfo{}
+	ci := &voicekit.ClientInfo{}
 	if pv, err := strconv.Atoi(values.Get("protocol")); err == nil {
 		ci.Protocol = int32(pv)
 	}
 	sdkString := values.Get("sdk")
 	switch sdkString {
 	case "js":
-		ci.Sdk = livekit.ClientInfo_JS
+		ci.Sdk = voicekit.ClientInfo_JS
 	case "ios", "swift":
-		ci.Sdk = livekit.ClientInfo_SWIFT
+		ci.Sdk = voicekit.ClientInfo_SWIFT
 	case "android":
-		ci.Sdk = livekit.ClientInfo_ANDROID
+		ci.Sdk = voicekit.ClientInfo_ANDROID
 	case "flutter":
-		ci.Sdk = livekit.ClientInfo_FLUTTER
+		ci.Sdk = voicekit.ClientInfo_FLUTTER
 	case "go":
-		ci.Sdk = livekit.ClientInfo_GO
+		ci.Sdk = voicekit.ClientInfo_GO
 	case "unity":
-		ci.Sdk = livekit.ClientInfo_UNITY
+		ci.Sdk = voicekit.ClientInfo_UNITY
 	case "reactnative":
-		ci.Sdk = livekit.ClientInfo_REACT_NATIVE
+		ci.Sdk = voicekit.ClientInfo_REACT_NATIVE
 	case "rust":
-		ci.Sdk = livekit.ClientInfo_RUST
+		ci.Sdk = voicekit.ClientInfo_RUST
 	case "python":
-		ci.Sdk = livekit.ClientInfo_PYTHON
+		ci.Sdk = voicekit.ClientInfo_PYTHON
 	case "cpp":
-		ci.Sdk = livekit.ClientInfo_CPP
+		ci.Sdk = voicekit.ClientInfo_CPP
 	case "unityweb":
-		ci.Sdk = livekit.ClientInfo_UNITY_WEB
+		ci.Sdk = voicekit.ClientInfo_UNITY_WEB
 	case "node":
-		ci.Sdk = livekit.ClientInfo_NODE
+		ci.Sdk = voicekit.ClientInfo_NODE
 	}
 
 	ci.Version = values.Get("version")
@@ -594,10 +594,10 @@ func (s *RTCService) ParseClientInfo(r *http.Request) *livekit.ClientInfo {
 	ci.Address = GetClientIP(r)
 
 	// attempt to parse types for SDKs that support browser as a platform
-	if ci.Sdk == livekit.ClientInfo_JS ||
-		ci.Sdk == livekit.ClientInfo_REACT_NATIVE ||
-		ci.Sdk == livekit.ClientInfo_FLUTTER ||
-		ci.Sdk == livekit.ClientInfo_UNITY {
+	if ci.Sdk == voicekit.ClientInfo_JS ||
+		ci.Sdk == voicekit.ClientInfo_REACT_NATIVE ||
+		ci.Sdk == voicekit.ClientInfo_FLUTTER ||
+		ci.Sdk == voicekit.ClientInfo_UNITY {
 		client := s.parser.Parse(r.UserAgent())
 		if ci.Browser == "" {
 			ci.Browser = client.UserAgent.Family
@@ -639,15 +639,15 @@ func (s *RTCService) DrainConnections(interval time.Duration) {
 
 type connectionResult struct {
 	routing.StartParticipantSignalResults
-	Room *livekit.Room
+	Room *voicekit.Room
 }
 
 func (s *RTCService) startConnection(
 	ctx context.Context,
-	roomName livekit.RoomName,
+	roomName voicekit.RoomName,
 	pi routing.ParticipantInit,
 	timeout time.Duration,
-) (connectionResult, *livekit.SignalResponse, error) {
+) (connectionResult, *voicekit.SignalResponse, error) {
 	var cr connectionResult
 	var err error
 
@@ -675,7 +675,7 @@ func (s *RTCService) startConnection(
 	return cr, initialResponse, nil
 }
 
-func readInitialResponse(source routing.MessageSource, timeout time.Duration) (*livekit.SignalResponse, error) {
+func readInitialResponse(source routing.MessageSource, timeout time.Duration) (*voicekit.SignalResponse, error) {
 	responseTimer := time.NewTimer(timeout)
 	defer responseTimer.Stop()
 	for {
@@ -686,7 +686,7 @@ func readInitialResponse(source routing.MessageSource, timeout time.Duration) (*
 			if msg == nil {
 				return nil, errors.New("connection closed by media")
 			}
-			res, ok := msg.(*livekit.SignalResponse)
+			res, ok := msg.(*voicekit.SignalResponse)
 			if !ok {
 				return nil, fmt.Errorf("unexpected message type: %T", msg)
 			}

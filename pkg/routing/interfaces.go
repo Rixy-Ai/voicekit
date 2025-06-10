@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -41,17 +41,17 @@ type MessageSink interface {
 	WriteMessage(msg proto.Message) error
 	IsClosed() bool
 	Close()
-	ConnectionID() livekit.ConnectionID
+	ConnectionID() voicekit.ConnectionID
 }
 
 // ----------
 
 type NullMessageSink struct {
-	connID   livekit.ConnectionID
+	connID   voicekit.ConnectionID
 	isClosed atomic.Bool
 }
 
-func NewNullMessageSink(connID livekit.ConnectionID) *NullMessageSink {
+func NewNullMessageSink(connID voicekit.ConnectionID) *NullMessageSink {
 	return &NullMessageSink{
 		connID: connID,
 	}
@@ -69,7 +69,7 @@ func (n *NullMessageSink) Close() {
 	n.isClosed.Store(true)
 }
 
-func (n *NullMessageSink) ConnectionID() livekit.ConnectionID {
+func (n *NullMessageSink) ConnectionID() voicekit.ConnectionID {
 	return n.connID
 }
 
@@ -81,18 +81,18 @@ type MessageSource interface {
 	ReadChan() <-chan proto.Message
 	IsClosed() bool
 	Close()
-	ConnectionID() livekit.ConnectionID
+	ConnectionID() voicekit.ConnectionID
 }
 
 // ----------
 
 type NullMessageSource struct {
-	connID   livekit.ConnectionID
+	connID   voicekit.ConnectionID
 	msgChan  chan proto.Message
 	isClosed atomic.Bool
 }
 
-func NewNullMessageSource(connID livekit.ConnectionID) *NullMessageSource {
+func NewNullMessageSource(connID voicekit.ConnectionID) *NullMessageSource {
 	return &NullMessageSource{
 		connID:  connID,
 		msgChan: make(chan proto.Message, 0),
@@ -113,7 +113,7 @@ func (n *NullMessageSource) Close() {
 	}
 }
 
-func (n *NullMessageSource) ConnectionID() livekit.ConnectionID {
+func (n *NullMessageSource) ConnectionID() voicekit.ConnectionID {
 	return n.connID
 }
 
@@ -129,11 +129,11 @@ type Router interface {
 	UnregisterNode() error
 	RemoveDeadNodes() error
 
-	ListNodes() ([]*livekit.Node, error)
+	ListNodes() ([]*voicekit.Node, error)
 
-	GetNodeForRoom(ctx context.Context, roomName livekit.RoomName) (*livekit.Node, error)
-	SetNodeForRoom(ctx context.Context, roomName livekit.RoomName, nodeId livekit.NodeID) error
-	ClearRoomState(ctx context.Context, roomName livekit.RoomName) error
+	GetNodeForRoom(ctx context.Context, roomName voicekit.RoomName) (*voicekit.Node, error)
+	SetNodeForRoom(ctx context.Context, roomName voicekit.RoomName, nodeId voicekit.NodeID) error
+	ClearRoomState(ctx context.Context, roomName voicekit.RoomName) error
 
 	GetRegion() string
 
@@ -143,18 +143,18 @@ type Router interface {
 }
 
 type StartParticipantSignalResults struct {
-	ConnectionID        livekit.ConnectionID
+	ConnectionID        voicekit.ConnectionID
 	RequestSink         MessageSink
 	ResponseSource      MessageSource
-	NodeID              livekit.NodeID
+	NodeID              voicekit.NodeID
 	NodeSelectionReason string
 }
 
 type MessageRouter interface {
 	// CreateRoom starts an rtc room
-	CreateRoom(ctx context.Context, req *livekit.CreateRoomRequest) (res *livekit.Room, err error)
+	CreateRoom(ctx context.Context, req *voicekit.CreateRoomRequest) (res *voicekit.Room, err error)
 	// StartParticipantSignal participant signal connection is ready to start
-	StartParticipantSignal(ctx context.Context, roomName livekit.RoomName, pi ParticipantInit) (res StartParticipantSignalResults, err error)
+	StartParticipantSignal(ctx context.Context, roomName voicekit.RoomName, pi ParticipantInit) (res StartParticipantSignalResults, err error)
 }
 
 func CreateRouter(
@@ -179,19 +179,19 @@ func CreateRouter(
 // ------------------------------------------------
 
 type ParticipantInit struct {
-	Identity             livekit.ParticipantIdentity
-	Name                 livekit.ParticipantName
+	Identity             voicekit.ParticipantIdentity
+	Name                 voicekit.ParticipantName
 	Reconnect            bool
-	ReconnectReason      livekit.ReconnectReason
+	ReconnectReason      voicekit.ReconnectReason
 	AutoSubscribe        bool
-	Client               *livekit.ClientInfo
+	Client               *voicekit.ClientInfo
 	Grants               *auth.ClaimGrants
 	Region               string
 	AdaptiveStream       bool
-	ID                   livekit.ParticipantID
+	ID                   voicekit.ParticipantID
 	SubscriberAllowPause *bool
 	DisableICELite       bool
-	CreateRoom           *livekit.CreateRoomRequest
+	CreateRoom           *voicekit.CreateRoomRequest
 }
 
 func (pi *ParticipantInit) MarshalLogObject(e zapcore.ObjectEncoder) error {
@@ -222,13 +222,13 @@ func (pi *ParticipantInit) MarshalLogObject(e zapcore.ObjectEncoder) error {
 	return nil
 }
 
-func (pi *ParticipantInit) ToStartSession(roomName livekit.RoomName, connectionID livekit.ConnectionID) (*livekit.StartSession, error) {
+func (pi *ParticipantInit) ToStartSession(roomName voicekit.RoomName, connectionID voicekit.ConnectionID) (*voicekit.StartSession, error) {
 	claims, err := json.Marshal(pi.Grants)
 	if err != nil {
 		return nil, err
 	}
 
-	ss := &livekit.StartSession{
+	ss := &voicekit.StartSession{
 		RoomName: string(roomName),
 		Identity: string(pi.Identity),
 		Name:     string(pi.Name),
@@ -252,15 +252,15 @@ func (pi *ParticipantInit) ToStartSession(roomName livekit.RoomName, connectionI
 	return ss, nil
 }
 
-func ParticipantInitFromStartSession(ss *livekit.StartSession, region string) (*ParticipantInit, error) {
+func ParticipantInitFromStartSession(ss *voicekit.StartSession, region string) (*ParticipantInit, error) {
 	claims := &auth.ClaimGrants{}
 	if err := json.Unmarshal([]byte(ss.GrantsJson), claims); err != nil {
 		return nil, err
 	}
 
 	pi := &ParticipantInit{
-		Identity:        livekit.ParticipantIdentity(ss.Identity),
-		Name:            livekit.ParticipantName(ss.Name),
+		Identity:        voicekit.ParticipantIdentity(ss.Identity),
+		Name:            voicekit.ParticipantName(ss.Name),
 		Reconnect:       ss.Reconnect,
 		ReconnectReason: ss.ReconnectReason,
 		Client:          ss.Client,
@@ -268,7 +268,7 @@ func ParticipantInitFromStartSession(ss *livekit.StartSession, region string) (*
 		Grants:          claims,
 		Region:          region,
 		AdaptiveStream:  ss.AdaptiveStream,
-		ID:              livekit.ParticipantID(ss.ParticipantId),
+		ID:              voicekit.ParticipantID(ss.ParticipantId),
 		DisableICELite:  ss.DisableIceLite,
 		CreateRoom:      ss.CreateRoom,
 	}
@@ -279,7 +279,7 @@ func ParticipantInitFromStartSession(ss *livekit.StartSession, region string) (*
 
 	// TODO: clean up after 1.7 eol
 	if pi.CreateRoom == nil {
-		pi.CreateRoom = &livekit.CreateRoomRequest{
+		pi.CreateRoom = &voicekit.CreateRoomRequest{
 			Name: ss.RoomName,
 		}
 	}

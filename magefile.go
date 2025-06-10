@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ import (
 
 	"github.com/magefile/mage/mg"
 
-	"github.com/livekit/livekit-server/version"
-	"github.com/livekit/mageutil"
-	_ "github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/version"
+	"github.com/voicekit/mageutil"
+	_ "github.com/voicekit/psrpc"
 )
 
 const (
 	goChecksumFile = ".checksumgo"
-	imageName      = "livekit/livekit-server"
+	imageName      = "voicekit/voicekit-server"
 )
 
 // Default target to run when none is specified
@@ -56,7 +56,7 @@ func Deps() error {
 	return installTools(true)
 }
 
-// builds LiveKit server
+// builds VoiceKit server
 func Build() error {
 	mg.Deps(generateWire)
 	if !checksummer.IsChanged() {
@@ -68,7 +68,7 @@ func Build() error {
 	if err := os.MkdirAll("bin", 0755); err != nil {
 		return err
 	}
-	if err := mageutil.RunDir(context.Background(), "cmd/server", "go build -o ../../bin/livekit-server"); err != nil {
+	if err := mageutil.RunDir(context.Background(), "cmd/server", "go build -o ../../bin/voicekit-server"); err != nil {
 		return err
 	}
 
@@ -88,7 +88,7 @@ func BuildLinux() error {
 	if err := os.MkdirAll("bin", 0755); err != nil {
 		return err
 	}
-	cmd := mageutil.CommandDir(context.Background(), "cmd/server", "go build -buildvcs=false -o ../../bin/livekit-server-amd64")
+	cmd := mageutil.CommandDir(context.Background(), "cmd/server", "go build -buildvcs=false -o ../../bin/voicekit-server-amd64")
 	cmd.Env = []string{
 		"GOOS=linux",
 		"GOARCH=amd64",

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,17 +17,17 @@ package selector
 import (
 	"errors"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/config"
 )
 
 var ErrUnsupportedSelector = errors.New("unsupported node selector")
 
 // NodeSelector selects an appropriate node to run the current session
 type NodeSelector interface {
-	SelectNode(nodes []*livekit.Node) (*livekit.Node, error)
+	SelectNode(nodes []*voicekit.Node) (*voicekit.Node, error)
 }
 
 func CreateNodeSelector(conf *config.Config) (NodeSelector, error) {

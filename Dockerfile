@@ -1,4 +1,4 @@
-# Copyright 2023 LiveKit, Inc.
+# Copyright 2025 Rixy Ai.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,11 +34,11 @@ COPY test/ test/
 COPY tools/ tools/
 COPY version/ version/
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH GO111MODULE=on go build -a -o livekit-server ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH GO111MODULE=on go build -a -o voicekit-server ./cmd/server
 
 FROM alpine
 
-COPY --from=builder /workspace/livekit-server /livekit-server
+COPY --from=builder /workspace/voicekit-server /voicekit-server
 
 # Run the binary.
-ENTRYPOINT ["/livekit-server"]
+ENTRYPOINT ["/voicekit-server"]

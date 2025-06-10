@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import (
 
 	"github.com/twitchtv/twirp"
 
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 const (
@@ -143,7 +143,7 @@ func SetAuthorizationToken(r *http.Request, token string) {
 	r.Header.Set(authorizationHeader, bearerPrefix+token)
 }
 
-func EnsureJoinPermission(ctx context.Context) (name livekit.RoomName, err error) {
+func EnsureJoinPermission(ctx context.Context) (name voicekit.RoomName, err error) {
 	claims := GetGrants(ctx)
 	if claims == nil || claims.Video == nil {
 		err = ErrPermissionDenied
@@ -151,20 +151,20 @@ func EnsureJoinPermission(ctx context.Context) (name livekit.RoomName, err error
 	}
 
 	if claims.Video.RoomJoin {
-		name = livekit.RoomName(claims.Video.Room)
+		name = voicekit.RoomName(claims.Video.Room)
 	} else {
 		err = ErrPermissionDenied
 	}
 	return
 }
 
-func EnsureAdminPermission(ctx context.Context, room livekit.RoomName) error {
+func EnsureAdminPermission(ctx context.Context, room voicekit.RoomName) error {
 	claims := GetGrants(ctx)
 	if claims == nil || claims.Video == nil {
 		return ErrPermissionDenied
 	}
 
-	if !claims.Video.RoomAdmin || room != livekit.RoomName(claims.Video.Room) {
+	if !claims.Video.RoomAdmin || room != voicekit.RoomName(claims.Video.Room) {
 		return ErrPermissionDenied
 	}
 
@@ -219,13 +219,13 @@ func EnsureSIPCallPermission(ctx context.Context) error {
 	return nil
 }
 
-func EnsureDestRoomPermission(ctx context.Context, source livekit.RoomName, destination livekit.RoomName) error {
+func EnsureDestRoomPermission(ctx context.Context, source voicekit.RoomName, destination voicekit.RoomName) error {
 	claims := GetGrants(ctx)
 	if claims == nil || claims.Video == nil {
 		return ErrPermissionDenied
 	}
 
-	if !claims.Video.RoomAdmin || source != livekit.RoomName(claims.Video.Room) || destination != livekit.RoomName(claims.Video.DestinationRoom) {
+	if !claims.Video.RoomAdmin || source != voicekit.RoomName(claims.Video.Room) || destination != voicekit.RoomName(claims.Video.DestinationRoom) {
 		return ErrPermissionDenied
 	}
 

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
 package sfu
 
 import (
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/utils"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/utils"
 )
 
 // RTPMunger
@@ -91,8 +91,8 @@ func (r *RTPMunger) DebugInfo() map[string]interface{} {
 	}
 }
 
-func (r *RTPMunger) GetState() *livekit.RTPMungerState {
-	return &livekit.RTPMungerState{
+func (r *RTPMunger) GetState() *voicekit.RTPMungerState {
+	return &voicekit.RTPMungerState{
 		ExtLastSequenceNumber:       r.extLastSN,
 		ExtSecondLastSequenceNumber: r.extSecondLastSN,
 		ExtLastTimestamp:            r.extLastTS,
@@ -106,7 +106,7 @@ func (r *RTPMunger) GetTSOffset() uint64 {
 	return r.tsOffset
 }
 
-func (r *RTPMunger) SeedState(state *livekit.RTPMungerState) {
+func (r *RTPMunger) SeedState(state *voicekit.RTPMungerState) {
 	r.extLastSN = state.ExtLastSequenceNumber
 	r.extSecondLastSN = state.ExtSecondLastSequenceNumber
 	r.extLastTS = state.ExtLastTimestamp

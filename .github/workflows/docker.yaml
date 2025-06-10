@@ -1,4 +1,4 @@
-# Copyright 2023 LiveKit, Inc.
+# Copyright 2025 Rixy Ai.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            livekit/livekit-server
+            voicekit/voicekit-server
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch

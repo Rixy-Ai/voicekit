@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import (
 
 	"github.com/pion/rtcp"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
 )
 
 const (
@@ -68,7 +68,7 @@ func (m *MediaLossProxy) HandleMaxLossFeedback(_ *sfu.DownTrack, report *rtcp.Re
 	m.maybeUpdateLoss()
 }
 
-func (m *MediaLossProxy) NotifySubscriberNodeMediaLoss(_nodeID livekit.NodeID, fractionalLoss uint8) {
+func (m *MediaLossProxy) NotifySubscriberNodeMediaLoss(_nodeID voicekit.NodeID, fractionalLoss uint8) {
 	m.lock.Lock()
 	m.maxDownFracLostValid = true
 	if m.maxDownFracLost < fractionalLoss {

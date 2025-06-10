@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package selector
 
 import (
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 // SystemLoadSelector eliminates nodes that surpass has a per-cpu node higher than SysloadLimit
@@ -25,13 +25,13 @@ type SystemLoadSelector struct {
 	SortBy       string
 }
 
-func (s *SystemLoadSelector) filterNodes(nodes []*livekit.Node) ([]*livekit.Node, error) {
+func (s *SystemLoadSelector) filterNodes(nodes []*voicekit.Node) ([]*voicekit.Node, error) {
 	nodes = GetAvailableNodes(nodes)
 	if len(nodes) == 0 {
 		return nil, ErrNoAvailableNodes
 	}
 
-	nodesLowLoad := make([]*livekit.Node, 0)
+	nodesLowLoad := make([]*voicekit.Node, 0)
 	for _, node := range nodes {
 		if GetNodeSysload(node) < s.SysloadLimit {
 			nodesLowLoad = append(nodesLowLoad, node)
@@ -43,7 +43,7 @@ func (s *SystemLoadSelector) filterNodes(nodes []*livekit.Node) ([]*livekit.Node
 	return nodes, nil
 }
 
-func (s *SystemLoadSelector) SelectNode(nodes []*livekit.Node) (*livekit.Node, error) {
+func (s *SystemLoadSelector) SelectNode(nodes []*voicekit.Node) (*voicekit.Node, error) {
 	nodes, err := s.filterNodes(nodes)
 	if err != nil {
 		return nil, err

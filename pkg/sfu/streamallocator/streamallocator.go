@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,15 +25,15 @@ import (
 	"github.com/pion/webrtc/v4"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/bwe"
-	"github.com/livekit/livekit-server/pkg/sfu/ccutils"
-	"github.com/livekit/livekit-server/pkg/sfu/pacer"
-	"github.com/livekit/livekit-server/pkg/utils"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/bwe"
+	"github.com/voicekit/voicekit-server/pkg/sfu/ccutils"
+	"github.com/voicekit/voicekit-server/pkg/sfu/pacer"
+	"github.com/voicekit/voicekit-server/pkg/utils"
 )
 
 const (
@@ -132,7 +132,7 @@ func (s streamAllocatorSignal) String() string {
 type Event struct {
 	*StreamAllocator
 	Signal  streamAllocatorSignal
-	TrackID livekit.TrackID
+	TrackID voicekit.TrackID
 	Data    interface{}
 }
 
@@ -201,7 +201,7 @@ type StreamAllocator struct {
 	prober *ccutils.Prober
 
 	videoTracksMu        sync.RWMutex
-	videoTracks          map[livekit.TrackID]*Track
+	videoTracks          map[voicekit.TrackID]*Track
 	isAllocateAllPending bool
 	rembTrackingSSRC     uint32
 
@@ -223,7 +223,7 @@ func NewStreamAllocator(params StreamAllocatorParams, enabled bool, allowPause b
 		params:               params,
 		enabled:              enabled,
 		allowPause:           allowPause,
-		videoTracks:          make(map[livekit.TrackID]*Track),
+		videoTracks:          make(map[voicekit.TrackID]*Track),
 		state:                streamAllocatorStateStable,
 		activeProbeClusterId: ccutils.ProbeClusterIdInvalid,
 		eventsQueue: utils.NewTypedOpsQueue[Event](utils.OpsQueueParams{
@@ -273,10 +273,10 @@ func (s *StreamAllocator) SetSendSideBWEInterceptor(sendSideBWEInterceptor cc.Ba
 }
 
 type AddTrackParams struct {
-	Source         livekit.TrackSource
+	Source         voicekit.TrackSource
 	Priority       uint8
 	IsMultiLayered bool
-	PublisherID    livekit.ParticipantID
+	PublisherID    voicekit.ParticipantID
 }
 
 func (s *StreamAllocator) AddTrack(downTrack *sfu.DownTrack, params AddTrackParams) {
@@ -287,7 +287,7 @@ func (s *StreamAllocator) AddTrack(downTrack *sfu.DownTrack, params AddTrackPara
 	track := NewTrack(downTrack, params.Source, params.IsMultiLayered, params.PublisherID, s.params.Logger)
 	track.SetPriority(params.Priority)
 
-	trackID := livekit.TrackID(downTrack.ID())
+	trackID := voicekit.TrackID(downTrack.ID())
 	s.videoTracksMu.Lock()
 	oldTrack := s.videoTracks[trackID]
 	s.videoTracks[trackID] = track
@@ -305,8 +305,8 @@ func (s *StreamAllocator) AddTrack(downTrack *sfu.DownTrack, params AddTrackPara
 
 func (s *StreamAllocator) RemoveTrack(downTrack *sfu.DownTrack) {
 	s.videoTracksMu.Lock()
-	if existing := s.videoTracks[livekit.TrackID(downTrack.ID())]; existing != nil && existing.DownTrack() == downTrack {
-		delete(s.videoTracks, livekit.TrackID(downTrack.ID()))
+	if existing := s.videoTracks[voicekit.TrackID(downTrack.ID())]; existing != nil && existing.DownTrack() == downTrack {
+		delete(s.videoTracks, voicekit.TrackID(downTrack.ID()))
 	}
 	s.videoTracksMu.Unlock()
 
@@ -318,7 +318,7 @@ func (s *StreamAllocator) RemoveTrack(downTrack *sfu.DownTrack) {
 
 func (s *StreamAllocator) SetTrackPriority(downTrack *sfu.DownTrack, priority uint8) {
 	s.videoTracksMu.Lock()
-	if track := s.videoTracks[livekit.TrackID(downTrack.ID())]; track != nil {
+	if track := s.videoTracks[voicekit.TrackID(downTrack.ID())]; track != nil {
 		changed := track.SetPriority(priority)
 		if changed && !s.isAllocateAllPending {
 			// do a full allocation on a track priority change to keep it simple
@@ -379,7 +379,7 @@ func (s *StreamAllocator) OnREMB(downTrack *sfu.DownTrack, remb *rtcp.ReceiverEs
 
 	downTrackSSRC := uint32(0)
 	downTrackSSRCRTX := uint32(0)
-	track := s.videoTracks[livekit.TrackID(downTrack.ID())]
+	track := s.videoTracks[voicekit.TrackID(downTrack.ID())]
 	if track != nil {
 		downTrackSSRC = track.DownTrack().SSRC()
 		downTrackSSRCRTX = track.DownTrack().SSRCRTX()
@@ -494,7 +494,7 @@ func (s *StreamAllocator) OnSubscriptionChanged(downTrack *sfu.DownTrack) {
 func (s *StreamAllocator) OnSubscribedLayerChanged(downTrack *sfu.DownTrack, layer buffer.VideoLayer) {
 	shouldPost := false
 	s.videoTracksMu.Lock()
-	if track := s.videoTracks[livekit.TrackID(downTrack.ID())]; track != nil {
+	if track := s.videoTracks[voicekit.TrackID(downTrack.ID())]; track != nil {
 		if track.SetMaxLayer(layer) && track.SetDirty(true) {
 			shouldPost = true
 		}
@@ -504,7 +504,7 @@ func (s *StreamAllocator) OnSubscribedLayerChanged(downTrack *sfu.DownTrack, lay
 	if shouldPost {
 		s.postEvent(Event{
 			Signal:  streamAllocatorSignalAllocateTrack,
-			TrackID: livekit.TrackID(downTrack.ID()),
+			TrackID: voicekit.TrackID(downTrack.ID()),
 		})
 	}
 }
@@ -513,7 +513,7 @@ func (s *StreamAllocator) OnSubscribedLayerChanged(downTrack *sfu.DownTrack, lay
 func (s *StreamAllocator) OnResume(downTrack *sfu.DownTrack) {
 	s.postEvent(Event{
 		Signal:  streamAllocatorSignalResume,
-		TrackID: livekit.TrackID(downTrack.ID()),
+		TrackID: voicekit.TrackID(downTrack.ID()),
 	})
 }
 
@@ -550,7 +550,7 @@ func (s *StreamAllocator) IsBWEEnabled(downTrack *sfu.DownTrack) bool {
 	s.videoTracksMu.Lock()
 	defer s.videoTracksMu.Unlock()
 
-	if track := s.videoTracks[livekit.TrackID(downTrack.ID())]; track != nil {
+	if track := s.videoTracks[voicekit.TrackID(downTrack.ID())]; track != nil {
 		return track.IsManaged()
 	}
 
@@ -562,7 +562,7 @@ func (s *StreamAllocator) IsSubscribeMutable(downTrack *sfu.DownTrack) bool {
 	s.videoTracksMu.Lock()
 	defer s.videoTracksMu.Unlock()
 
-	if track := s.videoTracks[livekit.TrackID(downTrack.ID())]; track != nil {
+	if track := s.videoTracks[voicekit.TrackID(downTrack.ID())]; track != nil {
 		return track.IsSubscribeMutable()
 	}
 
@@ -572,7 +572,7 @@ func (s *StreamAllocator) IsSubscribeMutable(downTrack *sfu.DownTrack) bool {
 func (s *StreamAllocator) maybePostEventAllocateTrack(downTrack *sfu.DownTrack) {
 	shouldPost := false
 	s.videoTracksMu.Lock()
-	if track := s.videoTracks[livekit.TrackID(downTrack.ID())]; track != nil {
+	if track := s.videoTracks[voicekit.TrackID(downTrack.ID())]; track != nil {
 		shouldPost = track.SetDirty(true)
 	}
 	s.videoTracksMu.Unlock()
@@ -580,7 +580,7 @@ func (s *StreamAllocator) maybePostEventAllocateTrack(downTrack *sfu.DownTrack) 
 	if shouldPost {
 		s.postEvent(Event{
 			Signal:  streamAllocatorSignalAllocateTrack,
-			TrackID: livekit.TrackID(downTrack.ID()),
+			TrackID: voicekit.TrackID(downTrack.ID()),
 		})
 	}
 }

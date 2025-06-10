@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,19 +26,19 @@ import (
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 
-	"github.com/livekit/livekit-server/pkg/metric"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/bwe/remotebwe"
-	"github.com/livekit/livekit-server/pkg/sfu/bwe/sendsidebwe"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/sfu/pacer"
-	"github.com/livekit/livekit-server/pkg/sfu/streamallocator"
-	"github.com/livekit/mediatransportutil/pkg/rtcconfig"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	redisLiveKit "github.com/livekit/protocol/redis"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/webhook"
+	"github.com/voicekit/voicekit-server/pkg/metric"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/bwe/remotebwe"
+	"github.com/voicekit/voicekit-server/pkg/sfu/bwe/sendsidebwe"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/sfu/pacer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/streamallocator"
+	"github.com/voicekit/mediatransportutil/pkg/rtcconfig"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	redisVoiceKit "github.com/voicekit/protocol/redis"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/webhook"
 )
 
 const (
@@ -57,7 +57,7 @@ type Config struct {
 	PrometheusPort uint32                   `yaml:"prometheus_port,omitempty"`
 	Prometheus     PrometheusConfig         `yaml:"prometheus,omitempty"`
 	RTC            RTCConfig                `yaml:"rtc,omitempty"`
-	Redis          redisLiveKit.RedisConfig `yaml:"redis,omitempty"`
+	Redis          redisVoiceKit.RedisConfig `yaml:"redis,omitempty"`
 	Audio          sfu.AudioConfig          `yaml:"audio,omitempty"`
 	Video          VideoConfig              `yaml:"video,omitempty"`
 	Room           RoomConfig               `yaml:"room,omitempty"`
@@ -180,7 +180,7 @@ type RoomConfig struct {
 	MaxRoomNameLength int `yaml:"max_room_name_length,omitempty"`
 	// deprecated, moved to limits
 	MaxParticipantIdentityLength int                                   `yaml:"max_participant_identity_length,omitempty"`
-	RoomConfigurations           map[string]*livekit.RoomConfiguration `yaml:"room_configurations,omitempty"`
+	RoomConfigurations           map[string]*voicekit.RoomConfiguration `yaml:"room_configurations,omitempty"`
 }
 
 type CodecSpec struct {
@@ -351,7 +351,7 @@ var DefaultConfig = Config{
 		StreamTrackerManager:     sfu.DefaultStreamTrackerManagerConfig,
 		CodecRegressionThreshold: 5,
 	},
-	Redis: redisLiveKit.RedisConfig{},
+	Redis: redisVoiceKit.RedisConfig{},
 	Room: RoomConfig{
 		AutoCreate: true,
 		EnabledCodecs: []CodecSpec{
@@ -594,7 +594,7 @@ func GenerateCLIFlags(existingFlags []cli.Flag, hidden bool) ([]cli.Flag, error)
 		}
 
 		var flag cli.Flag
-		envVar := fmt.Sprintf("LIVEKIT_%s", strings.ToUpper(strings.Replace(name, ".", "_", -1)))
+		envVar := fmt.Sprintf("VOICEKIT_%s", strings.ToUpper(strings.Replace(name, ".", "_", -1)))
 
 		switch kind {
 		case reflect.Bool:
@@ -774,9 +774,9 @@ func (conf *Config) unmarshalKeys(keys string) error {
 
 // Note: only pass in logr.Logger with default depth
 func SetLogger(l logger.Logger) {
-	logger.SetLogger(l, "livekit")
+	logger.SetLogger(l, "voicekit")
 }
 
 func InitLoggerFromConfig(config *LoggingConfig) {
-	logger.InitFromConfig(&config.Config, "livekit")
+	logger.InitFromConfig(&config.Config, "voicekit")
 }

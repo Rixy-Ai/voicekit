@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import (
 	"github.com/bep/debounce"
 	"golang.org/x/exp/maps"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/utils"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/utils"
 )
 
 type DynacastManagerParams struct {
@@ -40,8 +40,8 @@ type DynacastManager struct {
 	lock                          sync.RWMutex
 	regressedCodec                map[mime.MimeType]struct{}
 	dynacastQuality               map[mime.MimeType]*DynacastQuality
-	maxSubscribedQuality          map[mime.MimeType]livekit.VideoQuality
-	committedMaxSubscribedQuality map[mime.MimeType]livekit.VideoQuality
+	maxSubscribedQuality          map[mime.MimeType]voicekit.VideoQuality
+	committedMaxSubscribedQuality map[mime.MimeType]voicekit.VideoQuality
 
 	maxSubscribedQualityDebounce        func(func())
 	maxSubscribedQualityDebouncePending bool
@@ -50,7 +50,7 @@ type DynacastManager struct {
 
 	isClosed bool
 
-	onSubscribedMaxQualityChange func(subscribedQualities []*livekit.SubscribedCodec, maxSubscribedQualities []types.SubscribedCodecQuality)
+	onSubscribedMaxQualityChange func(subscribedQualities []*voicekit.SubscribedCodec, maxSubscribedQualities []types.SubscribedCodecQuality)
 }
 
 func NewDynacastManager(params DynacastManagerParams) *DynacastManager {
@@ -61,8 +61,8 @@ func NewDynacastManager(params DynacastManagerParams) *DynacastManager {
 		params:                        params,
 		regressedCodec:                make(map[mime.MimeType]struct{}),
 		dynacastQuality:               make(map[mime.MimeType]*DynacastQuality),
-		maxSubscribedQuality:          make(map[mime.MimeType]livekit.VideoQuality),
-		committedMaxSubscribedQuality: make(map[mime.MimeType]livekit.VideoQuality),
+		maxSubscribedQuality:          make(map[mime.MimeType]voicekit.VideoQuality),
+		committedMaxSubscribedQuality: make(map[mime.MimeType]voicekit.VideoQuality),
 		qualityNotifyOpQueue: utils.NewOpsQueue(utils.OpsQueueParams{
 			Name:        "quality-notify",
 			MinSize:     64,
@@ -77,7 +77,7 @@ func NewDynacastManager(params DynacastManagerParams) *DynacastManager {
 	return d
 }
 
-func (d *DynacastManager) OnSubscribedMaxQualityChange(f func(subscribedQualities []*livekit.SubscribedCodec, maxSubscribedQualities []types.SubscribedCodecQuality)) {
+func (d *DynacastManager) OnSubscribedMaxQualityChange(f func(subscribedQualities []*voicekit.SubscribedCodec, maxSubscribedQualities []types.SubscribedCodecQuality)) {
 	d.lock.Lock()
 	d.onSubscribedMaxQualityChange = f
 	d.lock.Unlock()
@@ -103,11 +103,11 @@ func (d *DynacastManager) HandleCodecRegression(fromMime, toMime mime.MimeType) 
 		return
 	}
 	d.regressedCodec[fromMime] = struct{}{}
-	d.maxSubscribedQuality[fromMime] = livekit.VideoQuality_OFF
+	d.maxSubscribedQuality[fromMime] = voicekit.VideoQuality_OFF
 
 	// if the new codec is not added, notify the publisher to start publishing
 	if _, ok := d.maxSubscribedQuality[toMime]; !ok {
-		d.maxSubscribedQuality[toMime] = livekit.VideoQuality_HIGH
+		d.maxSubscribedQuality[toMime] = voicekit.VideoQuality_HIGH
 	}
 
 	d.lock.Unlock()
@@ -119,7 +119,7 @@ func (d *DynacastManager) HandleCodecRegression(fromMime, toMime mime.MimeType) 
 
 func (d *DynacastManager) Restart() {
 	d.lock.Lock()
-	d.committedMaxSubscribedQuality = make(map[mime.MimeType]livekit.VideoQuality)
+	d.committedMaxSubscribedQuality = make(map[mime.MimeType]voicekit.VideoQuality)
 
 	dqs := d.getDynacastQualitiesLocked()
 	d.lock.Unlock()
@@ -156,7 +156,7 @@ func (d *DynacastManager) ForceUpdate() {
 // is waiting to be closed, a node is not streaming a track. This can
 // be used to force an update announcing that subscribed quality is OFF,
 // i.e. indicating not pulling track any more.
-func (d *DynacastManager) ForceQuality(quality livekit.VideoQuality) {
+func (d *DynacastManager) ForceQuality(quality voicekit.VideoQuality) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -167,14 +167,14 @@ func (d *DynacastManager) ForceQuality(quality livekit.VideoQuality) {
 	d.enqueueSubscribedQualityChange()
 }
 
-func (d *DynacastManager) NotifySubscriberMaxQuality(subscriberID livekit.ParticipantID, mime mime.MimeType, quality livekit.VideoQuality) {
+func (d *DynacastManager) NotifySubscriberMaxQuality(subscriberID voicekit.ParticipantID, mime mime.MimeType, quality voicekit.VideoQuality) {
 	dq := d.getOrCreateDynacastQuality(mime)
 	if dq != nil {
 		dq.NotifySubscriberMaxQuality(subscriberID, quality)
 	}
 }
 
-func (d *DynacastManager) NotifySubscriberNodeMaxQuality(nodeID livekit.NodeID, qualities []types.SubscribedCodecQuality) {
+func (d *DynacastManager) NotifySubscriberNodeMaxQuality(nodeID voicekit.NodeID, qualities []types.SubscribedCodecQuality) {
 	for _, quality := range qualities {
 		dq := d.getOrCreateDynacastQuality(quality.CodecMime)
 		if dq != nil {
@@ -219,7 +219,7 @@ func (d *DynacastManager) getDynacastQualitiesLocked() []*DynacastQuality {
 	return maps.Values(d.dynacastQuality)
 }
 
-func (d *DynacastManager) updateMaxQualityForMime(mime mime.MimeType, maxQuality livekit.VideoQuality) {
+func (d *DynacastManager) updateMaxQualityForMime(mime mime.MimeType, maxQuality voicekit.VideoQuality) {
 	d.lock.Lock()
 	if _, ok := d.regressedCodec[mime]; !ok {
 		d.maxSubscribedQuality[mime] = maxQuality
@@ -254,7 +254,7 @@ func (d *DynacastManager) update(force bool) {
 					changed = true
 				}
 
-				if (cq == livekit.VideoQuality_OFF && quality != livekit.VideoQuality_OFF) || (cq != livekit.VideoQuality_OFF && quality != livekit.VideoQuality_OFF && cq < quality) {
+				if (cq == voicekit.VideoQuality_OFF && quality != voicekit.VideoQuality_OFF) || (cq != voicekit.VideoQuality_OFF && quality != voicekit.VideoQuality_OFF && cq < quality) {
 					downgradesOnly = false
 				}
 			}
@@ -301,7 +301,7 @@ func (d *DynacastManager) update(force bool) {
 	)
 
 	// commit change
-	d.committedMaxSubscribedQuality = make(map[mime.MimeType]livekit.VideoQuality, len(d.maxSubscribedQuality))
+	d.committedMaxSubscribedQuality = make(map[mime.MimeType]voicekit.VideoQuality, len(d.maxSubscribedQuality))
 	for mime, quality := range d.maxSubscribedQuality {
 		d.committedMaxSubscribedQuality[mime] = quality
 	}
@@ -315,7 +315,7 @@ func (d *DynacastManager) enqueueSubscribedQualityChange() {
 		return
 	}
 
-	subscribedCodecs := make([]*livekit.SubscribedCodec, 0, len(d.committedMaxSubscribedQuality))
+	subscribedCodecs := make([]*voicekit.SubscribedCodec, 0, len(d.committedMaxSubscribedQuality))
 	maxSubscribedQualities := make([]types.SubscribedCodecQuality, 0, len(d.committedMaxSubscribedQuality))
 	for mime, quality := range d.committedMaxSubscribedQuality {
 		maxSubscribedQualities = append(maxSubscribedQualities, types.SubscribedCodecQuality{
@@ -323,24 +323,24 @@ func (d *DynacastManager) enqueueSubscribedQualityChange() {
 			Quality:   quality,
 		})
 
-		if quality == livekit.VideoQuality_OFF {
-			subscribedCodecs = append(subscribedCodecs, &livekit.SubscribedCodec{
+		if quality == voicekit.VideoQuality_OFF {
+			subscribedCodecs = append(subscribedCodecs, &voicekit.SubscribedCodec{
 				Codec: mime.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: false},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: false},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			})
 		} else {
-			var subscribedQualities []*livekit.SubscribedQuality
-			for q := livekit.VideoQuality_LOW; q <= livekit.VideoQuality_HIGH; q++ {
-				subscribedQualities = append(subscribedQualities, &livekit.SubscribedQuality{
+			var subscribedQualities []*voicekit.SubscribedQuality
+			for q := voicekit.VideoQuality_LOW; q <= voicekit.VideoQuality_HIGH; q++ {
+				subscribedQualities = append(subscribedQualities, &voicekit.SubscribedQuality{
 					Quality: q,
 					Enabled: q <= quality,
 				})
 			}
-			subscribedCodecs = append(subscribedCodecs, &livekit.SubscribedCodec{
+			subscribedCodecs = append(subscribedCodecs, &voicekit.SubscribedCodec{
 				Codec:     mime.String(),
 				Qualities: subscribedQualities,
 			})

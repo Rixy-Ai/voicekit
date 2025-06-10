@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,19 +15,19 @@
 package streamallocator
 
 import (
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
 )
 
 type Track struct {
 	downTrack      *sfu.DownTrack
-	source         livekit.TrackSource
+	source         voicekit.TrackSource
 	isMultiLayered bool
 	priority       uint8
-	publisherID    livekit.ParticipantID
+	publisherID    voicekit.ParticipantID
 	logger         logger.Logger
 
 	maxLayer buffer.VideoLayer
@@ -42,9 +42,9 @@ type Track struct {
 
 func NewTrack(
 	downTrack *sfu.DownTrack,
-	source livekit.TrackSource,
+	source voicekit.TrackSource,
 	isMultiLayered bool,
-	publisherID livekit.ParticipantID,
+	publisherID voicekit.ParticipantID,
 	logger logger.Logger,
 ) *Track {
 	t := &Track{
@@ -86,7 +86,7 @@ func (t *Track) IsSubscribeMutable() bool {
 func (t *Track) SetPriority(priority uint8) bool {
 	if priority == 0 {
 		switch t.source {
-		case livekit.TrackSource_SCREEN_SHARE:
+		case voicekit.TrackSource_SCREEN_SHARE:
 			priority = PriorityDefaultScreenshare
 		default:
 			priority = PriorityDefaultVideo
@@ -110,14 +110,14 @@ func (t *Track) DownTrack() *sfu.DownTrack {
 }
 
 func (t *Track) IsManaged() bool {
-	return t.source != livekit.TrackSource_SCREEN_SHARE || t.isMultiLayered
+	return t.source != voicekit.TrackSource_SCREEN_SHARE || t.isMultiLayered
 }
 
-func (t *Track) ID() livekit.TrackID {
-	return livekit.TrackID(t.downTrack.ID())
+func (t *Track) ID() voicekit.TrackID {
+	return voicekit.TrackID(t.downTrack.ID())
 }
 
-func (t *Track) PublisherID() livekit.ParticipantID {
+func (t *Track) PublisherID() voicekit.ParticipantID {
 	return t.publisherID
 }
 

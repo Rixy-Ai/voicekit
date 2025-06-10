@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type Direction string
@@ -73,65 +73,65 @@ var (
 	promPacketBytesOutgoingRetransmit prometheus.Counter
 )
 
-func initPacketStats(nodeID string, nodeType livekit.NodeType) {
+func initPacketStats(nodeID string, nodeType voicekit.NodeType) {
 	promPacketTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "packet",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, promPacketLabels)
 	promPacketBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "packet",
 		Name:        "bytes",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, promPacketLabels)
 	promNackTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "nack",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, promRTCPLabels)
 	promPliTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "pli",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, promRTCPLabels)
 	promFirTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "fir",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, promRTCPLabels)
 	promPacketLossTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "packet_loss",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, promStreamLabels)
 	promPacketLoss = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "packet_loss",
 		Name:        "percent",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 		Buckets:     []float64{0.0, 0.1, 0.3, 0.5, 0.7, 1, 5, 10, 40, 100},
 	}, promStreamLabels)
 	promPacketOutOfOrderTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "packet_out_of_order",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, promStreamLabels)
 	promPacketOutOfOrder = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "packet_out_of_order",
 		Name:        "percent",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 		Buckets:     []float64{0.0, 0.1, 0.3, 0.5, 0.7, 1, 5, 10, 40, 100},
 	}, promStreamLabels)
 	promJitter = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "jitter",
 		Name:        "us",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -140,32 +140,32 @@ func initPacketStats(nodeID string, nodeType livekit.NodeType) {
 		Buckets: []float64{1000, 10000, 30000, 50000, 70000, 100000, 300000, 600000, 1000000},
 	}, promStreamLabels)
 	promRTT = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "rtt",
 		Name:        "ms",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 		Buckets:     []float64{50, 100, 150, 200, 250, 500, 750, 1000, 5000, 10000},
 	}, promStreamLabels)
 	promParticipantJoin = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "participant_join",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, []string{"state"})
 	promConnections = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "connection",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, []string{"kind"})
 	promForwardLatency = prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "forward",
 		Name:        "latency",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	})
 	promForwardJitter = prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "forward",
 		Name:        "jitter",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -260,7 +260,7 @@ func IncrementRTCP(direction Direction, nack, pli, fir uint32) {
 	}
 }
 
-func RecordPacketLoss(direction Direction, trackSource livekit.TrackSource, trackType livekit.TrackType, lost, total uint32) {
+func RecordPacketLoss(direction Direction, trackSource voicekit.TrackSource, trackType voicekit.TrackType, lost, total uint32) {
 	if total > 0 {
 		promPacketLoss.WithLabelValues(string(direction), trackSource.String(), trackType.String()).Observe(float64(lost) / float64(total) * 100)
 	}
@@ -269,7 +269,7 @@ func RecordPacketLoss(direction Direction, trackSource livekit.TrackSource, trac
 	}
 }
 
-func RecordPacketOutOfOrder(direction Direction, trackSource livekit.TrackSource, trackType livekit.TrackType, ooo, total uint32) {
+func RecordPacketOutOfOrder(direction Direction, trackSource voicekit.TrackSource, trackType voicekit.TrackType, ooo, total uint32) {
 	if total > 0 {
 		promPacketOutOfOrder.WithLabelValues(string(direction), trackSource.String(), trackType.String()).Observe(float64(ooo) / float64(total) * 100)
 	}
@@ -278,13 +278,13 @@ func RecordPacketOutOfOrder(direction Direction, trackSource livekit.TrackSource
 	}
 }
 
-func RecordJitter(direction Direction, trackSource livekit.TrackSource, trackType livekit.TrackType, jitter uint32) {
+func RecordJitter(direction Direction, trackSource voicekit.TrackSource, trackType voicekit.TrackType, jitter uint32) {
 	if jitter > 0 {
 		promJitter.WithLabelValues(string(direction), trackSource.String(), trackType.String()).Observe(float64(jitter))
 	}
 }
 
-func RecordRTT(direction Direction, trackSource livekit.TrackSource, trackType livekit.TrackType, rtt uint32) {
+func RecordRTT(direction Direction, trackSource voicekit.TrackSource, trackType voicekit.TrackType, rtt uint32) {
 	if rtt > 0 {
 		promRTT.WithLabelValues(string(direction), trackSource.String(), trackType.String()).Observe(float64(rtt))
 	}

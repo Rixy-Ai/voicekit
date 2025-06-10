@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/protocol/ingress"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/ingress"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
 
-	"github.com/livekit/livekit-server/pkg/service"
+	"github.com/voicekit/voicekit-server/pkg/service"
 )
 
 func redisStoreDocker(t testing.TB) *service.RedisStore {
@@ -44,23 +44,23 @@ func TestRoomInternal(t *testing.T) {
 	ctx := context.Background()
 	rs := redisStore(t)
 
-	room := &livekit.Room{
+	room := &voicekit.Room{
 		Sid:  "123",
 		Name: "test_room",
 	}
-	internal := &livekit.RoomInternal{
-		TrackEgress: &livekit.AutoTrackEgress{Filepath: "egress"},
+	internal := &voicekit.RoomInternal{
+		TrackEgress: &voicekit.AutoTrackEgress{Filepath: "egress"},
 	}
 
 	require.NoError(t, rs.StoreRoom(ctx, room, internal))
-	actualRoom, actualInternal, err := rs.LoadRoom(ctx, livekit.RoomName(room.Name), true)
+	actualRoom, actualInternal, err := rs.LoadRoom(ctx, voicekit.RoomName(room.Name), true)
 	require.NoError(t, err)
 	require.Equal(t, room.Sid, actualRoom.Sid)
 	require.Equal(t, internal.TrackEgress.Filepath, actualInternal.TrackEgress.Filepath)
 
 	// remove internal
 	require.NoError(t, rs.StoreRoom(ctx, room, nil))
-	_, actualInternal, err = rs.LoadRoom(ctx, livekit.RoomName(room.Name), true)
+	_, actualInternal, err = rs.LoadRoom(ctx, voicekit.RoomName(room.Name), true)
 	require.NoError(t, err)
 	require.Nil(t, actualInternal)
 
@@ -72,17 +72,17 @@ func TestParticipantPersistence(t *testing.T) {
 	ctx := context.Background()
 	rs := redisStore(t)
 
-	roomName := livekit.RoomName("room1")
+	roomName := voicekit.RoomName("room1")
 	_ = rs.DeleteRoom(ctx, roomName)
 
-	p := &livekit.ParticipantInfo{
+	p := &voicekit.ParticipantInfo{
 		Sid:      "PA_test",
 		Identity: "test",
-		State:    livekit.ParticipantInfo_ACTIVE,
-		Tracks: []*livekit.TrackInfo{
+		State:    voicekit.ParticipantInfo_ACTIVE,
+		Tracks: []*voicekit.TrackInfo{
 			{
 				Sid:  "track1",
-				Type: livekit.TrackType_AUDIO,
+				Type: voicekit.TrackType_AUDIO,
 				Name: "audio",
 			},
 		},
@@ -92,7 +92,7 @@ func TestParticipantPersistence(t *testing.T) {
 	require.NoError(t, rs.StoreParticipant(ctx, roomName, p))
 
 	// result should match
-	pGet, err := rs.LoadParticipant(ctx, roomName, livekit.ParticipantIdentity(p.Identity))
+	pGet, err := rs.LoadParticipant(ctx, roomName, voicekit.ParticipantIdentity(p.Identity))
 	require.NoError(t, err)
 	require.Equal(t, p.Identity, pGet.Identity)
 	require.Equal(t, len(p.Tracks), len(pGet.Tracks))
@@ -104,14 +104,14 @@ func TestParticipantPersistence(t *testing.T) {
 	require.Len(t, participants, 1)
 
 	// deleting participant should return to normal
-	require.NoError(t, rs.DeleteParticipant(ctx, roomName, livekit.ParticipantIdentity(p.Identity)))
+	require.NoError(t, rs.DeleteParticipant(ctx, roomName, voicekit.ParticipantIdentity(p.Identity)))
 
 	participants, err = rs.ListParticipants(ctx, roomName)
 	require.NoError(t, err)
 	require.Len(t, participants, 0)
 
 	// shouldn't be able to get it
-	_, err = rs.LoadParticipant(ctx, roomName, livekit.ParticipantIdentity(p.Identity))
+	_, err = rs.LoadParticipant(ctx, roomName, voicekit.ParticipantIdentity(p.Identity))
 	require.Equal(t, err, service.ErrParticipantNotFound)
 }
 
@@ -119,7 +119,7 @@ func TestRoomLock(t *testing.T) {
 	ctx := context.Background()
 	rs := redisStore(t)
 	lockInterval := 5 * time.Millisecond
-	roomName := livekit.RoomName("myroom")
+	roomName := voicekit.RoomName("myroom")
 
 	t.Run("normal locking", func(t *testing.T) {
 		token, err := rs.LockRoom(ctx, roomName, lockInterval)
@@ -172,13 +172,13 @@ func TestEgressStore(t *testing.T) {
 	roomName := "egress-test"
 
 	// store egress info
-	info := &livekit.EgressInfo{
+	info := &voicekit.EgressInfo{
 		EgressId: guid.New(utils.EgressPrefix),
 		RoomId:   guid.New(utils.RoomPrefix),
 		RoomName: roomName,
-		Status:   livekit.EgressStatus_EGRESS_STARTING,
-		Request: &livekit.EgressInfo_RoomComposite{
-			RoomComposite: &livekit.RoomCompositeEgressRequest{
+		Status:   voicekit.EgressStatus_EGRESS_STARTING,
+		Request: &voicekit.EgressInfo_RoomComposite{
+			RoomComposite: &voicekit.RoomCompositeEgressRequest{
 				RoomName: roomName,
 				Layout:   "speaker-dark",
 			},
@@ -192,13 +192,13 @@ func TestEgressStore(t *testing.T) {
 	require.Equal(t, res.EgressId, info.EgressId)
 
 	// store another
-	info2 := &livekit.EgressInfo{
+	info2 := &voicekit.EgressInfo{
 		EgressId: guid.New(utils.EgressPrefix),
 		RoomId:   guid.New(utils.RoomPrefix),
 		RoomName: "another-egress-test",
-		Status:   livekit.EgressStatus_EGRESS_STARTING,
-		Request: &livekit.EgressInfo_RoomComposite{
-			RoomComposite: &livekit.RoomCompositeEgressRequest{
+		Status:   voicekit.EgressStatus_EGRESS_STARTING,
+		Request: &voicekit.EgressInfo_RoomComposite{
+			RoomComposite: &voicekit.RoomCompositeEgressRequest{
 				RoomName: "another-egress-test",
 				Layout:   "speaker-dark",
 			},
@@ -207,7 +207,7 @@ func TestEgressStore(t *testing.T) {
 	require.NoError(t, rs.StoreEgress(ctx, info2))
 
 	// update
-	info2.Status = livekit.EgressStatus_EGRESS_COMPLETE
+	info2.Status = voicekit.EgressStatus_EGRESS_COMPLETE
 	info2.EndedAt = time.Now().Add(-24 * time.Hour).UnixNano()
 	require.NoError(t, rs.UpdateEgress(ctx, info))
 
@@ -217,12 +217,12 @@ func TestEgressStore(t *testing.T) {
 	require.Len(t, list, 2)
 
 	// list by room
-	list, err = rs.ListEgress(ctx, livekit.RoomName(roomName), false)
+	list, err = rs.ListEgress(ctx, voicekit.RoomName(roomName), false)
 	require.NoError(t, err)
 	require.Len(t, list, 1)
 
 	// update
-	info.Status = livekit.EgressStatus_EGRESS_COMPLETE
+	info.Status = voicekit.EgressStatus_EGRESS_COMPLETE
 	info.EndedAt = time.Now().Add(-24 * time.Hour).UnixNano()
 	require.NoError(t, rs.UpdateEgress(ctx, info))
 
@@ -230,7 +230,7 @@ func TestEgressStore(t *testing.T) {
 	require.NoError(t, rs.CleanEndedEgress())
 
 	// list
-	list, err = rs.ListEgress(ctx, livekit.RoomName(roomName), false)
+	list, err = rs.ListEgress(ctx, voicekit.RoomName(roomName), false)
 	require.NoError(t, err)
 	require.Len(t, list, 0)
 }
@@ -239,10 +239,10 @@ func TestIngressStore(t *testing.T) {
 	ctx := context.Background()
 	rs := redisStore(t)
 
-	info := &livekit.IngressInfo{
+	info := &voicekit.IngressInfo{
 		IngressId: "ingressId",
 		StreamKey: "streamKey",
-		State: &livekit.IngressState{
+		State: &voicekit.IngressState{
 			StartedAt: 2,
 		},
 	}
@@ -302,31 +302,31 @@ func TestAgentStore(t *testing.T) {
 	ctx := context.Background()
 	rs := redisStore(t)
 
-	ad := &livekit.AgentDispatch{
+	ad := &voicekit.AgentDispatch{
 		Id:        "dispatch_id",
 		AgentName: "agent_name",
 		Metadata:  "metadata",
 		Room:      "room_name",
-		State: &livekit.AgentDispatchState{
+		State: &voicekit.AgentDispatchState{
 			CreatedAt: 1,
 			DeletedAt: 2,
-			Jobs: []*livekit.Job{
-				&livekit.Job{
+			Jobs: []*voicekit.Job{
+				&voicekit.Job{
 					Id:         "job_id",
 					DispatchId: "dispatch_id",
-					Type:       livekit.JobType_JT_PUBLISHER,
-					Room: &livekit.Room{
+					Type:       voicekit.JobType_JT_PUBLISHER,
+					Room: &voicekit.Room{
 						Name: "room_name",
 					},
-					Participant: &livekit.ParticipantInfo{
+					Participant: &voicekit.ParticipantInfo{
 						Identity: "identity",
 						Name:     "name",
 					},
 					Namespace: "ns",
 					Metadata:  "metadata",
 					AgentName: "agent_name",
-					State: &livekit.JobState{
-						Status:    livekit.JobStatus_JS_RUNNING,
+					State: &voicekit.JobState{
+						Status:    voicekit.JobStatus_JS_RUNNING,
 						StartedAt: 3,
 						EndedAt:   4,
 						Error:     "error",
@@ -360,7 +360,7 @@ func TestAgentStore(t *testing.T) {
 
 	expected = utils.CloneProto(ad)
 	expected.State.Jobs[0].Room = nil
-	expected.State.Jobs[0].Participant = &livekit.ParticipantInfo{
+	expected.State.Jobs[0].Participant = &voicekit.ParticipantInfo{
 		Identity: "identity",
 	}
 	require.True(t, proto.Equal(expected, rd[0]))
@@ -384,7 +384,7 @@ func TestAgentStore(t *testing.T) {
 	require.Equal(t, 0, len(rd))
 }
 
-func compareIngressInfo(t *testing.T, expected, v *livekit.IngressInfo) {
+func compareIngressInfo(t *testing.T, expected, v *voicekit.IngressInfo) {
 	require.Equal(t, expected.IngressId, v.IngressId)
 	require.Equal(t, expected.StreamKey, v.StreamKey)
 	require.Equal(t, expected.RoomName, v.RoomName)

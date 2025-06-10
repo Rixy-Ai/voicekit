@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/routing"
 )
 
 func TestMessageChannel_WriteMessageClosed(t *testing.T) {
 	// ensure it doesn't panic when written to after closing
-	m := routing.NewMessageChannel(livekit.ConnectionID("test"), routing.DefaultMessageChannelSize)
+	m := routing.NewMessageChannel(voicekit.ConnectionID("test"), routing.DefaultMessageChannelSize)
 	go func() {
 		for msg := range m.ReadChan() {
 			if msg == nil {
@@ -39,12 +39,12 @@ func TestMessageChannel_WriteMessageClosed(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		for i := 0; i < 100; i++ {
-			_ = m.WriteMessage(&livekit.SignalRequest{})
+			_ = m.WriteMessage(&voicekit.SignalRequest{})
 		}
 	}()
-	_ = m.WriteMessage(&livekit.SignalRequest{})
+	_ = m.WriteMessage(&voicekit.SignalRequest{})
 	m.Close()
-	_ = m.WriteMessage(&livekit.SignalRequest{})
+	_ = m.WriteMessage(&voicekit.SignalRequest{})
 
 	wg.Wait()
 }

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -46,10 +46,10 @@ const (
 )
 
 var (
-	qualityTransitionScore = map[livekit.ConnectionQuality]float64{
-		livekit.ConnectionQuality_GOOD: 80,
-		livekit.ConnectionQuality_POOR: 40,
-		livekit.ConnectionQuality_LOST: 20,
+	qualityTransitionScore = map[voicekit.ConnectionQuality]float64{
+		voicekit.ConnectionQuality_GOOD: 80,
+		voicekit.ConnectionQuality_POOR: 40,
+		voicekit.ConnectionQuality_LOST: 20,
 	}
 )
 
@@ -269,7 +269,7 @@ func (q *qualityScorer) updateMuteAtLocked(isMuted bool, at time.Time) {
 	if isMuted {
 		q.mutedAt = at
 		// muting when LOST should not push quality to EXCELLENT
-		if q.score != qualityTransitionScore[livekit.ConnectionQuality_LOST] {
+		if q.score != qualityTransitionScore[voicekit.ConnectionQuality_LOST] {
 			q.score = cMaxScore
 		}
 	} else {
@@ -416,10 +416,10 @@ func (q *qualityScorer) updateAtLocked(stat *windowStat, at time.Time) {
 	if stat.packets+stat.packetsPadding == 0 {
 		if !stat.lastRTCPAt.IsZero() && at.Sub(stat.lastRTCPAt) > stat.duration {
 			reason = "rtcp"
-			score = qualityTransitionScore[livekit.ConnectionQuality_LOST]
+			score = qualityTransitionScore[voicekit.ConnectionQuality_LOST]
 		} else {
 			reason = "dry"
-			score = qualityTransitionScore[livekit.ConnectionQuality_POOR]
+			score = qualityTransitionScore[voicekit.ConnectionQuality_POOR]
 		}
 	} else {
 		packetScore = stat.calculatePacketScore(aplw, q.params.IncludeRTT, q.params.IncludeJitter)
@@ -587,14 +587,14 @@ func (q *qualityScorer) getAdjustedPacketLossWeight(stat *windowStat) float64 {
 	return math.Sqrt(packetRatio) * q.packetLossWeight
 }
 
-func (q *qualityScorer) GetScoreAndQuality() (float32, livekit.ConnectionQuality) {
+func (q *qualityScorer) GetScoreAndQuality() (float32, voicekit.ConnectionQuality) {
 	q.lock.RLock()
 	defer q.lock.RUnlock()
 
 	return float32(q.score), scoreToConnectionQuality(q.score)
 }
 
-func (q *qualityScorer) GetMOSAndQuality() (float32, livekit.ConnectionQuality) {
+func (q *qualityScorer) GetMOSAndQuality() (float32, voicekit.ConnectionQuality) {
 	q.lock.RLock()
 	defer q.lock.RUnlock()
 
@@ -603,28 +603,28 @@ func (q *qualityScorer) GetMOSAndQuality() (float32, livekit.ConnectionQuality) 
 
 // ------------------------------------------
 
-func scoreToConnectionQuality(score float64) livekit.ConnectionQuality {
-	// R-factor -> livekit.ConnectionQuality scale mapping roughly based on
+func scoreToConnectionQuality(score float64) voicekit.ConnectionQuality {
+	// R-factor -> voicekit.ConnectionQuality scale mapping roughly based on
 	// https://www.itu.int/ITU-T/2005-2008/com12/emodelv1/tut.htm
 	//
-	// As there are only three levels in livekit.ConnectionQuality scale,
+	// As there are only three levels in voicekit.ConnectionQuality scale,
 	// using a larger range for middling quality. Empirical evidence suggests
 	// that a score of 60 does not correspond to `POOR` quality. Repair
 	// mechanisms and use of algorithms like de-jittering makes the experience
 	// better even under harsh conditions.
-	if score > qualityTransitionScore[livekit.ConnectionQuality_GOOD] {
-		return livekit.ConnectionQuality_EXCELLENT
+	if score > qualityTransitionScore[voicekit.ConnectionQuality_GOOD] {
+		return voicekit.ConnectionQuality_EXCELLENT
 	}
 
-	if score > qualityTransitionScore[livekit.ConnectionQuality_POOR] {
-		return livekit.ConnectionQuality_GOOD
+	if score > qualityTransitionScore[voicekit.ConnectionQuality_POOR] {
+		return voicekit.ConnectionQuality_GOOD
 	}
 
-	if score > qualityTransitionScore[livekit.ConnectionQuality_LOST] {
-		return livekit.ConnectionQuality_POOR
+	if score > qualityTransitionScore[voicekit.ConnectionQuality_LOST] {
+		return voicekit.ConnectionQuality_POOR
 	}
 
-	return livekit.ConnectionQuality_LOST
+	return voicekit.ConnectionQuality_LOST
 }
 
 // ------------------------------------------

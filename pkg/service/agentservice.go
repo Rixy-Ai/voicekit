@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,18 +28,18 @@ import (
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/livekit/livekit-server/pkg/agent"
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/version"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/agent"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/version"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/psrpc"
 )
 
 type AgentSocketUpgrader struct {
@@ -112,7 +112,7 @@ func DispatchAgentWorkerSignal(c agent.SignalConn, h agent.WorkerSignalHandler, 
 	return true
 }
 
-func HandshakeAgentWorker(c agent.SignalConn, serverInfo *livekit.ServerInfo, registration agent.WorkerRegistration, l logger.Logger) (r agent.WorkerRegistration, ok bool) {
+func HandshakeAgentWorker(c agent.SignalConn, serverInfo *voicekit.ServerInfo, registration agent.WorkerRegistration, l logger.Logger) (r agent.WorkerRegistration, ok bool) {
 	wr := agent.NewWorkerRegisterer(c, serverInfo, registration)
 	if err := c.SetReadDeadline(wr.Deadline()); err != nil {
 		return
@@ -139,9 +139,9 @@ type AgentHandler struct {
 	mu          sync.Mutex
 	logger      logger.Logger
 
-	serverInfo  *livekit.ServerInfo
+	serverInfo  *voicekit.ServerInfo
 	workers     map[string]*agent.Worker
-	jobToWorker map[livekit.JobID]*agent.Worker
+	jobToWorker map[voicekit.JobID]*agent.Worker
 	keyProvider auth.KeyProvider
 
 	namespaceWorkers    map[workerKey][]*agent.Worker
@@ -159,7 +159,7 @@ type AgentHandler struct {
 type workerKey struct {
 	agentName string
 	namespace string
-	jobType   livekit.JobType
+	jobType   voicekit.JobType
 }
 
 func NewAgentService(
@@ -170,8 +170,8 @@ func NewAgentService(
 ) (*AgentService, error) {
 	s := &AgentService{}
 
-	serverInfo := &livekit.ServerInfo{
-		Edition:       livekit.ServerInfo_Standard,
+	serverInfo := &voicekit.ServerInfo{
+		Edition:       voicekit.ServerInfo_Standard,
 		Version:       version.Version,
 		Protocol:      types.CurrentProtocol,
 		AgentProtocol: agent.CurrentProtocol,
@@ -206,7 +206,7 @@ func NewAgentHandler(
 	agentServer rpc.AgentInternalServer,
 	keyProvider auth.KeyProvider,
 	logger logger.Logger,
-	serverInfo *livekit.ServerInfo,
+	serverInfo *voicekit.ServerInfo,
 	roomTopic string,
 	publisherTopic string,
 	participantTopic string,
@@ -215,7 +215,7 @@ func NewAgentHandler(
 		agentServer:      agentServer,
 		logger:           logger.WithComponent("agents"),
 		workers:          make(map[string]*agent.Worker),
-		jobToWorker:      make(map[livekit.JobID]*agent.Worker),
+		jobToWorker:      make(map[voicekit.JobID]*agent.Worker),
 		namespaceWorkers: make(map[workerKey][]*agent.Worker),
 		serverInfo:       serverInfo,
 		keyProvider:      keyProvider,
@@ -260,11 +260,11 @@ func (h *AgentHandler) registerWorker(w *agent.Worker) {
 		nameTopic := agent.GetAgentTopic(w.AgentName, w.Namespace)
 		var typeTopic string
 		switch w.JobType {
-		case livekit.JobType_JT_ROOM:
+		case voicekit.JobType_JT_ROOM:
 			typeTopic = h.roomTopic
-		case livekit.JobType_JT_PUBLISHER:
+		case voicekit.JobType_JT_PUBLISHER:
 			typeTopic = h.publisherTopic
-		case livekit.JobType_JT_PARTICIPANT:
+		case voicekit.JobType_JT_PARTICIPANT:
 			typeTopic = h.participantTopic
 		}
 
@@ -278,11 +278,11 @@ func (h *AgentHandler) registerWorker(w *agent.Worker) {
 		}
 
 		switch w.JobType {
-		case livekit.JobType_JT_ROOM:
+		case voicekit.JobType_JT_ROOM:
 			h.roomKeyCount++
-		case livekit.JobType_JT_PUBLISHER:
+		case voicekit.JobType_JT_PUBLISHER:
 			h.publisherKeyCount++
-		case livekit.JobType_JT_PARTICIPANT:
+		case voicekit.JobType_JT_PARTICIPANT:
 			h.participantKeyCount++
 		}
 
@@ -341,13 +341,13 @@ func (h *AgentHandler) deregisterWorker(w *agent.Worker) {
 		topic := agent.GetAgentTopic(w.AgentName, w.Namespace)
 
 		switch w.JobType {
-		case livekit.JobType_JT_ROOM:
+		case voicekit.JobType_JT_ROOM:
 			h.roomKeyCount--
 			h.agentServer.DeregisterJobRequestTopic(topic, h.roomTopic)
-		case livekit.JobType_JT_PUBLISHER:
+		case voicekit.JobType_JT_PUBLISHER:
 			h.publisherKeyCount--
 			h.agentServer.DeregisterJobRequestTopic(topic, h.publisherTopic)
-		case livekit.JobType_JT_PARTICIPANT:
+		case voicekit.JobType_JT_PARTICIPANT:
 			h.participantKeyCount--
 			h.agentServer.DeregisterJobRequestTopic(topic, h.participantTopic)
 		}
@@ -367,7 +367,7 @@ func (h *AgentHandler) deregisterWorker(w *agent.Worker) {
 	}
 }
 
-func (h *AgentHandler) deregisterJob(jobID livekit.JobID) {
+func (h *AgentHandler) deregisterJob(jobID voicekit.JobID) {
 	h.agentServer.DeregisterJobTerminateTopic(string(jobID))
 
 	delete(h.jobToWorker, jobID)
@@ -375,7 +375,7 @@ func (h *AgentHandler) deregisterJob(jobID livekit.JobID) {
 	// TODO update dispatch state
 }
 
-func (h *AgentHandler) JobRequest(ctx context.Context, job *livekit.Job) (*rpc.JobRequestResponse, error) {
+func (h *AgentHandler) JobRequest(ctx context.Context, job *voicekit.Job) (*rpc.JobRequestResponse, error) {
 	logger := h.logger.WithUnlikelyValues(
 		"jobID", job.Id,
 		"namespace", job.Namespace,
@@ -412,7 +412,7 @@ func (h *AgentHandler) JobRequest(ctx context.Context, job *livekit.Job) (*rpc.J
 		}
 		logger.Infow("assigned job to worker")
 		h.mu.Lock()
-		h.jobToWorker[livekit.JobID(job.Id)] = selected
+		h.jobToWorker[voicekit.JobID(job.Id)] = selected
 		h.mu.Unlock()
 
 		err = h.agentServer.RegisterJobTerminateTopic(job.Id)
@@ -426,7 +426,7 @@ func (h *AgentHandler) JobRequest(ctx context.Context, job *livekit.Job) (*rpc.J
 	}
 }
 
-func (h *AgentHandler) JobRequestAffinity(ctx context.Context, job *livekit.Job) float32 {
+func (h *AgentHandler) JobRequestAffinity(ctx context.Context, job *voicekit.Job) float32 {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
@@ -436,7 +436,7 @@ func (h *AgentHandler) JobRequestAffinity(ctx context.Context, job *livekit.Job)
 			continue
 		}
 
-		if w.Status() == livekit.WorkerStatus_WS_AVAILABLE {
+		if w.Status() == voicekit.WorkerStatus_WS_AVAILABLE {
 			affinity += max(0, 1-w.Load())
 		}
 	}
@@ -446,14 +446,14 @@ func (h *AgentHandler) JobRequestAffinity(ctx context.Context, job *livekit.Job)
 
 func (h *AgentHandler) JobTerminate(ctx context.Context, req *rpc.JobTerminateRequest) (*rpc.JobTerminateResponse, error) {
 	h.mu.Lock()
-	w := h.jobToWorker[livekit.JobID(req.JobId)]
+	w := h.jobToWorker[voicekit.JobID(req.JobId)]
 	h.mu.Unlock()
 
 	if w == nil {
 		return nil, psrpc.NewErrorf(psrpc.NotFound, "no worker for jobID")
 	}
 
-	state, err := w.TerminateJob(livekit.JobID(req.JobId), req.Reason)
+	state, err := w.TerminateJob(voicekit.JobID(req.JobId), req.Reason)
 	if err != nil {
 		return nil, err
 	}
@@ -506,7 +506,7 @@ func (h *AgentHandler) selectWorkerWeightedByLoad(key workerKey, ignore map[*age
 	normalizedLoads := make(map[*agent.Worker]float32)
 	var availableSum float32
 	for _, w := range workers {
-		if _, ok := ignore[w]; !ok && w.Status() == livekit.WorkerStatus_WS_AVAILABLE {
+		if _, ok := ignore[w]; !ok && w.Status() == voicekit.WorkerStatus_WS_AVAILABLE {
 			normalizedLoads[w] = max(0, 1-w.Load())
 			availableSum += normalizedLoads[w]
 		}
@@ -532,14 +532,14 @@ type agentHandlerWorker struct {
 	*agent.Worker
 }
 
-func (w *agentHandlerWorker) HandleUpdateJob(update *livekit.UpdateJobStatus) error {
+func (w *agentHandlerWorker) HandleUpdateJob(update *voicekit.UpdateJobStatus) error {
 	if err := w.Worker.HandleUpdateJob(update); err != nil {
 		return err
 	}
 
 	if agent.JobStatusIsEnded(update.Status) {
 		w.h.mu.Lock()
-		w.h.deregisterJob(livekit.JobID(update.JobId))
+		w.h.deregisterJob(voicekit.JobID(update.JobId))
 		w.h.mu.Unlock()
 	}
 	return nil

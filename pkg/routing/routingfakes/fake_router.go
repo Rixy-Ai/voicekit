@@ -5,16 +5,16 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type FakeRouter struct {
-	ClearRoomStateStub        func(context.Context, livekit.RoomName) error
+	ClearRoomStateStub        func(context.Context, voicekit.RoomName) error
 	clearRoomStateMutex       sync.RWMutex
 	clearRoomStateArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}
 	clearRoomStateReturns struct {
 		result1 error
@@ -22,36 +22,36 @@ type FakeRouter struct {
 	clearRoomStateReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CreateRoomStub        func(context.Context, *livekit.CreateRoomRequest) (*livekit.Room, error)
+	CreateRoomStub        func(context.Context, *voicekit.CreateRoomRequest) (*voicekit.Room, error)
 	createRoomMutex       sync.RWMutex
 	createRoomArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.CreateRoomRequest
+		arg2 *voicekit.CreateRoomRequest
 	}
 	createRoomReturns struct {
-		result1 *livekit.Room
+		result1 *voicekit.Room
 		result2 error
 	}
 	createRoomReturnsOnCall map[int]struct {
-		result1 *livekit.Room
+		result1 *voicekit.Room
 		result2 error
 	}
 	DrainStub        func()
 	drainMutex       sync.RWMutex
 	drainArgsForCall []struct {
 	}
-	GetNodeForRoomStub        func(context.Context, livekit.RoomName) (*livekit.Node, error)
+	GetNodeForRoomStub        func(context.Context, voicekit.RoomName) (*voicekit.Node, error)
 	getNodeForRoomMutex       sync.RWMutex
 	getNodeForRoomArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}
 	getNodeForRoomReturns struct {
-		result1 *livekit.Node
+		result1 *voicekit.Node
 		result2 error
 	}
 	getNodeForRoomReturnsOnCall map[int]struct {
-		result1 *livekit.Node
+		result1 *voicekit.Node
 		result2 error
 	}
 	GetRegionStub        func() string
@@ -64,16 +64,16 @@ type FakeRouter struct {
 	getRegionReturnsOnCall map[int]struct {
 		result1 string
 	}
-	ListNodesStub        func() ([]*livekit.Node, error)
+	ListNodesStub        func() ([]*voicekit.Node, error)
 	listNodesMutex       sync.RWMutex
 	listNodesArgsForCall []struct {
 	}
 	listNodesReturns struct {
-		result1 []*livekit.Node
+		result1 []*voicekit.Node
 		result2 error
 	}
 	listNodesReturnsOnCall map[int]struct {
-		result1 []*livekit.Node
+		result1 []*voicekit.Node
 		result2 error
 	}
 	RegisterNodeStub        func() error
@@ -96,12 +96,12 @@ type FakeRouter struct {
 	removeDeadNodesReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SetNodeForRoomStub        func(context.Context, livekit.RoomName, livekit.NodeID) error
+	SetNodeForRoomStub        func(context.Context, voicekit.RoomName, voicekit.NodeID) error
 	setNodeForRoomMutex       sync.RWMutex
 	setNodeForRoomArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
-		arg3 livekit.NodeID
+		arg2 voicekit.RoomName
+		arg3 voicekit.NodeID
 	}
 	setNodeForRoomReturns struct {
 		result1 error
@@ -119,11 +119,11 @@ type FakeRouter struct {
 	startReturnsOnCall map[int]struct {
 		result1 error
 	}
-	StartParticipantSignalStub        func(context.Context, livekit.RoomName, routing.ParticipantInit) (routing.StartParticipantSignalResults, error)
+	StartParticipantSignalStub        func(context.Context, voicekit.RoomName, routing.ParticipantInit) (routing.StartParticipantSignalResults, error)
 	startParticipantSignalMutex       sync.RWMutex
 	startParticipantSignalArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 		arg3 routing.ParticipantInit
 	}
 	startParticipantSignalReturns struct {
@@ -152,12 +152,12 @@ type FakeRouter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRouter) ClearRoomState(arg1 context.Context, arg2 livekit.RoomName) error {
+func (fake *FakeRouter) ClearRoomState(arg1 context.Context, arg2 voicekit.RoomName) error {
 	fake.clearRoomStateMutex.Lock()
 	ret, specificReturn := fake.clearRoomStateReturnsOnCall[len(fake.clearRoomStateArgsForCall)]
 	fake.clearRoomStateArgsForCall = append(fake.clearRoomStateArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}{arg1, arg2})
 	stub := fake.ClearRoomStateStub
 	fakeReturns := fake.clearRoomStateReturns
@@ -178,13 +178,13 @@ func (fake *FakeRouter) ClearRoomStateCallCount() int {
 	return len(fake.clearRoomStateArgsForCall)
 }
 
-func (fake *FakeRouter) ClearRoomStateCalls(stub func(context.Context, livekit.RoomName) error) {
+func (fake *FakeRouter) ClearRoomStateCalls(stub func(context.Context, voicekit.RoomName) error) {
 	fake.clearRoomStateMutex.Lock()
 	defer fake.clearRoomStateMutex.Unlock()
 	fake.ClearRoomStateStub = stub
 }
 
-func (fake *FakeRouter) ClearRoomStateArgsForCall(i int) (context.Context, livekit.RoomName) {
+func (fake *FakeRouter) ClearRoomStateArgsForCall(i int) (context.Context, voicekit.RoomName) {
 	fake.clearRoomStateMutex.RLock()
 	defer fake.clearRoomStateMutex.RUnlock()
 	argsForCall := fake.clearRoomStateArgsForCall[i]
@@ -214,12 +214,12 @@ func (fake *FakeRouter) ClearRoomStateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeRouter) CreateRoom(arg1 context.Context, arg2 *livekit.CreateRoomRequest) (*livekit.Room, error) {
+func (fake *FakeRouter) CreateRoom(arg1 context.Context, arg2 *voicekit.CreateRoomRequest) (*voicekit.Room, error) {
 	fake.createRoomMutex.Lock()
 	ret, specificReturn := fake.createRoomReturnsOnCall[len(fake.createRoomArgsForCall)]
 	fake.createRoomArgsForCall = append(fake.createRoomArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.CreateRoomRequest
+		arg2 *voicekit.CreateRoomRequest
 	}{arg1, arg2})
 	stub := fake.CreateRoomStub
 	fakeReturns := fake.createRoomReturns
@@ -240,41 +240,41 @@ func (fake *FakeRouter) CreateRoomCallCount() int {
 	return len(fake.createRoomArgsForCall)
 }
 
-func (fake *FakeRouter) CreateRoomCalls(stub func(context.Context, *livekit.CreateRoomRequest) (*livekit.Room, error)) {
+func (fake *FakeRouter) CreateRoomCalls(stub func(context.Context, *voicekit.CreateRoomRequest) (*voicekit.Room, error)) {
 	fake.createRoomMutex.Lock()
 	defer fake.createRoomMutex.Unlock()
 	fake.CreateRoomStub = stub
 }
 
-func (fake *FakeRouter) CreateRoomArgsForCall(i int) (context.Context, *livekit.CreateRoomRequest) {
+func (fake *FakeRouter) CreateRoomArgsForCall(i int) (context.Context, *voicekit.CreateRoomRequest) {
 	fake.createRoomMutex.RLock()
 	defer fake.createRoomMutex.RUnlock()
 	argsForCall := fake.createRoomArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeRouter) CreateRoomReturns(result1 *livekit.Room, result2 error) {
+func (fake *FakeRouter) CreateRoomReturns(result1 *voicekit.Room, result2 error) {
 	fake.createRoomMutex.Lock()
 	defer fake.createRoomMutex.Unlock()
 	fake.CreateRoomStub = nil
 	fake.createRoomReturns = struct {
-		result1 *livekit.Room
+		result1 *voicekit.Room
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeRouter) CreateRoomReturnsOnCall(i int, result1 *livekit.Room, result2 error) {
+func (fake *FakeRouter) CreateRoomReturnsOnCall(i int, result1 *voicekit.Room, result2 error) {
 	fake.createRoomMutex.Lock()
 	defer fake.createRoomMutex.Unlock()
 	fake.CreateRoomStub = nil
 	if fake.createRoomReturnsOnCall == nil {
 		fake.createRoomReturnsOnCall = make(map[int]struct {
-			result1 *livekit.Room
+			result1 *voicekit.Room
 			result2 error
 		})
 	}
 	fake.createRoomReturnsOnCall[i] = struct {
-		result1 *livekit.Room
+		result1 *voicekit.Room
 		result2 error
 	}{result1, result2}
 }
@@ -303,12 +303,12 @@ func (fake *FakeRouter) DrainCalls(stub func()) {
 	fake.DrainStub = stub
 }
 
-func (fake *FakeRouter) GetNodeForRoom(arg1 context.Context, arg2 livekit.RoomName) (*livekit.Node, error) {
+func (fake *FakeRouter) GetNodeForRoom(arg1 context.Context, arg2 voicekit.RoomName) (*voicekit.Node, error) {
 	fake.getNodeForRoomMutex.Lock()
 	ret, specificReturn := fake.getNodeForRoomReturnsOnCall[len(fake.getNodeForRoomArgsForCall)]
 	fake.getNodeForRoomArgsForCall = append(fake.getNodeForRoomArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}{arg1, arg2})
 	stub := fake.GetNodeForRoomStub
 	fakeReturns := fake.getNodeForRoomReturns
@@ -329,41 +329,41 @@ func (fake *FakeRouter) GetNodeForRoomCallCount() int {
 	return len(fake.getNodeForRoomArgsForCall)
 }
 
-func (fake *FakeRouter) GetNodeForRoomCalls(stub func(context.Context, livekit.RoomName) (*livekit.Node, error)) {
+func (fake *FakeRouter) GetNodeForRoomCalls(stub func(context.Context, voicekit.RoomName) (*voicekit.Node, error)) {
 	fake.getNodeForRoomMutex.Lock()
 	defer fake.getNodeForRoomMutex.Unlock()
 	fake.GetNodeForRoomStub = stub
 }
 
-func (fake *FakeRouter) GetNodeForRoomArgsForCall(i int) (context.Context, livekit.RoomName) {
+func (fake *FakeRouter) GetNodeForRoomArgsForCall(i int) (context.Context, voicekit.RoomName) {
 	fake.getNodeForRoomMutex.RLock()
 	defer fake.getNodeForRoomMutex.RUnlock()
 	argsForCall := fake.getNodeForRoomArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeRouter) GetNodeForRoomReturns(result1 *livekit.Node, result2 error) {
+func (fake *FakeRouter) GetNodeForRoomReturns(result1 *voicekit.Node, result2 error) {
 	fake.getNodeForRoomMutex.Lock()
 	defer fake.getNodeForRoomMutex.Unlock()
 	fake.GetNodeForRoomStub = nil
 	fake.getNodeForRoomReturns = struct {
-		result1 *livekit.Node
+		result1 *voicekit.Node
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeRouter) GetNodeForRoomReturnsOnCall(i int, result1 *livekit.Node, result2 error) {
+func (fake *FakeRouter) GetNodeForRoomReturnsOnCall(i int, result1 *voicekit.Node, result2 error) {
 	fake.getNodeForRoomMutex.Lock()
 	defer fake.getNodeForRoomMutex.Unlock()
 	fake.GetNodeForRoomStub = nil
 	if fake.getNodeForRoomReturnsOnCall == nil {
 		fake.getNodeForRoomReturnsOnCall = make(map[int]struct {
-			result1 *livekit.Node
+			result1 *voicekit.Node
 			result2 error
 		})
 	}
 	fake.getNodeForRoomReturnsOnCall[i] = struct {
-		result1 *livekit.Node
+		result1 *voicekit.Node
 		result2 error
 	}{result1, result2}
 }
@@ -421,7 +421,7 @@ func (fake *FakeRouter) GetRegionReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeRouter) ListNodes() ([]*livekit.Node, error) {
+func (fake *FakeRouter) ListNodes() ([]*voicekit.Node, error) {
 	fake.listNodesMutex.Lock()
 	ret, specificReturn := fake.listNodesReturnsOnCall[len(fake.listNodesArgsForCall)]
 	fake.listNodesArgsForCall = append(fake.listNodesArgsForCall, struct {
@@ -445,34 +445,34 @@ func (fake *FakeRouter) ListNodesCallCount() int {
 	return len(fake.listNodesArgsForCall)
 }
 
-func (fake *FakeRouter) ListNodesCalls(stub func() ([]*livekit.Node, error)) {
+func (fake *FakeRouter) ListNodesCalls(stub func() ([]*voicekit.Node, error)) {
 	fake.listNodesMutex.Lock()
 	defer fake.listNodesMutex.Unlock()
 	fake.ListNodesStub = stub
 }
 
-func (fake *FakeRouter) ListNodesReturns(result1 []*livekit.Node, result2 error) {
+func (fake *FakeRouter) ListNodesReturns(result1 []*voicekit.Node, result2 error) {
 	fake.listNodesMutex.Lock()
 	defer fake.listNodesMutex.Unlock()
 	fake.ListNodesStub = nil
 	fake.listNodesReturns = struct {
-		result1 []*livekit.Node
+		result1 []*voicekit.Node
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeRouter) ListNodesReturnsOnCall(i int, result1 []*livekit.Node, result2 error) {
+func (fake *FakeRouter) ListNodesReturnsOnCall(i int, result1 []*voicekit.Node, result2 error) {
 	fake.listNodesMutex.Lock()
 	defer fake.listNodesMutex.Unlock()
 	fake.ListNodesStub = nil
 	if fake.listNodesReturnsOnCall == nil {
 		fake.listNodesReturnsOnCall = make(map[int]struct {
-			result1 []*livekit.Node
+			result1 []*voicekit.Node
 			result2 error
 		})
 	}
 	fake.listNodesReturnsOnCall[i] = struct {
-		result1 []*livekit.Node
+		result1 []*voicekit.Node
 		result2 error
 	}{result1, result2}
 }
@@ -583,13 +583,13 @@ func (fake *FakeRouter) RemoveDeadNodesReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeRouter) SetNodeForRoom(arg1 context.Context, arg2 livekit.RoomName, arg3 livekit.NodeID) error {
+func (fake *FakeRouter) SetNodeForRoom(arg1 context.Context, arg2 voicekit.RoomName, arg3 voicekit.NodeID) error {
 	fake.setNodeForRoomMutex.Lock()
 	ret, specificReturn := fake.setNodeForRoomReturnsOnCall[len(fake.setNodeForRoomArgsForCall)]
 	fake.setNodeForRoomArgsForCall = append(fake.setNodeForRoomArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
-		arg3 livekit.NodeID
+		arg2 voicekit.RoomName
+		arg3 voicekit.NodeID
 	}{arg1, arg2, arg3})
 	stub := fake.SetNodeForRoomStub
 	fakeReturns := fake.setNodeForRoomReturns
@@ -610,13 +610,13 @@ func (fake *FakeRouter) SetNodeForRoomCallCount() int {
 	return len(fake.setNodeForRoomArgsForCall)
 }
 
-func (fake *FakeRouter) SetNodeForRoomCalls(stub func(context.Context, livekit.RoomName, livekit.NodeID) error) {
+func (fake *FakeRouter) SetNodeForRoomCalls(stub func(context.Context, voicekit.RoomName, voicekit.NodeID) error) {
 	fake.setNodeForRoomMutex.Lock()
 	defer fake.setNodeForRoomMutex.Unlock()
 	fake.SetNodeForRoomStub = stub
 }
 
-func (fake *FakeRouter) SetNodeForRoomArgsForCall(i int) (context.Context, livekit.RoomName, livekit.NodeID) {
+func (fake *FakeRouter) SetNodeForRoomArgsForCall(i int) (context.Context, voicekit.RoomName, voicekit.NodeID) {
 	fake.setNodeForRoomMutex.RLock()
 	defer fake.setNodeForRoomMutex.RUnlock()
 	argsForCall := fake.setNodeForRoomArgsForCall[i]
@@ -699,12 +699,12 @@ func (fake *FakeRouter) StartReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeRouter) StartParticipantSignal(arg1 context.Context, arg2 livekit.RoomName, arg3 routing.ParticipantInit) (routing.StartParticipantSignalResults, error) {
+func (fake *FakeRouter) StartParticipantSignal(arg1 context.Context, arg2 voicekit.RoomName, arg3 routing.ParticipantInit) (routing.StartParticipantSignalResults, error) {
 	fake.startParticipantSignalMutex.Lock()
 	ret, specificReturn := fake.startParticipantSignalReturnsOnCall[len(fake.startParticipantSignalArgsForCall)]
 	fake.startParticipantSignalArgsForCall = append(fake.startParticipantSignalArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 		arg3 routing.ParticipantInit
 	}{arg1, arg2, arg3})
 	stub := fake.StartParticipantSignalStub
@@ -726,13 +726,13 @@ func (fake *FakeRouter) StartParticipantSignalCallCount() int {
 	return len(fake.startParticipantSignalArgsForCall)
 }
 
-func (fake *FakeRouter) StartParticipantSignalCalls(stub func(context.Context, livekit.RoomName, routing.ParticipantInit) (routing.StartParticipantSignalResults, error)) {
+func (fake *FakeRouter) StartParticipantSignalCalls(stub func(context.Context, voicekit.RoomName, routing.ParticipantInit) (routing.StartParticipantSignalResults, error)) {
 	fake.startParticipantSignalMutex.Lock()
 	defer fake.startParticipantSignalMutex.Unlock()
 	fake.StartParticipantSignalStub = stub
 }
 
-func (fake *FakeRouter) StartParticipantSignalArgsForCall(i int) (context.Context, livekit.RoomName, routing.ParticipantInit) {
+func (fake *FakeRouter) StartParticipantSignalArgsForCall(i int) (context.Context, voicekit.RoomName, routing.ParticipantInit) {
 	fake.startParticipantSignalMutex.RLock()
 	defer fake.startParticipantSignalMutex.RUnlock()
 	argsForCall := fake.startParticipantSignalArgsForCall[i]

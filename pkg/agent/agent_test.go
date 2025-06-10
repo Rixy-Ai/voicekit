@@ -10,13 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/livekit-server/pkg/agent"
-	"github.com/livekit/livekit-server/pkg/agent/testutils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/protocol/utils/must"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/agent"
+	"github.com/voicekit/voicekit-server/pkg/agent/testutils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/utils/must"
+	"github.com/voicekit/psrpc"
 )
 
 func TestAgent(t *testing.T) {
@@ -28,14 +28,14 @@ func TestAgent(t *testing.T) {
 		t.Cleanup(server.Close)
 
 		worker := server.SimulateAgentWorker()
-		worker.Register("test", livekit.JobType_JT_ROOM)
+		worker.Register("test", voicekit.JobType_JT_ROOM)
 		jobAssignments := worker.JobAssignments.Observe()
 
-		job := &livekit.Job{
+		job := &voicekit.Job{
 			Id:         guid.New(guid.AgentJobPrefix),
 			DispatchId: guid.New(guid.AgentDispatchPrefix),
-			Type:       livekit.JobType_JT_ROOM,
-			Room:       &livekit.Room{},
+			Type:       voicekit.JobType_JT_ROOM,
+			Room:       &voicekit.Room{},
 			AgentName:  "test",
 		}
 		_, err := client.JobRequest(context.Background(), "test", agent.RoomAgentTopic, job)
@@ -78,11 +78,11 @@ func testBatchJobRequest(t require.TestingT, batchSize int, totalJobs int, clien
 		go func(start int) {
 			defer wg.Done()
 			for j := start; j < start+batchSize && j < totalJobs; j++ {
-				job := &livekit.Job{
+				job := &voicekit.Job{
 					Id:         guid.New(guid.AgentJobPrefix),
 					DispatchId: guid.New(guid.AgentDispatchPrefix),
-					Type:       livekit.JobType_JT_ROOM,
-					Room:       &livekit.Room{},
+					Type:       voicekit.JobType_JT_ROOM,
+					Room:       &voicekit.Room{},
 					AgentName:  "test",
 				}
 				_, err := client.JobRequest(context.Background(), "test", agent.RoomAgentTopic, job)
@@ -113,7 +113,7 @@ func TestAgentLoadBalancing(t *testing.T) {
 				testutils.WithLabel(fmt.Sprintf("agent-%d", i)),
 				testutils.WithJobLoad(testutils.NewStableJobLoad(0.01)),
 			)
-			agents[i].Register("test", livekit.JobType_JT_ROOM)
+			agents[i].Register("test", voicekit.JobType_JT_ROOM)
 		}
 
 		select {
@@ -155,7 +155,7 @@ func TestAgentLoadBalancing(t *testing.T) {
 			} else {
 				agents[i] = server.SimulateAgentWorker(testutils.WithLabel(label), testutils.WithDefaultWorkerLoad(0.9))
 			}
-			agents[i].Register("test", livekit.JobType_JT_ROOM)
+			agents[i].Register("test", voicekit.JobType_JT_ROOM)
 		}
 
 		select {

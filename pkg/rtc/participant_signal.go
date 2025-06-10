@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import (
 
 	"github.com/pion/webrtc/v4"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/psrpc"
 
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
 )
 
 func (p *ParticipantImpl) getResponseSink() routing.MessageSink {
@@ -41,12 +41,12 @@ func (p *ParticipantImpl) SetResponseSink(sink routing.MessageSink) {
 	p.resSink = sink
 }
 
-func (p *ParticipantImpl) SendJoinResponse(joinResponse *livekit.JoinResponse) error {
+func (p *ParticipantImpl) SendJoinResponse(joinResponse *voicekit.JoinResponse) error {
 	// keep track of participant updates and versions
 	p.updateLock.Lock()
 	for _, op := range joinResponse.OtherParticipants {
-		p.updateCache.Add(livekit.ParticipantID(op.Sid), participantUpdateInfo{
-			identity:  livekit.ParticipantIdentity(op.Identity),
+		p.updateCache.Add(voicekit.ParticipantID(op.Sid), participantUpdateInfo{
+			identity:  voicekit.ParticipantIdentity(op.Identity),
 			version:   op.Version,
 			state:     op.State,
 			updatedAt: time.Now(),
@@ -55,8 +55,8 @@ func (p *ParticipantImpl) SendJoinResponse(joinResponse *livekit.JoinResponse) e
 	p.updateLock.Unlock()
 
 	// send Join response
-	err := p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_Join{
+	err := p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_Join{
 			Join: joinResponse,
 		},
 	})
@@ -66,8 +66,8 @@ func (p *ParticipantImpl) SendJoinResponse(joinResponse *livekit.JoinResponse) e
 
 	// update state after sending message, so that no participant updates could slip through before JoinResponse is sent
 	p.updateLock.Lock()
-	if p.State() == livekit.ParticipantInfo_JOINING {
-		p.updateState(livekit.ParticipantInfo_JOINED)
+	if p.State() == voicekit.ParticipantInfo_JOINING {
+		p.updateState(voicekit.ParticipantInfo_JOINED)
 	}
 	queuedUpdates := p.queuedUpdates
 	p.queuedUpdates = nil
@@ -80,7 +80,7 @@ func (p *ParticipantImpl) SendJoinResponse(joinResponse *livekit.JoinResponse) e
 	return nil
 }
 
-func (p *ParticipantImpl) SendParticipantUpdate(participantsToUpdate []*livekit.ParticipantInfo) error {
+func (p *ParticipantImpl) SendParticipantUpdate(participantsToUpdate []*voicekit.ParticipantInfo) error {
 	p.updateLock.Lock()
 	if p.IsDisconnected() {
 		p.updateLock.Unlock()
@@ -93,10 +93,10 @@ func (p *ParticipantImpl) SendParticipantUpdate(participantsToUpdate []*livekit.
 		p.updateLock.Unlock()
 		return nil
 	}
-	validUpdates := make([]*livekit.ParticipantInfo, 0, len(participantsToUpdate))
+	validUpdates := make([]*voicekit.ParticipantInfo, 0, len(participantsToUpdate))
 	for _, pi := range participantsToUpdate {
 		isValid := true
-		pID := livekit.ParticipantID(pi.Sid)
+		pID := voicekit.ParticipantID(pi.Sid)
 		if lastVersion, ok := p.updateCache.Get(pID); ok {
 			// this is a message delivered out of order, a more recent version of the message had already been
 			// sent.
@@ -117,7 +117,7 @@ func (p *ParticipantImpl) SendParticipantUpdate(participantsToUpdate []*livekit.
 		}
 		if isValid {
 			p.updateCache.Add(pID, participantUpdateInfo{
-				identity:  livekit.ParticipantIdentity(pi.Identity),
+				identity:  voicekit.ParticipantIdentity(pi.Identity),
 				version:   pi.Version,
 				state:     pi.State,
 				updatedAt: time.Now(),
@@ -131,9 +131,9 @@ func (p *ParticipantImpl) SendParticipantUpdate(participantsToUpdate []*livekit.
 		return nil
 	}
 
-	return p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_Update{
-			Update: &livekit.ParticipantUpdate{
+	return p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_Update{
+			Update: &voicekit.ParticipantUpdate{
 				Participants: validUpdates,
 			},
 		},
@@ -141,17 +141,17 @@ func (p *ParticipantImpl) SendParticipantUpdate(participantsToUpdate []*livekit.
 }
 
 // SendSpeakerUpdate notifies participant changes to speakers. only send members that have changed since last update
-func (p *ParticipantImpl) SendSpeakerUpdate(speakers []*livekit.SpeakerInfo, force bool) error {
+func (p *ParticipantImpl) SendSpeakerUpdate(speakers []*voicekit.SpeakerInfo, force bool) error {
 	if !p.IsReady() {
 		return nil
 	}
 
-	var scopedSpeakers []*livekit.SpeakerInfo
+	var scopedSpeakers []*voicekit.SpeakerInfo
 	if force {
 		scopedSpeakers = speakers
 	} else {
 		for _, s := range speakers {
-			participantID := livekit.ParticipantID(s.Sid)
+			participantID := voicekit.ParticipantID(s.Sid)
 			if p.IsSubscribedTo(participantID) || participantID == p.ID() {
 				scopedSpeakers = append(scopedSpeakers, s)
 			}
@@ -162,73 +162,73 @@ func (p *ParticipantImpl) SendSpeakerUpdate(speakers []*livekit.SpeakerInfo, for
 		return nil
 	}
 
-	return p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_SpeakersChanged{
-			SpeakersChanged: &livekit.SpeakersChanged{
+	return p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_SpeakersChanged{
+			SpeakersChanged: &voicekit.SpeakersChanged{
 				Speakers: scopedSpeakers,
 			},
 		},
 	})
 }
 
-func (p *ParticipantImpl) SendRoomUpdate(room *livekit.Room) error {
-	return p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_RoomUpdate{
-			RoomUpdate: &livekit.RoomUpdate{
+func (p *ParticipantImpl) SendRoomUpdate(room *voicekit.Room) error {
+	return p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_RoomUpdate{
+			RoomUpdate: &voicekit.RoomUpdate{
 				Room: room,
 			},
 		},
 	})
 }
 
-func (p *ParticipantImpl) SendConnectionQualityUpdate(update *livekit.ConnectionQualityUpdate) error {
-	return p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_ConnectionQuality{
+func (p *ParticipantImpl) SendConnectionQualityUpdate(update *voicekit.ConnectionQualityUpdate) error {
+	return p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_ConnectionQuality{
 			ConnectionQuality: update,
 		},
 	})
 }
 
 func (p *ParticipantImpl) SendRefreshToken(token string) error {
-	return p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_RefreshToken{
+	return p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_RefreshToken{
 			RefreshToken: token,
 		},
 	})
 }
 
-func (p *ParticipantImpl) SendRequestResponse(requestResponse *livekit.RequestResponse) error {
+func (p *ParticipantImpl) SendRequestResponse(requestResponse *voicekit.RequestResponse) error {
 	if requestResponse.RequestId == 0 || !p.params.ClientInfo.SupportErrorResponse() {
 		return nil
 	}
 
-	if requestResponse.Reason == livekit.RequestResponse_OK && !p.ProtocolVersion().SupportsNonErrorSignalResponse() {
+	if requestResponse.Reason == voicekit.RequestResponse_OK && !p.ProtocolVersion().SupportsNonErrorSignalResponse() {
 		return nil
 	}
 
-	return p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_RequestResponse{
+	return p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_RequestResponse{
 			RequestResponse: requestResponse,
 		},
 	})
 }
 
-func (p *ParticipantImpl) SendRoomMovedResponse(roomMovedResponse *livekit.RoomMovedResponse) error {
-	return p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_RoomMoved{
+func (p *ParticipantImpl) SendRoomMovedResponse(roomMovedResponse *voicekit.RoomMovedResponse) error {
+	return p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_RoomMoved{
 			RoomMoved: roomMovedResponse,
 		},
 	})
 }
 
-func (p *ParticipantImpl) HandleReconnectAndSendResponse(reconnectReason livekit.ReconnectReason, reconnectResponse *livekit.ReconnectResponse) error {
+func (p *ParticipantImpl) HandleReconnectAndSendResponse(reconnectReason voicekit.ReconnectReason, reconnectResponse *voicekit.ReconnectResponse) error {
 	p.TransportManager.HandleClientReconnect(reconnectReason)
 
 	if !p.params.ClientInfo.CanHandleReconnectResponse() {
 		return nil
 	}
-	if err := p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_Reconnect{
+	if err := p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_Reconnect{
 			Reconnect: reconnectResponse,
 		},
 	}); err != nil {
@@ -244,19 +244,19 @@ func (p *ParticipantImpl) HandleReconnectAndSendResponse(reconnectReason livekit
 
 func (p *ParticipantImpl) sendDisconnectUpdatesForReconnect() error {
 	lastSignalAt := p.TransportManager.LastSeenSignalAt()
-	var disconnectedParticipants []*livekit.ParticipantInfo
+	var disconnectedParticipants []*voicekit.ParticipantInfo
 	p.updateLock.Lock()
 	keys := p.updateCache.Keys()
 	for i := len(keys) - 1; i >= 0; i-- {
 		if info, ok := p.updateCache.Get(keys[i]); ok {
 			if info.updatedAt.Before(lastSignalAt) {
 				break
-			} else if info.state == livekit.ParticipantInfo_DISCONNECTED {
-				disconnectedParticipants = append(disconnectedParticipants, &livekit.ParticipantInfo{
+			} else if info.state == voicekit.ParticipantInfo_DISCONNECTED {
+				disconnectedParticipants = append(disconnectedParticipants, &voicekit.ParticipantInfo{
 					Sid:      string(keys[i]),
 					Identity: string(info.identity),
 					Version:  info.version,
-					State:    livekit.ParticipantInfo_DISCONNECTED,
+					State:    voicekit.ParticipantInfo_DISCONNECTED,
 				})
 			}
 		}
@@ -267,16 +267,16 @@ func (p *ParticipantImpl) sendDisconnectUpdatesForReconnect() error {
 		return nil
 	}
 
-	return p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_Update{
-			Update: &livekit.ParticipantUpdate{
+	return p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_Update{
+			Update: &voicekit.ParticipantUpdate{
 				Participants: disconnectedParticipants,
 			},
 		},
 	})
 }
 
-func (p *ParticipantImpl) sendICECandidate(ic *webrtc.ICECandidate, target livekit.SignalTarget) error {
+func (p *ParticipantImpl) sendICECandidate(ic *webrtc.ICECandidate, target voicekit.SignalTarget) error {
 	prevIC := p.icQueue[target].Swap(ic)
 	if prevIC == nil {
 		return nil
@@ -285,17 +285,17 @@ func (p *ParticipantImpl) sendICECandidate(ic *webrtc.ICECandidate, target livek
 	trickle := ToProtoTrickle(prevIC.ToJSON(), target, ic == nil)
 	p.params.Logger.Debugw("sending ICE candidate", "transport", target, "trickle", logger.Proto(trickle))
 
-	return p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_Trickle{
+	return p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_Trickle{
 			Trickle: trickle,
 		},
 	})
 }
 
-func (p *ParticipantImpl) sendTrackMuted(trackID livekit.TrackID, muted bool) {
-	_ = p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_Mute{
-			Mute: &livekit.MuteTrackRequest{
+func (p *ParticipantImpl) sendTrackMuted(trackID voicekit.TrackID, muted bool) {
+	_ = p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_Mute{
+			Mute: &voicekit.MuteTrackRequest{
 				Sid:   string(trackID),
 				Muted: muted,
 			},
@@ -303,23 +303,23 @@ func (p *ParticipantImpl) sendTrackMuted(trackID livekit.TrackID, muted bool) {
 	})
 }
 
-func (p *ParticipantImpl) sendTrackUnpublished(trackID livekit.TrackID) {
-	_ = p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_TrackUnpublished{
-			TrackUnpublished: &livekit.TrackUnpublishedResponse{
+func (p *ParticipantImpl) sendTrackUnpublished(trackID voicekit.TrackID) {
+	_ = p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_TrackUnpublished{
+			TrackUnpublished: &voicekit.TrackUnpublishedResponse{
 				TrackSid: string(trackID),
 			},
 		},
 	})
 }
 
-func (p *ParticipantImpl) sendTrackHasBeenSubscribed(trackID livekit.TrackID) {
+func (p *ParticipantImpl) sendTrackHasBeenSubscribed(trackID voicekit.TrackID) {
 	if !p.params.ClientInfo.SupportTrackSubscribedEvent() {
 		return
 	}
-	_ = p.writeMessage(&livekit.SignalResponse{
-		Message: &livekit.SignalResponse_TrackSubscribed{
-			TrackSubscribed: &livekit.TrackSubscribed{
+	_ = p.writeMessage(&voicekit.SignalResponse{
+		Message: &voicekit.SignalResponse_TrackSubscribed{
+			TrackSubscribed: &voicekit.TrackSubscribed{
 				TrackSid: string(trackID),
 			},
 		},
@@ -327,7 +327,7 @@ func (p *ParticipantImpl) sendTrackHasBeenSubscribed(trackID livekit.TrackID) {
 	p.params.Logger.Debugw("track has been subscribed", "trackID", trackID)
 }
 
-func (p *ParticipantImpl) writeMessage(msg *livekit.SignalResponse) error {
+func (p *ParticipantImpl) writeMessage(msg *voicekit.SignalResponse) error {
 	if p.IsDisconnected() || (!p.IsReady() && msg.GetJoin() == nil) {
 		return nil
 	}
@@ -372,34 +372,34 @@ func (p *ParticipantImpl) sendLeaveRequest(
 	isExpectedToReconnect bool,
 	sendOnlyIfSupportingLeaveRequestWithAction bool,
 ) error {
-	var leave *livekit.LeaveRequest
+	var leave *voicekit.LeaveRequest
 	if p.ProtocolVersion().SupportsRegionsInLeaveRequest() {
-		leave = &livekit.LeaveRequest{
+		leave = &voicekit.LeaveRequest{
 			Reason: reason.ToDisconnectReason(),
 		}
 		switch {
 		case isExpectedToResume:
-			leave.Action = livekit.LeaveRequest_RESUME
+			leave.Action = voicekit.LeaveRequest_RESUME
 		case isExpectedToReconnect:
-			leave.Action = livekit.LeaveRequest_RECONNECT
+			leave.Action = voicekit.LeaveRequest_RECONNECT
 		default:
-			leave.Action = livekit.LeaveRequest_DISCONNECT
+			leave.Action = voicekit.LeaveRequest_DISCONNECT
 		}
-		if leave.Action != livekit.LeaveRequest_DISCONNECT {
+		if leave.Action != voicekit.LeaveRequest_DISCONNECT {
 			// sending region settings even for RESUME just in case client wants to a full reconnect despite server saying RESUME
 			leave.Regions = p.helper().GetRegionSettings(p.params.ClientInfo.Address)
 		}
 	} else {
 		if !sendOnlyIfSupportingLeaveRequestWithAction {
-			leave = &livekit.LeaveRequest{
+			leave = &voicekit.LeaveRequest{
 				CanReconnect: isExpectedToReconnect,
 				Reason:       reason.ToDisconnectReason(),
 			}
 		}
 	}
 	if leave != nil {
-		return p.writeMessage(&livekit.SignalResponse{
-			Message: &livekit.SignalResponse_Leave{
+		return p.writeMessage(&voicekit.SignalResponse{
+			Message: &voicekit.SignalResponse_Leave{
 				Leave: leave,
 			},
 		})

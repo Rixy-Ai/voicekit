@@ -1,4 +1,4 @@
-module github.com/livekit/livekit-server
+module github.com/voicekit/voicekit-server
 
 go 1.23.4
 
@@ -21,10 +21,10 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jellydator/ttlcache/v3 v3.3.0
 	github.com/jxskiss/base62 v1.1.0
-	github.com/livekit/mageutil v0.0.0-20250511045019-0f1ff63f7731
-	github.com/livekit/mediatransportutil v0.0.0-20250519131108-fb90f5acfded
-	github.com/livekit/protocol v1.39.1-0.20250609143527-8af5761cacc6
-	github.com/livekit/psrpc v0.6.1-0.20250511053145-465289d72c3c
+	github.com/voicekit/mageutil v0.0.0-20250511045019-0f1ff63f7731
+	github.com/voicekit/mediatransportutil v0.0.0-20250519131108-fb90f5acfded
+	github.com/voicekit/protocol v1.39.1-0.20250609143527-8af5761cacc6
+	github.com/voicekit/psrpc v0.6.1-0.20250511053145-465289d72c3c
 	github.com/mackerelio/go-osstat v0.2.5
 	github.com/magefile/mage v1.15.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.2

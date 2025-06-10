@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,16 +22,16 @@ import (
 	"github.com/pion/webrtc/v4"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	sutils "github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/observability/roomobs"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	sutils "github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/observability/roomobs"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
 )
 
 var (
@@ -44,10 +44,10 @@ type MediaTrackSubscriptions struct {
 	params MediaTrackSubscriptionsParams
 
 	subscribedTracksMu sync.RWMutex
-	subscribedTracks   map[livekit.ParticipantID]types.SubscribedTrack
+	subscribedTracks   map[voicekit.ParticipantID]types.SubscribedTrack
 
 	onDownTrackCreated           func(downTrack *sfu.DownTrack)
-	onSubscriberMaxQualityChange func(subscriberID livekit.ParticipantID, mime mime.MimeType, layer int32)
+	onSubscriberMaxQualityChange func(subscriberID voicekit.ParticipantID, mime mime.MimeType, layer int32)
 }
 
 type MediaTrackSubscriptionsParams struct {
@@ -65,7 +65,7 @@ type MediaTrackSubscriptionsParams struct {
 func NewMediaTrackSubscriptions(params MediaTrackSubscriptionsParams) *MediaTrackSubscriptions {
 	return &MediaTrackSubscriptions{
 		params:           params,
-		subscribedTracks: make(map[livekit.ParticipantID]types.SubscribedTrack),
+		subscribedTracks: make(map[voicekit.ParticipantID]types.SubscribedTrack),
 	}
 }
 
@@ -73,7 +73,7 @@ func (t *MediaTrackSubscriptions) OnDownTrackCreated(f func(downTrack *sfu.DownT
 	t.onDownTrackCreated = f
 }
 
-func (t *MediaTrackSubscriptions) OnSubscriberMaxQualityChange(f func(subscriberID livekit.ParticipantID, mime mime.MimeType, layer int32)) {
+func (t *MediaTrackSubscriptions) OnSubscriberMaxQualityChange(f func(subscriberID voicekit.ParticipantID, mime mime.MimeType, layer int32)) {
 	t.onSubscriberMaxQualityChange = f
 }
 
@@ -84,7 +84,7 @@ func (t *MediaTrackSubscriptions) SetMuted(muted bool) {
 	}
 }
 
-func (t *MediaTrackSubscriptions) IsSubscriber(subID livekit.ParticipantID) bool {
+func (t *MediaTrackSubscriptions) IsSubscriber(subID voicekit.ParticipantID) bool {
 	t.subscribedTracksMu.RLock()
 	defer t.subscribedTracksMu.RUnlock()
 
@@ -108,10 +108,10 @@ func (t *MediaTrackSubscriptions) AddSubscriber(sub types.LocalParticipant, wr *
 	var rtcpFeedback []webrtc.RTCPFeedback
 	var maxTrack int
 	switch t.params.MediaTrack.Kind() {
-	case livekit.TrackType_AUDIO:
+	case voicekit.TrackType_AUDIO:
 		rtcpFeedback = t.params.SubscriberConfig.RTCPFeedback.Audio
 		maxTrack = t.params.ReceiverConfig.PacketBufferSizeAudio
-	case livekit.TrackType_VIDEO:
+	case voicekit.TrackType_VIDEO:
 		rtcpFeedback = t.params.SubscriberConfig.RTCPFeedback.Video
 		maxTrack = t.params.ReceiverConfig.PacketBufferSizeVideo
 	default:
@@ -181,7 +181,7 @@ func (t *MediaTrackSubscriptions) AddSubscriber(sub types.LocalParticipant, wr *
 		if !wr.DetermineReceiver(codec) {
 			if t.onSubscriberMaxQualityChange != nil {
 				go func() {
-					spatial := buffer.VideoQualityToSpatialLayer(livekit.VideoQuality_HIGH, t.params.MediaTrack.ToProto())
+					spatial := buffer.VideoQualityToSpatialLayer(voicekit.VideoQuality_HIGH, t.params.MediaTrack.ToProto())
 					t.onSubscriberMaxQualityChange(downTrack.SubscriberID(), mime.NormalizeMimeType(codec.MimeType), spatial)
 				}()
 			}
@@ -211,8 +211,8 @@ func (t *MediaTrackSubscriptions) AddSubscriber(sub types.LocalParticipant, wr *
 	})
 
 	reporter := sub.GetReporter().WithTrack(trackID.String())
-	downTrack.OnStatsUpdate(func(_ *sfu.DownTrack, stat *livekit.AnalyticsStat) {
-		key := telemetry.StatsKeyForTrack(livekit.StreamType_DOWNSTREAM, subscriberID, trackID, t.params.MediaTrack.Source(), t.params.MediaTrack.Kind())
+	downTrack.OnStatsUpdate(func(_ *sfu.DownTrack, stat *voicekit.AnalyticsStat) {
+		key := telemetry.StatsKeyForTrack(voicekit.StreamType_DOWNSTREAM, subscriberID, trackID, t.params.MediaTrack.Source(), t.params.MediaTrack.Kind())
 		t.params.Telemetry.TrackStats(key, stat)
 
 		if cs, ok := telemetry.CondenseStat(stat); ok {
@@ -365,7 +365,7 @@ func (t *MediaTrackSubscriptions) AddSubscriber(sub types.LocalParticipant, wr *
 
 // RemoveSubscriber removes participant from subscription
 // stop all forwarders to the client
-func (t *MediaTrackSubscriptions) RemoveSubscriber(subscriberID livekit.ParticipantID, isExpectedToResume bool) error {
+func (t *MediaTrackSubscriptions) RemoveSubscriber(subscriberID voicekit.ParticipantID, isExpectedToResume bool) error {
 	subTrack := t.getSubscribedTrack(subscriberID)
 	if subTrack == nil {
 		return errNotFound
@@ -390,22 +390,22 @@ func (t *MediaTrackSubscriptions) closeSubscribedTrack(subTrack types.Subscribed
 	}
 }
 
-func (t *MediaTrackSubscriptions) GetAllSubscribers() []livekit.ParticipantID {
+func (t *MediaTrackSubscriptions) GetAllSubscribers() []voicekit.ParticipantID {
 	t.subscribedTracksMu.RLock()
 	defer t.subscribedTracksMu.RUnlock()
 
-	subs := make([]livekit.ParticipantID, 0, len(t.subscribedTracks))
+	subs := make([]voicekit.ParticipantID, 0, len(t.subscribedTracks))
 	for id := range t.subscribedTracks {
 		subs = append(subs, id)
 	}
 	return subs
 }
 
-func (t *MediaTrackSubscriptions) GetAllSubscribersForMime(mime mime.MimeType) []livekit.ParticipantID {
+func (t *MediaTrackSubscriptions) GetAllSubscribersForMime(mime mime.MimeType) []voicekit.ParticipantID {
 	t.subscribedTracksMu.RLock()
 	defer t.subscribedTracksMu.RUnlock()
 
-	subs := make([]livekit.ParticipantID, 0, len(t.subscribedTracks))
+	subs := make([]voicekit.ParticipantID, 0, len(t.subscribedTracks))
 	for id, subTrack := range t.subscribedTracks {
 		if subTrack.DownTrack().Mime() != mime {
 			continue
@@ -429,7 +429,7 @@ func (t *MediaTrackSubscriptions) UpdateVideoLayers() {
 	}
 }
 
-func (t *MediaTrackSubscriptions) getSubscribedTrack(subscriberID livekit.ParticipantID) types.SubscribedTrack {
+func (t *MediaTrackSubscriptions) getSubscribedTrack(subscriberID voicekit.ParticipantID) types.SubscribedTrack {
 	t.subscribedTracksMu.RLock()
 	defer t.subscribedTracksMu.RUnlock()
 
@@ -463,7 +463,7 @@ func (t *MediaTrackSubscriptions) DebugInfo() []map[string]interface{} {
 }
 
 func (t *MediaTrackSubscriptions) downTrackClosed(
-	subscriberID livekit.ParticipantID,
+	subscriberID voicekit.ParticipantID,
 	sub types.LocalParticipant,
 	subTrack types.SubscribedTrack,
 	isExpectedToResume bool,

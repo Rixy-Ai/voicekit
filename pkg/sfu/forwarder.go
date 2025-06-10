@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,19 +26,19 @@ import (
 	"github.com/pion/webrtc/v4"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/livekit/mediatransportutil"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/mediatransportutil"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/mono"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/codecmunger"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	dd "github.com/livekit/livekit-server/pkg/sfu/rtpextension/dependencydescriptor"
-	"github.com/livekit/livekit-server/pkg/sfu/rtpstats"
-	"github.com/livekit/livekit-server/pkg/sfu/videolayerselector"
-	"github.com/livekit/livekit-server/pkg/sfu/videolayerselector/temporallayerselector"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/codecmunger"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	dd "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/dependencydescriptor"
+	"github.com/voicekit/voicekit-server/pkg/sfu/rtpstats"
+	"github.com/voicekit/voicekit-server/pkg/sfu/videolayerselector"
+	"github.com/voicekit/voicekit-server/pkg/sfu/videolayerselector/temporallayerselector"
 )
 
 // Forwarder
@@ -192,7 +192,7 @@ type TranslationParams struct {
 // -------------------------------------------------------------------
 
 type refInfo struct {
-	senderReport    *livekit.RTCPSenderReportState
+	senderReport    *voicekit.RTCPSenderReportState
 	tsOffset        uint64
 	isTSOffsetValid bool
 }
@@ -377,7 +377,7 @@ func (f *Forwarder) DetermineCodec(codec webrtc.RTPCodecCapability, extensions [
 	}
 }
 
-func (f *Forwarder) GetState() *livekit.RTPForwarderState {
+func (f *Forwarder) GetState() *voicekit.RTPForwarderState {
 	f.lock.RLock()
 	defer f.lock.RUnlock()
 
@@ -385,7 +385,7 @@ func (f *Forwarder) GetState() *livekit.RTPForwarderState {
 		return nil
 	}
 
-	state := &livekit.RTPForwarderState{
+	state := &voicekit.RTPForwarderState{
 		Started:                   f.started,
 		ReferenceLayerSpatial:     f.referenceLayerSpatial,
 		ExtFirstTimestamp:         f.extFirstTS,
@@ -397,20 +397,20 @@ func (f *Forwarder) GetState() *livekit.RTPForwarderState {
 	}
 
 	codecMungerState := f.codecMunger.GetState()
-	if vp8MungerState, ok := codecMungerState.(*livekit.VP8MungerState); ok {
-		state.CodecMunger = &livekit.RTPForwarderState_Vp8Munger{
+	if vp8MungerState, ok := codecMungerState.(*voicekit.VP8MungerState); ok {
+		state.CodecMunger = &voicekit.RTPForwarderState_Vp8Munger{
 			Vp8Munger: vp8MungerState,
 		}
 	}
 
-	state.SenderReportState = make([]*livekit.RTCPSenderReportState, len(f.refInfos))
+	state.SenderReportState = make([]*voicekit.RTCPSenderReportState, len(f.refInfos))
 	for layer, refInfo := range f.refInfos {
 		state.SenderReportState[layer] = utils.CloneProto(refInfo.senderReport)
 	}
 	return state
 }
 
-func (f *Forwarder) SeedState(state *livekit.RTPForwarderState) {
+func (f *Forwarder) SeedState(state *voicekit.RTPForwarderState) {
 	if state == nil || !state.Started {
 		return
 	}
@@ -619,7 +619,7 @@ func (f *Forwarder) getRefLayer() (int32, int32) {
 	return currentLayerSpatial, currentLayerSpatial
 }
 
-func (f *Forwarder) SetRefSenderReport(isSVC bool, layer int32, srData *livekit.RTCPSenderReportState) {
+func (f *Forwarder) SetRefSenderReport(isSVC bool, layer int32, srData *voicekit.RTCPSenderReportState) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
@@ -665,7 +665,7 @@ func (f *Forwarder) SetRefSenderReport(isSVC bool, layer int32, srData *livekit.
 	}
 }
 
-func (f *Forwarder) GetSenderReportParams() (int32, uint64, *livekit.RTCPSenderReportState) {
+func (f *Forwarder) GetSenderReportParams() (int32, uint64, *voicekit.RTCPSenderReportState) {
 	f.lock.RLock()
 	defer f.lock.RUnlock()
 

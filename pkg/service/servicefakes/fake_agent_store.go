@@ -5,16 +5,16 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type FakeAgentStore struct {
-	DeleteAgentDispatchStub        func(context.Context, *livekit.AgentDispatch) error
+	DeleteAgentDispatchStub        func(context.Context, *voicekit.AgentDispatch) error
 	deleteAgentDispatchMutex       sync.RWMutex
 	deleteAgentDispatchArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.AgentDispatch
+		arg2 *voicekit.AgentDispatch
 	}
 	deleteAgentDispatchReturns struct {
 		result1 error
@@ -22,11 +22,11 @@ type FakeAgentStore struct {
 	deleteAgentDispatchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteAgentJobStub        func(context.Context, *livekit.Job) error
+	DeleteAgentJobStub        func(context.Context, *voicekit.Job) error
 	deleteAgentJobMutex       sync.RWMutex
 	deleteAgentJobArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.Job
+		arg2 *voicekit.Job
 	}
 	deleteAgentJobReturns struct {
 		result1 error
@@ -34,25 +34,25 @@ type FakeAgentStore struct {
 	deleteAgentJobReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ListAgentDispatchesStub        func(context.Context, livekit.RoomName) ([]*livekit.AgentDispatch, error)
+	ListAgentDispatchesStub        func(context.Context, voicekit.RoomName) ([]*voicekit.AgentDispatch, error)
 	listAgentDispatchesMutex       sync.RWMutex
 	listAgentDispatchesArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}
 	listAgentDispatchesReturns struct {
-		result1 []*livekit.AgentDispatch
+		result1 []*voicekit.AgentDispatch
 		result2 error
 	}
 	listAgentDispatchesReturnsOnCall map[int]struct {
-		result1 []*livekit.AgentDispatch
+		result1 []*voicekit.AgentDispatch
 		result2 error
 	}
-	StoreAgentDispatchStub        func(context.Context, *livekit.AgentDispatch) error
+	StoreAgentDispatchStub        func(context.Context, *voicekit.AgentDispatch) error
 	storeAgentDispatchMutex       sync.RWMutex
 	storeAgentDispatchArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.AgentDispatch
+		arg2 *voicekit.AgentDispatch
 	}
 	storeAgentDispatchReturns struct {
 		result1 error
@@ -60,11 +60,11 @@ type FakeAgentStore struct {
 	storeAgentDispatchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	StoreAgentJobStub        func(context.Context, *livekit.Job) error
+	StoreAgentJobStub        func(context.Context, *voicekit.Job) error
 	storeAgentJobMutex       sync.RWMutex
 	storeAgentJobArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.Job
+		arg2 *voicekit.Job
 	}
 	storeAgentJobReturns struct {
 		result1 error
@@ -76,12 +76,12 @@ type FakeAgentStore struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeAgentStore) DeleteAgentDispatch(arg1 context.Context, arg2 *livekit.AgentDispatch) error {
+func (fake *FakeAgentStore) DeleteAgentDispatch(arg1 context.Context, arg2 *voicekit.AgentDispatch) error {
 	fake.deleteAgentDispatchMutex.Lock()
 	ret, specificReturn := fake.deleteAgentDispatchReturnsOnCall[len(fake.deleteAgentDispatchArgsForCall)]
 	fake.deleteAgentDispatchArgsForCall = append(fake.deleteAgentDispatchArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.AgentDispatch
+		arg2 *voicekit.AgentDispatch
 	}{arg1, arg2})
 	stub := fake.DeleteAgentDispatchStub
 	fakeReturns := fake.deleteAgentDispatchReturns
@@ -102,13 +102,13 @@ func (fake *FakeAgentStore) DeleteAgentDispatchCallCount() int {
 	return len(fake.deleteAgentDispatchArgsForCall)
 }
 
-func (fake *FakeAgentStore) DeleteAgentDispatchCalls(stub func(context.Context, *livekit.AgentDispatch) error) {
+func (fake *FakeAgentStore) DeleteAgentDispatchCalls(stub func(context.Context, *voicekit.AgentDispatch) error) {
 	fake.deleteAgentDispatchMutex.Lock()
 	defer fake.deleteAgentDispatchMutex.Unlock()
 	fake.DeleteAgentDispatchStub = stub
 }
 
-func (fake *FakeAgentStore) DeleteAgentDispatchArgsForCall(i int) (context.Context, *livekit.AgentDispatch) {
+func (fake *FakeAgentStore) DeleteAgentDispatchArgsForCall(i int) (context.Context, *voicekit.AgentDispatch) {
 	fake.deleteAgentDispatchMutex.RLock()
 	defer fake.deleteAgentDispatchMutex.RUnlock()
 	argsForCall := fake.deleteAgentDispatchArgsForCall[i]
@@ -138,12 +138,12 @@ func (fake *FakeAgentStore) DeleteAgentDispatchReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakeAgentStore) DeleteAgentJob(arg1 context.Context, arg2 *livekit.Job) error {
+func (fake *FakeAgentStore) DeleteAgentJob(arg1 context.Context, arg2 *voicekit.Job) error {
 	fake.deleteAgentJobMutex.Lock()
 	ret, specificReturn := fake.deleteAgentJobReturnsOnCall[len(fake.deleteAgentJobArgsForCall)]
 	fake.deleteAgentJobArgsForCall = append(fake.deleteAgentJobArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.Job
+		arg2 *voicekit.Job
 	}{arg1, arg2})
 	stub := fake.DeleteAgentJobStub
 	fakeReturns := fake.deleteAgentJobReturns
@@ -164,13 +164,13 @@ func (fake *FakeAgentStore) DeleteAgentJobCallCount() int {
 	return len(fake.deleteAgentJobArgsForCall)
 }
 
-func (fake *FakeAgentStore) DeleteAgentJobCalls(stub func(context.Context, *livekit.Job) error) {
+func (fake *FakeAgentStore) DeleteAgentJobCalls(stub func(context.Context, *voicekit.Job) error) {
 	fake.deleteAgentJobMutex.Lock()
 	defer fake.deleteAgentJobMutex.Unlock()
 	fake.DeleteAgentJobStub = stub
 }
 
-func (fake *FakeAgentStore) DeleteAgentJobArgsForCall(i int) (context.Context, *livekit.Job) {
+func (fake *FakeAgentStore) DeleteAgentJobArgsForCall(i int) (context.Context, *voicekit.Job) {
 	fake.deleteAgentJobMutex.RLock()
 	defer fake.deleteAgentJobMutex.RUnlock()
 	argsForCall := fake.deleteAgentJobArgsForCall[i]
@@ -200,12 +200,12 @@ func (fake *FakeAgentStore) DeleteAgentJobReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAgentStore) ListAgentDispatches(arg1 context.Context, arg2 livekit.RoomName) ([]*livekit.AgentDispatch, error) {
+func (fake *FakeAgentStore) ListAgentDispatches(arg1 context.Context, arg2 voicekit.RoomName) ([]*voicekit.AgentDispatch, error) {
 	fake.listAgentDispatchesMutex.Lock()
 	ret, specificReturn := fake.listAgentDispatchesReturnsOnCall[len(fake.listAgentDispatchesArgsForCall)]
 	fake.listAgentDispatchesArgsForCall = append(fake.listAgentDispatchesArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}{arg1, arg2})
 	stub := fake.ListAgentDispatchesStub
 	fakeReturns := fake.listAgentDispatchesReturns
@@ -226,51 +226,51 @@ func (fake *FakeAgentStore) ListAgentDispatchesCallCount() int {
 	return len(fake.listAgentDispatchesArgsForCall)
 }
 
-func (fake *FakeAgentStore) ListAgentDispatchesCalls(stub func(context.Context, livekit.RoomName) ([]*livekit.AgentDispatch, error)) {
+func (fake *FakeAgentStore) ListAgentDispatchesCalls(stub func(context.Context, voicekit.RoomName) ([]*voicekit.AgentDispatch, error)) {
 	fake.listAgentDispatchesMutex.Lock()
 	defer fake.listAgentDispatchesMutex.Unlock()
 	fake.ListAgentDispatchesStub = stub
 }
 
-func (fake *FakeAgentStore) ListAgentDispatchesArgsForCall(i int) (context.Context, livekit.RoomName) {
+func (fake *FakeAgentStore) ListAgentDispatchesArgsForCall(i int) (context.Context, voicekit.RoomName) {
 	fake.listAgentDispatchesMutex.RLock()
 	defer fake.listAgentDispatchesMutex.RUnlock()
 	argsForCall := fake.listAgentDispatchesArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeAgentStore) ListAgentDispatchesReturns(result1 []*livekit.AgentDispatch, result2 error) {
+func (fake *FakeAgentStore) ListAgentDispatchesReturns(result1 []*voicekit.AgentDispatch, result2 error) {
 	fake.listAgentDispatchesMutex.Lock()
 	defer fake.listAgentDispatchesMutex.Unlock()
 	fake.ListAgentDispatchesStub = nil
 	fake.listAgentDispatchesReturns = struct {
-		result1 []*livekit.AgentDispatch
+		result1 []*voicekit.AgentDispatch
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeAgentStore) ListAgentDispatchesReturnsOnCall(i int, result1 []*livekit.AgentDispatch, result2 error) {
+func (fake *FakeAgentStore) ListAgentDispatchesReturnsOnCall(i int, result1 []*voicekit.AgentDispatch, result2 error) {
 	fake.listAgentDispatchesMutex.Lock()
 	defer fake.listAgentDispatchesMutex.Unlock()
 	fake.ListAgentDispatchesStub = nil
 	if fake.listAgentDispatchesReturnsOnCall == nil {
 		fake.listAgentDispatchesReturnsOnCall = make(map[int]struct {
-			result1 []*livekit.AgentDispatch
+			result1 []*voicekit.AgentDispatch
 			result2 error
 		})
 	}
 	fake.listAgentDispatchesReturnsOnCall[i] = struct {
-		result1 []*livekit.AgentDispatch
+		result1 []*voicekit.AgentDispatch
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeAgentStore) StoreAgentDispatch(arg1 context.Context, arg2 *livekit.AgentDispatch) error {
+func (fake *FakeAgentStore) StoreAgentDispatch(arg1 context.Context, arg2 *voicekit.AgentDispatch) error {
 	fake.storeAgentDispatchMutex.Lock()
 	ret, specificReturn := fake.storeAgentDispatchReturnsOnCall[len(fake.storeAgentDispatchArgsForCall)]
 	fake.storeAgentDispatchArgsForCall = append(fake.storeAgentDispatchArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.AgentDispatch
+		arg2 *voicekit.AgentDispatch
 	}{arg1, arg2})
 	stub := fake.StoreAgentDispatchStub
 	fakeReturns := fake.storeAgentDispatchReturns
@@ -291,13 +291,13 @@ func (fake *FakeAgentStore) StoreAgentDispatchCallCount() int {
 	return len(fake.storeAgentDispatchArgsForCall)
 }
 
-func (fake *FakeAgentStore) StoreAgentDispatchCalls(stub func(context.Context, *livekit.AgentDispatch) error) {
+func (fake *FakeAgentStore) StoreAgentDispatchCalls(stub func(context.Context, *voicekit.AgentDispatch) error) {
 	fake.storeAgentDispatchMutex.Lock()
 	defer fake.storeAgentDispatchMutex.Unlock()
 	fake.StoreAgentDispatchStub = stub
 }
 
-func (fake *FakeAgentStore) StoreAgentDispatchArgsForCall(i int) (context.Context, *livekit.AgentDispatch) {
+func (fake *FakeAgentStore) StoreAgentDispatchArgsForCall(i int) (context.Context, *voicekit.AgentDispatch) {
 	fake.storeAgentDispatchMutex.RLock()
 	defer fake.storeAgentDispatchMutex.RUnlock()
 	argsForCall := fake.storeAgentDispatchArgsForCall[i]
@@ -327,12 +327,12 @@ func (fake *FakeAgentStore) StoreAgentDispatchReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeAgentStore) StoreAgentJob(arg1 context.Context, arg2 *livekit.Job) error {
+func (fake *FakeAgentStore) StoreAgentJob(arg1 context.Context, arg2 *voicekit.Job) error {
 	fake.storeAgentJobMutex.Lock()
 	ret, specificReturn := fake.storeAgentJobReturnsOnCall[len(fake.storeAgentJobArgsForCall)]
 	fake.storeAgentJobArgsForCall = append(fake.storeAgentJobArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.Job
+		arg2 *voicekit.Job
 	}{arg1, arg2})
 	stub := fake.StoreAgentJobStub
 	fakeReturns := fake.storeAgentJobReturns
@@ -353,13 +353,13 @@ func (fake *FakeAgentStore) StoreAgentJobCallCount() int {
 	return len(fake.storeAgentJobArgsForCall)
 }
 
-func (fake *FakeAgentStore) StoreAgentJobCalls(stub func(context.Context, *livekit.Job) error) {
+func (fake *FakeAgentStore) StoreAgentJobCalls(stub func(context.Context, *voicekit.Job) error) {
 	fake.storeAgentJobMutex.Lock()
 	defer fake.storeAgentJobMutex.Unlock()
 	fake.StoreAgentJobStub = stub
 }
 
-func (fake *FakeAgentStore) StoreAgentJobArgsForCall(i int) (context.Context, *livekit.Job) {
+func (fake *FakeAgentStore) StoreAgentJobArgsForCall(i int) (context.Context, *voicekit.Job) {
 	fake.storeAgentJobMutex.RLock()
 	defer fake.storeAgentJobMutex.RUnlock()
 	argsForCall := fake.storeAgentJobArgsForCall[i]

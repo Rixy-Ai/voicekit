@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,17 +22,17 @@ import (
 
 	"github.com/twitchtv/twirp"
 
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/protocol/egress"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/rpc"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/protocol/egress"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/rpc"
 )
 
 type EgressService struct {
 	launcher    rtc.EgressLauncher
 	client      rpc.EgressClient
 	io          IOClient
-	roomService livekit.RoomService
+	roomService voicekit.RoomService
 	store       ServiceStore
 }
 
@@ -41,7 +41,7 @@ func NewEgressService(
 	launcher rtc.EgressLauncher,
 	store ServiceStore,
 	io IOClient,
-	rs livekit.RoomService,
+	rs voicekit.RoomService,
 ) *EgressService {
 	return &EgressService{
 		client:      client,
@@ -52,7 +52,7 @@ func NewEgressService(
 	}
 }
 
-func (s *EgressService) StartRoomCompositeEgress(ctx context.Context, req *livekit.RoomCompositeEgressRequest) (*livekit.EgressInfo, error) {
+func (s *EgressService) StartRoomCompositeEgress(ctx context.Context, req *voicekit.RoomCompositeEgressRequest) (*voicekit.EgressInfo, error) {
 	fields := []interface{}{
 		"room", req.RoomName,
 		"baseUrl", req.CustomBaseUrl,
@@ -61,7 +61,7 @@ func (s *EgressService) StartRoomCompositeEgress(ctx context.Context, req *livek
 	defer func() {
 		AppendLogFields(ctx, fields...)
 	}()
-	ei, err := s.startEgress(ctx, livekit.RoomName(req.RoomName), &rpc.StartEgressRequest{
+	ei, err := s.startEgress(ctx, voicekit.RoomName(req.RoomName), &rpc.StartEgressRequest{
 		Request: &rpc.StartEgressRequest_RoomComposite{
 			RoomComposite: req,
 		},
@@ -73,7 +73,7 @@ func (s *EgressService) StartRoomCompositeEgress(ctx context.Context, req *livek
 	return ei, err
 }
 
-func (s *EgressService) StartWebEgress(ctx context.Context, req *livekit.WebEgressRequest) (*livekit.EgressInfo, error) {
+func (s *EgressService) StartWebEgress(ctx context.Context, req *voicekit.WebEgressRequest) (*voicekit.EgressInfo, error) {
 	fields := []interface{}{
 		"url", req.Url,
 		"outputType", egress.GetOutputType(req),
@@ -93,7 +93,7 @@ func (s *EgressService) StartWebEgress(ctx context.Context, req *livekit.WebEgre
 	return ei, err
 }
 
-func (s *EgressService) StartParticipantEgress(ctx context.Context, req *livekit.ParticipantEgressRequest) (*livekit.EgressInfo, error) {
+func (s *EgressService) StartParticipantEgress(ctx context.Context, req *voicekit.ParticipantEgressRequest) (*voicekit.EgressInfo, error) {
 	fields := []interface{}{
 		"room", req.RoomName,
 		"identity", req.Identity,
@@ -102,7 +102,7 @@ func (s *EgressService) StartParticipantEgress(ctx context.Context, req *livekit
 	defer func() {
 		AppendLogFields(ctx, fields...)
 	}()
-	ei, err := s.startEgress(ctx, livekit.RoomName(req.RoomName), &rpc.StartEgressRequest{
+	ei, err := s.startEgress(ctx, voicekit.RoomName(req.RoomName), &rpc.StartEgressRequest{
 		Request: &rpc.StartEgressRequest_Participant{
 			Participant: req,
 		},
@@ -114,7 +114,7 @@ func (s *EgressService) StartParticipantEgress(ctx context.Context, req *livekit
 	return ei, err
 }
 
-func (s *EgressService) StartTrackCompositeEgress(ctx context.Context, req *livekit.TrackCompositeEgressRequest) (*livekit.EgressInfo, error) {
+func (s *EgressService) StartTrackCompositeEgress(ctx context.Context, req *voicekit.TrackCompositeEgressRequest) (*voicekit.EgressInfo, error) {
 	fields := []interface{}{
 		"room", req.RoomName,
 		"audioTrackID", req.AudioTrackId,
@@ -124,7 +124,7 @@ func (s *EgressService) StartTrackCompositeEgress(ctx context.Context, req *live
 	defer func() {
 		AppendLogFields(ctx, fields...)
 	}()
-	ei, err := s.startEgress(ctx, livekit.RoomName(req.RoomName), &rpc.StartEgressRequest{
+	ei, err := s.startEgress(ctx, voicekit.RoomName(req.RoomName), &rpc.StartEgressRequest{
 		Request: &rpc.StartEgressRequest_TrackComposite{
 			TrackComposite: req,
 		},
@@ -136,7 +136,7 @@ func (s *EgressService) StartTrackCompositeEgress(ctx context.Context, req *live
 	return ei, err
 }
 
-func (s *EgressService) StartTrackEgress(ctx context.Context, req *livekit.TrackEgressRequest) (*livekit.EgressInfo, error) {
+func (s *EgressService) StartTrackEgress(ctx context.Context, req *voicekit.TrackEgressRequest) (*voicekit.EgressInfo, error) {
 	fields := []interface{}{"room", req.RoomName, "trackID", req.TrackId}
 	if t := reflect.TypeOf(req.Output); t != nil {
 		fields = append(fields, "outputType", t.String())
@@ -144,7 +144,7 @@ func (s *EgressService) StartTrackEgress(ctx context.Context, req *livekit.Track
 	defer func() {
 		AppendLogFields(ctx, fields...)
 	}()
-	ei, err := s.startEgress(ctx, livekit.RoomName(req.RoomName), &rpc.StartEgressRequest{
+	ei, err := s.startEgress(ctx, voicekit.RoomName(req.RoomName), &rpc.StartEgressRequest{
 		Request: &rpc.StartEgressRequest_Track{
 			Track: req,
 		},
@@ -156,7 +156,7 @@ func (s *EgressService) StartTrackEgress(ctx context.Context, req *livekit.Track
 	return ei, err
 }
 
-func (s *EgressService) startEgress(ctx context.Context, roomName livekit.RoomName, req *rpc.StartEgressRequest) (*livekit.EgressInfo, error) {
+func (s *EgressService) startEgress(ctx context.Context, roomName voicekit.RoomName, req *rpc.StartEgressRequest) (*voicekit.EgressInfo, error) {
 	if err := EnsureRecordPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	} else if s.launcher == nil {
@@ -176,7 +176,7 @@ type LayoutMetadata struct {
 	Layout string `json:"layout"`
 }
 
-func (s *EgressService) UpdateLayout(ctx context.Context, req *livekit.UpdateLayoutRequest) (*livekit.EgressInfo, error) {
+func (s *EgressService) UpdateLayout(ctx context.Context, req *voicekit.UpdateLayoutRequest) (*voicekit.EgressInfo, error) {
 	AppendLogFields(ctx, "egressID", req.EgressId, "layout", req.Layout)
 	if err := EnsureRecordPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
@@ -196,7 +196,7 @@ func (s *EgressService) UpdateLayout(ctx context.Context, req *livekit.UpdateLay
 	grants.Video.Room = info.RoomName
 	grants.Video.RoomAdmin = true
 
-	_, err = s.roomService.UpdateParticipant(ctx, &livekit.UpdateParticipantRequest{
+	_, err = s.roomService.UpdateParticipant(ctx, &voicekit.UpdateParticipantRequest{
 		Room:     info.RoomName,
 		Identity: info.EgressId,
 		Metadata: string(metadata),
@@ -208,7 +208,7 @@ func (s *EgressService) UpdateLayout(ctx context.Context, req *livekit.UpdateLay
 	return info, nil
 }
 
-func (s *EgressService) UpdateStream(ctx context.Context, req *livekit.UpdateStreamRequest) (*livekit.EgressInfo, error) {
+func (s *EgressService) UpdateStream(ctx context.Context, req *voicekit.UpdateStreamRequest) (*voicekit.EgressInfo, error) {
 	AppendLogFields(ctx, "egressID", req.EgressId, "addUrls", req.AddOutputUrls, "removeUrls", req.RemoveOutputUrls)
 	if err := EnsureRecordPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
@@ -227,8 +227,8 @@ func (s *EgressService) UpdateStream(ctx context.Context, req *livekit.UpdateStr
 		}
 
 		switch info.Status {
-		case livekit.EgressStatus_EGRESS_STARTING,
-			livekit.EgressStatus_EGRESS_ACTIVE:
+		case voicekit.EgressStatus_EGRESS_STARTING,
+			voicekit.EgressStatus_EGRESS_ACTIVE:
 			return nil, err
 		default:
 			return nil, twirp.NewError(twirp.FailedPrecondition,
@@ -239,7 +239,7 @@ func (s *EgressService) UpdateStream(ctx context.Context, req *livekit.UpdateStr
 	return info, nil
 }
 
-func (s *EgressService) ListEgress(ctx context.Context, req *livekit.ListEgressRequest) (*livekit.ListEgressResponse, error) {
+func (s *EgressService) ListEgress(ctx context.Context, req *voicekit.ListEgressRequest) (*voicekit.ListEgressResponse, error) {
 	if req.RoomName != "" {
 		AppendLogFields(ctx, "room", req.RoomName)
 	}
@@ -249,7 +249,7 @@ func (s *EgressService) ListEgress(ctx context.Context, req *livekit.ListEgressR
 	return s.io.ListEgress(ctx, req)
 }
 
-func (s *EgressService) StopEgress(ctx context.Context, req *livekit.StopEgressRequest) (*livekit.EgressInfo, error) {
+func (s *EgressService) StopEgress(ctx context.Context, req *voicekit.StopEgressRequest) (*voicekit.EgressInfo, error) {
 	AppendLogFields(ctx, "egressID", req.EgressId)
 	if err := EnsureRecordPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
@@ -268,8 +268,8 @@ func (s *EgressService) StopEgress(ctx context.Context, req *livekit.StopEgressR
 		}
 
 		switch info.Status {
-		case livekit.EgressStatus_EGRESS_STARTING,
-			livekit.EgressStatus_EGRESS_ACTIVE:
+		case voicekit.EgressStatus_EGRESS_STARTING,
+			voicekit.EgressStatus_EGRESS_ACTIVE:
 			return nil, err
 		default:
 			return nil, twirp.NewError(twirp.FailedPrecondition,

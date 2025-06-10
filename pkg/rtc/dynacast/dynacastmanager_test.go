@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func TestSubscribedMaxQuality(t *testing.T) {
@@ -32,34 +32,34 @@ func TestSubscribedMaxQuality(t *testing.T) {
 	t.Run("subscribers muted", func(t *testing.T) {
 		dm := NewDynacastManager(DynacastManagerParams{})
 		var lock sync.Mutex
-		actualSubscribedQualities := make([]*livekit.SubscribedCodec, 0)
-		dm.OnSubscribedMaxQualityChange(func(subscribedQualities []*livekit.SubscribedCodec, _maxSubscribedQualities []types.SubscribedCodecQuality) {
+		actualSubscribedQualities := make([]*voicekit.SubscribedCodec, 0)
+		dm.OnSubscribedMaxQualityChange(func(subscribedQualities []*voicekit.SubscribedCodec, _maxSubscribedQualities []types.SubscribedCodecQuality) {
 			lock.Lock()
 			actualSubscribedQualities = subscribedQualities
 			lock.Unlock()
 		})
 
-		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, livekit.VideoQuality_HIGH)
-		dm.NotifySubscriberMaxQuality("s2", mime.MimeTypeAV1, livekit.VideoQuality_HIGH)
+		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, voicekit.VideoQuality_HIGH)
+		dm.NotifySubscriberMaxQuality("s2", mime.MimeTypeAV1, voicekit.VideoQuality_HIGH)
 
 		// mute all subscribers of vp8
-		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, livekit.VideoQuality_OFF)
+		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, voicekit.VideoQuality_OFF)
 
-		expectedSubscribedQualities := []*livekit.SubscribedCodec{
+		expectedSubscribedQualities := []*voicekit.SubscribedCodec{
 			{
 				Codec: mime.MimeTypeVP8.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: false},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: false},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 			{
 				Codec: mime.MimeTypeAV1.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: true},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: true},
 				},
 			},
 		}
@@ -78,37 +78,37 @@ func TestSubscribedMaxQuality(t *testing.T) {
 
 		lock := sync.RWMutex{}
 		lock.Lock()
-		actualSubscribedQualities := make([]*livekit.SubscribedCodec, 0)
+		actualSubscribedQualities := make([]*voicekit.SubscribedCodec, 0)
 		lock.Unlock()
-		dm.OnSubscribedMaxQualityChange(func(subscribedQualities []*livekit.SubscribedCodec, _maxSubscribedQualities []types.SubscribedCodecQuality) {
+		dm.OnSubscribedMaxQualityChange(func(subscribedQualities []*voicekit.SubscribedCodec, _maxSubscribedQualities []types.SubscribedCodecQuality) {
 			lock.Lock()
 			actualSubscribedQualities = subscribedQualities
 			lock.Unlock()
 		})
 
-		dm.maxSubscribedQuality = map[mime.MimeType]livekit.VideoQuality{
-			mime.MimeTypeVP8: livekit.VideoQuality_LOW,
-			mime.MimeTypeAV1: livekit.VideoQuality_LOW,
+		dm.maxSubscribedQuality = map[mime.MimeType]voicekit.VideoQuality{
+			mime.MimeTypeVP8: voicekit.VideoQuality_LOW,
+			mime.MimeTypeAV1: voicekit.VideoQuality_LOW,
 		}
-		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, livekit.VideoQuality_HIGH)
-		dm.NotifySubscriberMaxQuality("s2", mime.MimeTypeVP8, livekit.VideoQuality_MEDIUM)
-		dm.NotifySubscriberMaxQuality("s3", mime.MimeTypeAV1, livekit.VideoQuality_MEDIUM)
+		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, voicekit.VideoQuality_HIGH)
+		dm.NotifySubscriberMaxQuality("s2", mime.MimeTypeVP8, voicekit.VideoQuality_MEDIUM)
+		dm.NotifySubscriberMaxQuality("s3", mime.MimeTypeAV1, voicekit.VideoQuality_MEDIUM)
 
-		expectedSubscribedQualities := []*livekit.SubscribedCodec{
+		expectedSubscribedQualities := []*voicekit.SubscribedCodec{
 			{
 				Codec: mime.MimeTypeVP8.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: true},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: true},
 				},
 			},
 			{
 				Codec: mime.MimeTypeAV1.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 		}
@@ -120,23 +120,23 @@ func TestSubscribedMaxQuality(t *testing.T) {
 		}, 10*time.Second, 100*time.Millisecond)
 
 		// "s1" dropping to MEDIUM should disable HIGH layer
-		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, livekit.VideoQuality_MEDIUM)
+		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, voicekit.VideoQuality_MEDIUM)
 
-		expectedSubscribedQualities = []*livekit.SubscribedCodec{
+		expectedSubscribedQualities = []*voicekit.SubscribedCodec{
 			{
 				Codec: mime.MimeTypeVP8.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 			{
 				Codec: mime.MimeTypeAV1.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 		}
@@ -148,25 +148,25 @@ func TestSubscribedMaxQuality(t *testing.T) {
 		}, 10*time.Second, 100*time.Millisecond)
 
 		// "s1" , "s2" , "s3" dropping to LOW should disable HIGH & MEDIUM
-		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, livekit.VideoQuality_LOW)
-		dm.NotifySubscriberMaxQuality("s2", mime.MimeTypeVP8, livekit.VideoQuality_LOW)
-		dm.NotifySubscriberMaxQuality("s3", mime.MimeTypeAV1, livekit.VideoQuality_LOW)
+		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, voicekit.VideoQuality_LOW)
+		dm.NotifySubscriberMaxQuality("s2", mime.MimeTypeVP8, voicekit.VideoQuality_LOW)
+		dm.NotifySubscriberMaxQuality("s3", mime.MimeTypeAV1, voicekit.VideoQuality_LOW)
 
-		expectedSubscribedQualities = []*livekit.SubscribedCodec{
+		expectedSubscribedQualities = []*voicekit.SubscribedCodec{
 			{
 				Codec: mime.MimeTypeVP8.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 			{
 				Codec: mime.MimeTypeAV1.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 		}
@@ -178,7 +178,7 @@ func TestSubscribedMaxQuality(t *testing.T) {
 		}, 10*time.Second, 100*time.Millisecond)
 
 		// muting "s2" only should not disable all qualities of vp8, no change of expected qualities
-		dm.NotifySubscriberMaxQuality("s2", mime.MimeTypeVP8, livekit.VideoQuality_OFF)
+		dm.NotifySubscriberMaxQuality("s2", mime.MimeTypeVP8, voicekit.VideoQuality_OFF)
 
 		time.Sleep(100 * time.Millisecond)
 		require.Eventually(t, func() bool {
@@ -189,24 +189,24 @@ func TestSubscribedMaxQuality(t *testing.T) {
 		}, 10*time.Second, 100*time.Millisecond)
 
 		// muting "s1" and s3 also should disable all qualities
-		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, livekit.VideoQuality_OFF)
-		dm.NotifySubscriberMaxQuality("s3", mime.MimeTypeAV1, livekit.VideoQuality_OFF)
+		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, voicekit.VideoQuality_OFF)
+		dm.NotifySubscriberMaxQuality("s3", mime.MimeTypeAV1, voicekit.VideoQuality_OFF)
 
-		expectedSubscribedQualities = []*livekit.SubscribedCodec{
+		expectedSubscribedQualities = []*voicekit.SubscribedCodec{
 			{
 				Codec: mime.MimeTypeVP8.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: false},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: false},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 			{
 				Codec: mime.MimeTypeAV1.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: false},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: false},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 		}
@@ -218,23 +218,23 @@ func TestSubscribedMaxQuality(t *testing.T) {
 		}, 10*time.Second, 100*time.Millisecond)
 
 		// unmuting "s1" should enable vp8 previously set max quality
-		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, livekit.VideoQuality_LOW)
+		dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeVP8, voicekit.VideoQuality_LOW)
 
-		expectedSubscribedQualities = []*livekit.SubscribedCodec{
+		expectedSubscribedQualities = []*voicekit.SubscribedCodec{
 			{
 				Codec: mime.MimeTypeVP8.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 			{
 				Codec: mime.MimeTypeAV1.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: false},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: false},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 		}
@@ -247,25 +247,25 @@ func TestSubscribedMaxQuality(t *testing.T) {
 
 		// a higher quality from a different node should trigger that quality
 		dm.NotifySubscriberNodeMaxQuality("n1", []types.SubscribedCodecQuality{
-			{CodecMime: mime.MimeTypeVP8, Quality: livekit.VideoQuality_HIGH},
-			{CodecMime: mime.MimeTypeAV1, Quality: livekit.VideoQuality_MEDIUM},
+			{CodecMime: mime.MimeTypeVP8, Quality: voicekit.VideoQuality_HIGH},
+			{CodecMime: mime.MimeTypeAV1, Quality: voicekit.VideoQuality_MEDIUM},
 		})
 
-		expectedSubscribedQualities = []*livekit.SubscribedCodec{
+		expectedSubscribedQualities = []*voicekit.SubscribedCodec{
 			{
 				Codec: mime.MimeTypeVP8.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: true},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: true},
 				},
 			},
 			{
 				Codec: mime.MimeTypeAV1.String(),
-				Qualities: []*livekit.SubscribedQuality{
-					{Quality: livekit.VideoQuality_LOW, Enabled: true},
-					{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-					{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+				Qualities: []*voicekit.SubscribedQuality{
+					{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+					{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+					{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 				},
 			},
 		}
@@ -281,22 +281,22 @@ func TestSubscribedMaxQuality(t *testing.T) {
 func TestCodecRegression(t *testing.T) {
 	dm := NewDynacastManager(DynacastManagerParams{})
 	var lock sync.Mutex
-	actualSubscribedQualities := make([]*livekit.SubscribedCodec, 0)
-	dm.OnSubscribedMaxQualityChange(func(subscribedQualities []*livekit.SubscribedCodec, _maxSubscribedQualities []types.SubscribedCodecQuality) {
+	actualSubscribedQualities := make([]*voicekit.SubscribedCodec, 0)
+	dm.OnSubscribedMaxQualityChange(func(subscribedQualities []*voicekit.SubscribedCodec, _maxSubscribedQualities []types.SubscribedCodecQuality) {
 		lock.Lock()
 		actualSubscribedQualities = subscribedQualities
 		lock.Unlock()
 	})
 
-	dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeAV1, livekit.VideoQuality_HIGH)
+	dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeAV1, voicekit.VideoQuality_HIGH)
 
-	expectedSubscribedQualities := []*livekit.SubscribedCodec{
+	expectedSubscribedQualities := []*voicekit.SubscribedCodec{
 		{
 			Codec: mime.MimeTypeAV1.String(),
-			Qualities: []*livekit.SubscribedQuality{
-				{Quality: livekit.VideoQuality_LOW, Enabled: true},
-				{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-				{Quality: livekit.VideoQuality_HIGH, Enabled: true},
+			Qualities: []*voicekit.SubscribedQuality{
+				{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+				{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+				{Quality: voicekit.VideoQuality_HIGH, Enabled: true},
 			},
 		},
 	}
@@ -309,21 +309,21 @@ func TestCodecRegression(t *testing.T) {
 
 	dm.HandleCodecRegression(mime.MimeTypeAV1, mime.MimeTypeVP8)
 
-	expectedSubscribedQualities = []*livekit.SubscribedCodec{
+	expectedSubscribedQualities = []*voicekit.SubscribedCodec{
 		{
 			Codec: mime.MimeTypeAV1.String(),
-			Qualities: []*livekit.SubscribedQuality{
-				{Quality: livekit.VideoQuality_LOW, Enabled: false},
-				{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-				{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+			Qualities: []*voicekit.SubscribedQuality{
+				{Quality: voicekit.VideoQuality_LOW, Enabled: false},
+				{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+				{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 			},
 		},
 		{
 			Codec: mime.MimeTypeVP8.String(),
-			Qualities: []*livekit.SubscribedQuality{
-				{Quality: livekit.VideoQuality_LOW, Enabled: true},
-				{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-				{Quality: livekit.VideoQuality_HIGH, Enabled: true},
+			Qualities: []*voicekit.SubscribedQuality{
+				{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+				{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+				{Quality: voicekit.VideoQuality_HIGH, Enabled: true},
 			},
 		},
 	}
@@ -336,25 +336,25 @@ func TestCodecRegression(t *testing.T) {
 
 	// av1 quality change should be forwarded to vp8
 	// av1 quality change of node should be ignored
-	dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeAV1, livekit.VideoQuality_MEDIUM)
+	dm.NotifySubscriberMaxQuality("s1", mime.MimeTypeAV1, voicekit.VideoQuality_MEDIUM)
 	dm.NotifySubscriberNodeMaxQuality("n1", []types.SubscribedCodecQuality{
-		{CodecMime: mime.MimeTypeAV1, Quality: livekit.VideoQuality_HIGH},
+		{CodecMime: mime.MimeTypeAV1, Quality: voicekit.VideoQuality_HIGH},
 	})
-	expectedSubscribedQualities = []*livekit.SubscribedCodec{
+	expectedSubscribedQualities = []*voicekit.SubscribedCodec{
 		{
 			Codec: mime.MimeTypeAV1.String(),
-			Qualities: []*livekit.SubscribedQuality{
-				{Quality: livekit.VideoQuality_LOW, Enabled: false},
-				{Quality: livekit.VideoQuality_MEDIUM, Enabled: false},
-				{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+			Qualities: []*voicekit.SubscribedQuality{
+				{Quality: voicekit.VideoQuality_LOW, Enabled: false},
+				{Quality: voicekit.VideoQuality_MEDIUM, Enabled: false},
+				{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 			},
 		},
 		{
 			Codec: mime.MimeTypeVP8.String(),
-			Qualities: []*livekit.SubscribedQuality{
-				{Quality: livekit.VideoQuality_LOW, Enabled: true},
-				{Quality: livekit.VideoQuality_MEDIUM, Enabled: true},
-				{Quality: livekit.VideoQuality_HIGH, Enabled: false},
+			Qualities: []*voicekit.SubscribedQuality{
+				{Quality: voicekit.VideoQuality_LOW, Enabled: true},
+				{Quality: voicekit.VideoQuality_MEDIUM, Enabled: true},
+				{Quality: voicekit.VideoQuality_HIGH, Enabled: false},
 			},
 		},
 	}
@@ -366,7 +366,7 @@ func TestCodecRegression(t *testing.T) {
 	}, 10*time.Second, 100*time.Millisecond)
 }
 
-func subscribedCodecsAsString(c1 []*livekit.SubscribedCodec) string {
+func subscribedCodecsAsString(c1 []*voicekit.SubscribedCodec) string {
 	sort.Slice(c1, func(i, j int) bool { return c1[i].Codec < c1[j].Codec })
 	var s1 string
 	for _, c := range c1 {

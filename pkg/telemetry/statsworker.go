@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	protoutils "github.com/livekit/protocol/utils"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	protoutils "github.com/voicekit/protocol/utils"
 )
 
 // StatsWorker handles participant stats
@@ -33,25 +33,25 @@ type StatsWorker struct {
 
 	ctx                 context.Context
 	t                   TelemetryService
-	roomID              livekit.RoomID
-	roomName            livekit.RoomName
-	participantID       livekit.ParticipantID
-	participantIdentity livekit.ParticipantIdentity
+	roomID              voicekit.RoomID
+	roomName            voicekit.RoomName
+	participantID       voicekit.ParticipantID
+	participantIdentity voicekit.ParticipantIdentity
 	isConnected         bool
 
 	lock             sync.RWMutex
-	outgoingPerTrack map[livekit.TrackID][]*livekit.AnalyticsStat
-	incomingPerTrack map[livekit.TrackID][]*livekit.AnalyticsStat
+	outgoingPerTrack map[voicekit.TrackID][]*voicekit.AnalyticsStat
+	incomingPerTrack map[voicekit.TrackID][]*voicekit.AnalyticsStat
 	closedAt         time.Time
 }
 
 func newStatsWorker(
 	ctx context.Context,
 	t TelemetryService,
-	roomID livekit.RoomID,
-	roomName livekit.RoomName,
-	participantID livekit.ParticipantID,
-	identity livekit.ParticipantIdentity,
+	roomID voicekit.RoomID,
+	roomName voicekit.RoomName,
+	participantID voicekit.ParticipantID,
+	identity voicekit.ParticipantIdentity,
 ) *StatsWorker {
 	s := &StatsWorker{
 		ctx:                 ctx,
@@ -60,15 +60,15 @@ func newStatsWorker(
 		roomName:            roomName,
 		participantID:       participantID,
 		participantIdentity: identity,
-		outgoingPerTrack:    make(map[livekit.TrackID][]*livekit.AnalyticsStat),
-		incomingPerTrack:    make(map[livekit.TrackID][]*livekit.AnalyticsStat),
+		outgoingPerTrack:    make(map[voicekit.TrackID][]*voicekit.AnalyticsStat),
+		incomingPerTrack:    make(map[voicekit.TrackID][]*voicekit.AnalyticsStat),
 	}
 	return s
 }
 
-func (s *StatsWorker) OnTrackStat(trackID livekit.TrackID, direction livekit.StreamType, stat *livekit.AnalyticsStat) {
+func (s *StatsWorker) OnTrackStat(trackID voicekit.TrackID, direction voicekit.StreamType, stat *voicekit.AnalyticsStat) {
 	s.lock.Lock()
-	if direction == livekit.StreamType_DOWNSTREAM {
+	if direction == voicekit.StreamType_DOWNSTREAM {
 		s.outgoingPerTrack[trackID] = append(s.outgoingPerTrack[trackID], stat)
 	} else {
 		s.incomingPerTrack[trackID] = append(s.incomingPerTrack[trackID], stat)
@@ -76,7 +76,7 @@ func (s *StatsWorker) OnTrackStat(trackID livekit.TrackID, direction livekit.Str
 	s.lock.Unlock()
 }
 
-func (s *StatsWorker) ParticipantID() livekit.ParticipantID {
+func (s *StatsWorker) ParticipantID() voicekit.ParticipantID {
 	return s.participantID
 }
 
@@ -97,19 +97,19 @@ func (s *StatsWorker) Flush(now time.Time) bool {
 	ts := timestamppb.New(now)
 
 	s.lock.Lock()
-	stats := make([]*livekit.AnalyticsStat, 0, len(s.incomingPerTrack)+len(s.outgoingPerTrack))
+	stats := make([]*voicekit.AnalyticsStat, 0, len(s.incomingPerTrack)+len(s.outgoingPerTrack))
 
 	incomingPerTrack := s.incomingPerTrack
-	s.incomingPerTrack = make(map[livekit.TrackID][]*livekit.AnalyticsStat)
+	s.incomingPerTrack = make(map[voicekit.TrackID][]*voicekit.AnalyticsStat)
 
 	outgoingPerTrack := s.outgoingPerTrack
-	s.outgoingPerTrack = make(map[livekit.TrackID][]*livekit.AnalyticsStat)
+	s.outgoingPerTrack = make(map[voicekit.TrackID][]*voicekit.AnalyticsStat)
 
 	closed := !s.closedAt.IsZero() && now.Sub(s.closedAt) > workerCleanupWait
 	s.lock.Unlock()
 
-	stats = s.collectStats(ts, livekit.StreamType_UPSTREAM, incomingPerTrack, stats)
-	stats = s.collectStats(ts, livekit.StreamType_DOWNSTREAM, outgoingPerTrack, stats)
+	stats = s.collectStats(ts, voicekit.StreamType_UPSTREAM, incomingPerTrack, stats)
+	stats = s.collectStats(ts, voicekit.StreamType_DOWNSTREAM, outgoingPerTrack, stats)
 	if len(stats) > 0 {
 		s.t.SendStats(s.ctx, stats)
 	}
@@ -136,10 +136,10 @@ func (s *StatsWorker) Closed() bool {
 
 func (s *StatsWorker) collectStats(
 	ts *timestamppb.Timestamp,
-	streamType livekit.StreamType,
-	perTrack map[livekit.TrackID][]*livekit.AnalyticsStat,
-	stats []*livekit.AnalyticsStat,
-) []*livekit.AnalyticsStat {
+	streamType voicekit.StreamType,
+	perTrack map[voicekit.TrackID][]*voicekit.AnalyticsStat,
+	stats []*voicekit.AnalyticsStat,
+) []*voicekit.AnalyticsStat {
 	for trackID, analyticsStats := range perTrack {
 		coalesced := coalesce(analyticsStats)
 		if coalesced == nil {
@@ -160,7 +160,7 @@ func (s *StatsWorker) collectStats(
 // -------------------------------------------------------------------------
 
 // create a single stream and single video layer post aggregation
-func coalesce(stats []*livekit.AnalyticsStat) *livekit.AnalyticsStat {
+func coalesce(stats []*voicekit.AnalyticsStat) *voicekit.AnalyticsStat {
 	if len(stats) == 0 {
 		return nil
 	}
@@ -173,8 +173,8 @@ func coalesce(stats []*livekit.AnalyticsStat) *livekit.AnalyticsStat {
 	var scores []float32     // used for median
 	maxRtt := uint32(0)
 	maxJitter := uint32(0)
-	coalescedVideoLayers := make(map[int32]*livekit.AnalyticsVideoLayer)
-	coalescedStream := &livekit.AnalyticsStream{}
+	coalescedVideoLayers := make(map[int32]*voicekit.AnalyticsVideoLayer)
+	coalescedStream := &voicekit.AnalyticsStream{}
 	for _, stat := range stats {
 		if !isValid(stat) {
 			logger.Warnw("telemetry skipping invalid stat", nil, "stat", stat)
@@ -247,14 +247,14 @@ func coalesce(stats []*livekit.AnalyticsStat) *livekit.AnalyticsStat {
 	for _, coalescedVideoLayer := range coalescedVideoLayers {
 		if maxVideoLayer == -1 || maxVideoLayer < coalescedVideoLayer.Layer {
 			maxVideoLayer = coalescedVideoLayer.Layer
-			coalescedStream.VideoLayers = []*livekit.AnalyticsVideoLayer{coalescedVideoLayer}
+			coalescedStream.VideoLayers = []*voicekit.AnalyticsVideoLayer{coalescedVideoLayer}
 		}
 	}
 
-	stat := &livekit.AnalyticsStat{
+	stat := &voicekit.AnalyticsStat{
 		MinScore:    minScore,
 		MedianScore: utils.MedianFloat32(scores),
-		Streams:     []*livekit.AnalyticsStream{coalescedStream},
+		Streams:     []*voicekit.AnalyticsStream{coalescedStream},
 		Mime:        stats[len(stats)-1].Mime, // use the latest Mime
 	}
 	numScores := len(scores)
@@ -273,7 +273,7 @@ type CondensedStat struct {
 	Frames      uint32
 }
 
-func CondenseStat(stat *livekit.AnalyticsStat) (ps CondensedStat, ok bool) {
+func CondenseStat(stat *voicekit.AnalyticsStat) (ps CondensedStat, ok bool) {
 	if ok = isValid(stat); !ok {
 		return
 	}
@@ -297,7 +297,7 @@ func CondenseStat(stat *livekit.AnalyticsStat) (ps CondensedStat, ok bool) {
 	return
 }
 
-func isValid(stat *livekit.AnalyticsStat) bool {
+func isValid(stat *voicekit.AnalyticsStat) bool {
 	for _, analyticsStream := range stat.Streams {
 		if int32(analyticsStream.PrimaryPackets) < 0 ||
 			int64(analyticsStream.PrimaryBytes) < 0 ||

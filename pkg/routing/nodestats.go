@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
 )
 
 type NodeStats struct {
@@ -30,7 +30,7 @@ type NodeStats struct {
 	startedAt int64
 
 	lock                 sync.Mutex
-	statsHistory         []*livekit.NodeStats
+	statsHistory         []*voicekit.NodeStats
 	statsHistoryWritePtr int
 }
 
@@ -58,11 +58,11 @@ func (n *NodeStats) UpdateConfig(conf *config.NodeStatsConfig) {
 			maxInterval = rateInterval
 		}
 	}
-	n.statsHistory = make([]*livekit.NodeStats, (maxInterval+conf.StatsUpdateInterval-1)/conf.StatsUpdateInterval)
+	n.statsHistory = make([]*voicekit.NodeStats, (maxInterval+conf.StatsUpdateInterval-1)/conf.StatsUpdateInterval)
 	n.statsHistoryWritePtr = 0
 }
 
-func (n *NodeStats) UpdateAndGetNodeStats() (*livekit.NodeStats, error) {
+func (n *NodeStats) UpdateAndGetNodeStats() (*voicekit.NodeStats, error) {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 

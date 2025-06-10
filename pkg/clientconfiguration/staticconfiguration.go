@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@ package clientconfiguration
 import (
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	protoutils "github.com/livekit/protocol/utils"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	protoutils "github.com/voicekit/protocol/utils"
 )
 
 type ConfigurationItem struct {
 	Match
-	Configuration *livekit.ClientConfiguration
+	Configuration *voicekit.ClientConfiguration
 	Merge         bool
 }
 
@@ -37,8 +37,8 @@ func NewStaticClientConfigurationManager(confs []ConfigurationItem) *StaticClien
 	return &StaticClientConfigurationManager{confs: confs}
 }
 
-func (s *StaticClientConfigurationManager) GetConfiguration(clientInfo *livekit.ClientInfo) *livekit.ClientConfiguration {
-	var matchedConf []*livekit.ClientConfiguration
+func (s *StaticClientConfigurationManager) GetConfiguration(clientInfo *voicekit.ClientInfo) *voicekit.ClientConfiguration {
+	var matchedConf []*voicekit.ClientConfiguration
 	for _, c := range s.confs {
 		matched, err := c.Match.Match(clientInfo)
 		if err != nil {
@@ -56,7 +56,7 @@ func (s *StaticClientConfigurationManager) GetConfiguration(clientInfo *livekit.
 		matchedConf = append(matchedConf, c.Configuration)
 	}
 
-	var conf *livekit.ClientConfiguration
+	var conf *voicekit.ClientConfiguration
 	for k, v := range matchedConf {
 		if k == 0 {
 			conf = protoutils.CloneProto(matchedConf[0])

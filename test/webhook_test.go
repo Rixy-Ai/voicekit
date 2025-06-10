@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,17 +27,17 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/protocol/webhook"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/webhook"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/livekit-server/pkg/testutils"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
 )
 
 func TestWebhooks(t *testing.T) {
@@ -119,7 +119,7 @@ func TestWebhooks(t *testing.T) {
 	require.Equal(t, testRoom, ts.GetEvent(webhook.EventRoomFinished).Room.Name)
 }
 
-func setupServerWithWebhook() (server *service.LivekitServer, testServer *webhookTestServer, finishFunc func(), err error) {
+func setupServerWithWebhook() (server *service.VoicekitServer, testServer *webhookTestServer, finishFunc func(), err error) {
 	conf, err := config.NewConfig("", true, nil, nil)
 	if err != nil {
 		panic(fmt.Sprintf("could not create config: %v", err))
@@ -137,7 +137,7 @@ func setupServerWithWebhook() (server *service.LivekitServer, testServer *webhoo
 	if err != nil {
 		return
 	}
-	currentNode.SetNodeID(livekit.NodeID(guid.New(nodeID1)))
+	currentNode.SetNodeID(voicekit.NodeID(guid.New(nodeID1)))
 
 	server, err = service.InitializeServer(conf, currentNode)
 	if err != nil {
@@ -161,14 +161,14 @@ func setupServerWithWebhook() (server *service.LivekitServer, testServer *webhoo
 
 type webhookTestServer struct {
 	server   *http.Server
-	events   map[string]*livekit.WebhookEvent
+	events   map[string]*voicekit.WebhookEvent
 	lock     sync.Mutex
 	provider auth.KeyProvider
 }
 
 func newTestServer(addr string) *webhookTestServer {
 	s := &webhookTestServer{
-		events:   make(map[string]*livekit.WebhookEvent),
+		events:   make(map[string]*voicekit.WebhookEvent),
 		provider: auth.NewFileBasedKeyProviderFromMap(map[string]string{testApiKey: testApiSecret}),
 	}
 	s.server = &http.Server{
@@ -185,7 +185,7 @@ func (s *webhookTestServer) ServeHTTP(_ http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event := livekit.WebhookEvent{}
+	event := voicekit.WebhookEvent{}
 	if err = protojson.Unmarshal(data, &event); err != nil {
 		logger.Errorw("could not unmarshal event", err)
 		return
@@ -196,7 +196,7 @@ func (s *webhookTestServer) ServeHTTP(_ http.ResponseWriter, r *http.Request) {
 	s.lock.Unlock()
 }
 
-func (s *webhookTestServer) GetEvent(name string) *livekit.WebhookEvent {
+func (s *webhookTestServer) GetEvent(name string) *voicekit.WebhookEvent {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.events[name]
@@ -204,7 +204,7 @@ func (s *webhookTestServer) GetEvent(name string) *livekit.WebhookEvent {
 
 func (s *webhookTestServer) ClearEvents() {
 	s.lock.Lock()
-	s.events = make(map[string]*livekit.WebhookEvent)
+	s.events = make(map[string]*voicekit.WebhookEvent)
 	s.lock.Unlock()
 }
 

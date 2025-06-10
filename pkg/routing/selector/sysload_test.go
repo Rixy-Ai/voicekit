@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/routing/selector"
+	"github.com/voicekit/voicekit-server/pkg/routing/selector"
 )
 
 var (
-	nodeLoadLow = &livekit.Node{
-		State: livekit.NodeState_SERVING,
-		Stats: &livekit.NodeStats{
+	nodeLoadLow = &voicekit.Node{
+		State: voicekit.NodeState_SERVING,
+		Stats: &voicekit.NodeStats{
 			UpdatedAt:       time.Now().Unix(),
 			NumCpus:         1,
 			CpuLoad:         0.1,
@@ -37,7 +37,7 @@ var (
 			NumClients:      2,
 			NumTracksIn:     4,
 			NumTracksOut:    8,
-			Rates: []*livekit.NodeStatsRate{
+			Rates: []*voicekit.NodeStatsRate{
 				{
 					BytesIn:  1000,
 					BytesOut: 2000,
@@ -46,9 +46,9 @@ var (
 		},
 	}
 
-	nodeLoadMedium = &livekit.Node{
-		State: livekit.NodeState_SERVING,
-		Stats: &livekit.NodeStats{
+	nodeLoadMedium = &voicekit.Node{
+		State: voicekit.NodeState_SERVING,
+		Stats: &voicekit.NodeStats{
 			UpdatedAt:       time.Now().Unix(),
 			NumCpus:         1,
 			CpuLoad:         0.5,
@@ -57,7 +57,7 @@ var (
 			NumClients:      10,
 			NumTracksIn:     20,
 			NumTracksOut:    200,
-			Rates: []*livekit.NodeStatsRate{
+			Rates: []*voicekit.NodeStatsRate{
 				{
 					BytesIn:  5000,
 					BytesOut: 10000,
@@ -66,9 +66,9 @@ var (
 		},
 	}
 
-	nodeLoadHigh = &livekit.Node{
-		State: livekit.NodeState_SERVING,
-		Stats: &livekit.NodeStats{
+	nodeLoadHigh = &voicekit.Node{
+		State: voicekit.NodeState_SERVING,
+		Stats: &voicekit.NodeStats{
 			UpdatedAt:       time.Now().Unix(),
 			NumCpus:         1,
 			CpuLoad:         0.99,
@@ -77,7 +77,7 @@ var (
 			NumClients:      20,
 			NumTracksIn:     40,
 			NumTracksOut:    800,
-			Rates: []*livekit.NodeStatsRate{
+			Rates: []*voicekit.NodeStatsRate{
 				{
 					BytesIn:  10000,
 					BytesOut: 40000,
@@ -90,18 +90,18 @@ var (
 func TestSystemLoadSelector_SelectNode(t *testing.T) {
 	sel := selector.SystemLoadSelector{SysloadLimit: 1.0, SortBy: "random"}
 
-	var nodes []*livekit.Node
+	var nodes []*voicekit.Node
 	_, err := sel.SelectNode(nodes)
 	require.Error(t, err, "should error no available nodes")
 
 	// Select a node with high load when no nodes with low load are available
-	nodes = []*livekit.Node{nodeLoadHigh}
+	nodes = []*voicekit.Node{nodeLoadHigh}
 	if _, err := sel.SelectNode(nodes); err != nil {
 		t.Error(err)
 	}
 
 	// Select a node with low load when available
-	nodes = []*livekit.Node{nodeLoadLow, nodeLoadHigh}
+	nodes = []*voicekit.Node{nodeLoadLow, nodeLoadHigh}
 	for i := 0; i < 5; i++ {
 		node, err := sel.SelectNode(nodes)
 		if err != nil {

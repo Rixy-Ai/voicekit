@@ -5,131 +5,131 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/observability/roomobs"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/observability/roomobs"
 )
 
 type FakeTelemetryService struct {
-	APICallStub        func(context.Context, *livekit.APICallInfo)
+	APICallStub        func(context.Context, *voicekit.APICallInfo)
 	aPICallMutex       sync.RWMutex
 	aPICallArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.APICallInfo
+		arg2 *voicekit.APICallInfo
 	}
-	EgressEndedStub        func(context.Context, *livekit.EgressInfo)
+	EgressEndedStub        func(context.Context, *voicekit.EgressInfo)
 	egressEndedMutex       sync.RWMutex
 	egressEndedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}
-	EgressStartedStub        func(context.Context, *livekit.EgressInfo)
+	EgressStartedStub        func(context.Context, *voicekit.EgressInfo)
 	egressStartedMutex       sync.RWMutex
 	egressStartedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}
-	EgressUpdatedStub        func(context.Context, *livekit.EgressInfo)
+	EgressUpdatedStub        func(context.Context, *voicekit.EgressInfo)
 	egressUpdatedMutex       sync.RWMutex
 	egressUpdatedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}
 	FlushStatsStub        func()
 	flushStatsMutex       sync.RWMutex
 	flushStatsArgsForCall []struct {
 	}
-	IngressCreatedStub        func(context.Context, *livekit.IngressInfo)
+	IngressCreatedStub        func(context.Context, *voicekit.IngressInfo)
 	ingressCreatedMutex       sync.RWMutex
 	ingressCreatedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}
-	IngressDeletedStub        func(context.Context, *livekit.IngressInfo)
+	IngressDeletedStub        func(context.Context, *voicekit.IngressInfo)
 	ingressDeletedMutex       sync.RWMutex
 	ingressDeletedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}
-	IngressEndedStub        func(context.Context, *livekit.IngressInfo)
+	IngressEndedStub        func(context.Context, *voicekit.IngressInfo)
 	ingressEndedMutex       sync.RWMutex
 	ingressEndedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}
-	IngressStartedStub        func(context.Context, *livekit.IngressInfo)
+	IngressStartedStub        func(context.Context, *voicekit.IngressInfo)
 	ingressStartedMutex       sync.RWMutex
 	ingressStartedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}
-	IngressUpdatedStub        func(context.Context, *livekit.IngressInfo)
+	IngressUpdatedStub        func(context.Context, *voicekit.IngressInfo)
 	ingressUpdatedMutex       sync.RWMutex
 	ingressUpdatedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}
-	LocalRoomStateStub        func(context.Context, *livekit.AnalyticsNodeRooms)
+	LocalRoomStateStub        func(context.Context, *voicekit.AnalyticsNodeRooms)
 	localRoomStateMutex       sync.RWMutex
 	localRoomStateArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsNodeRooms
+		arg2 *voicekit.AnalyticsNodeRooms
 	}
-	NotifyEgressEventStub        func(context.Context, string, *livekit.EgressInfo)
+	NotifyEgressEventStub        func(context.Context, string, *voicekit.EgressInfo)
 	notifyEgressEventMutex       sync.RWMutex
 	notifyEgressEventArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 *livekit.EgressInfo
+		arg3 *voicekit.EgressInfo
 	}
-	ParticipantActiveStub        func(context.Context, *livekit.Room, *livekit.ParticipantInfo, *livekit.AnalyticsClientMeta, bool)
+	ParticipantActiveStub        func(context.Context, *voicekit.Room, *voicekit.ParticipantInfo, *voicekit.AnalyticsClientMeta, bool)
 	participantActiveMutex       sync.RWMutex
 	participantActiveArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.Room
-		arg3 *livekit.ParticipantInfo
-		arg4 *livekit.AnalyticsClientMeta
+		arg2 *voicekit.Room
+		arg3 *voicekit.ParticipantInfo
+		arg4 *voicekit.AnalyticsClientMeta
 		arg5 bool
 	}
-	ParticipantJoinedStub        func(context.Context, *livekit.Room, *livekit.ParticipantInfo, *livekit.ClientInfo, *livekit.AnalyticsClientMeta, bool)
+	ParticipantJoinedStub        func(context.Context, *voicekit.Room, *voicekit.ParticipantInfo, *voicekit.ClientInfo, *voicekit.AnalyticsClientMeta, bool)
 	participantJoinedMutex       sync.RWMutex
 	participantJoinedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.Room
-		arg3 *livekit.ParticipantInfo
-		arg4 *livekit.ClientInfo
-		arg5 *livekit.AnalyticsClientMeta
+		arg2 *voicekit.Room
+		arg3 *voicekit.ParticipantInfo
+		arg4 *voicekit.ClientInfo
+		arg5 *voicekit.AnalyticsClientMeta
 		arg6 bool
 	}
-	ParticipantLeftStub        func(context.Context, *livekit.Room, *livekit.ParticipantInfo, bool)
+	ParticipantLeftStub        func(context.Context, *voicekit.Room, *voicekit.ParticipantInfo, bool)
 	participantLeftMutex       sync.RWMutex
 	participantLeftArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.Room
-		arg3 *livekit.ParticipantInfo
+		arg2 *voicekit.Room
+		arg3 *voicekit.ParticipantInfo
 		arg4 bool
 	}
-	ParticipantResumedStub        func(context.Context, *livekit.Room, *livekit.ParticipantInfo, livekit.NodeID, livekit.ReconnectReason)
+	ParticipantResumedStub        func(context.Context, *voicekit.Room, *voicekit.ParticipantInfo, voicekit.NodeID, voicekit.ReconnectReason)
 	participantResumedMutex       sync.RWMutex
 	participantResumedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.Room
-		arg3 *livekit.ParticipantInfo
-		arg4 livekit.NodeID
-		arg5 livekit.ReconnectReason
+		arg2 *voicekit.Room
+		arg3 *voicekit.ParticipantInfo
+		arg4 voicekit.NodeID
+		arg5 voicekit.ReconnectReason
 	}
-	ReportStub        func(context.Context, *livekit.ReportInfo)
+	ReportStub        func(context.Context, *voicekit.ReportInfo)
 	reportMutex       sync.RWMutex
 	reportArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.ReportInfo
+		arg2 *voicekit.ReportInfo
 	}
-	RoomEndedStub        func(context.Context, *livekit.Room)
+	RoomEndedStub        func(context.Context, *voicekit.Room)
 	roomEndedMutex       sync.RWMutex
 	roomEndedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.Room
+		arg2 *voicekit.Room
 	}
 	RoomProjectReporterStub        func(context.Context) roomobs.ProjectReporter
 	roomProjectReporterMutex       sync.RWMutex
@@ -142,158 +142,158 @@ type FakeTelemetryService struct {
 	roomProjectReporterReturnsOnCall map[int]struct {
 		result1 roomobs.ProjectReporter
 	}
-	RoomStartedStub        func(context.Context, *livekit.Room)
+	RoomStartedStub        func(context.Context, *voicekit.Room)
 	roomStartedMutex       sync.RWMutex
 	roomStartedArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.Room
+		arg2 *voicekit.Room
 	}
-	SendEventStub        func(context.Context, *livekit.AnalyticsEvent)
+	SendEventStub        func(context.Context, *voicekit.AnalyticsEvent)
 	sendEventMutex       sync.RWMutex
 	sendEventArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsEvent
+		arg2 *voicekit.AnalyticsEvent
 	}
-	SendNodeRoomStatesStub        func(context.Context, *livekit.AnalyticsNodeRooms)
+	SendNodeRoomStatesStub        func(context.Context, *voicekit.AnalyticsNodeRooms)
 	sendNodeRoomStatesMutex       sync.RWMutex
 	sendNodeRoomStatesArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsNodeRooms
+		arg2 *voicekit.AnalyticsNodeRooms
 	}
-	SendStatsStub        func(context.Context, []*livekit.AnalyticsStat)
+	SendStatsStub        func(context.Context, []*voicekit.AnalyticsStat)
 	sendStatsMutex       sync.RWMutex
 	sendStatsArgsForCall []struct {
 		arg1 context.Context
-		arg2 []*livekit.AnalyticsStat
+		arg2 []*voicekit.AnalyticsStat
 	}
-	TrackMaxSubscribedVideoQualityStub        func(context.Context, livekit.ParticipantID, *livekit.TrackInfo, mime.MimeType, livekit.VideoQuality)
+	TrackMaxSubscribedVideoQualityStub        func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo, mime.MimeType, voicekit.VideoQuality)
 	trackMaxSubscribedVideoQualityMutex       sync.RWMutex
 	trackMaxSubscribedVideoQualityArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 		arg4 mime.MimeType
-		arg5 livekit.VideoQuality
+		arg5 voicekit.VideoQuality
 	}
-	TrackMutedStub        func(context.Context, livekit.ParticipantID, *livekit.TrackInfo)
+	TrackMutedStub        func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo)
 	trackMutedMutex       sync.RWMutex
 	trackMutedArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 	}
-	TrackPublishRTPStatsStub        func(context.Context, livekit.ParticipantID, livekit.TrackID, mime.MimeType, int, *livekit.RTPStats)
+	TrackPublishRTPStatsStub        func(context.Context, voicekit.ParticipantID, voicekit.TrackID, mime.MimeType, int, *voicekit.RTPStats)
 	trackPublishRTPStatsMutex       sync.RWMutex
 	trackPublishRTPStatsArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.TrackID
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.TrackID
 		arg4 mime.MimeType
 		arg5 int
-		arg6 *livekit.RTPStats
+		arg6 *voicekit.RTPStats
 	}
-	TrackPublishRequestedStub        func(context.Context, livekit.ParticipantID, livekit.ParticipantIdentity, *livekit.TrackInfo)
+	TrackPublishRequestedStub        func(context.Context, voicekit.ParticipantID, voicekit.ParticipantIdentity, *voicekit.TrackInfo)
 	trackPublishRequestedMutex       sync.RWMutex
 	trackPublishRequestedArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.ParticipantIdentity
-		arg4 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.ParticipantIdentity
+		arg4 *voicekit.TrackInfo
 	}
-	TrackPublishedStub        func(context.Context, livekit.ParticipantID, livekit.ParticipantIdentity, *livekit.TrackInfo)
+	TrackPublishedStub        func(context.Context, voicekit.ParticipantID, voicekit.ParticipantIdentity, *voicekit.TrackInfo)
 	trackPublishedMutex       sync.RWMutex
 	trackPublishedArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.ParticipantIdentity
-		arg4 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.ParticipantIdentity
+		arg4 *voicekit.TrackInfo
 	}
-	TrackPublishedUpdateStub        func(context.Context, livekit.ParticipantID, *livekit.TrackInfo)
+	TrackPublishedUpdateStub        func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo)
 	trackPublishedUpdateMutex       sync.RWMutex
 	trackPublishedUpdateArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 	}
-	TrackStatsStub        func(telemetry.StatsKey, *livekit.AnalyticsStat)
+	TrackStatsStub        func(telemetry.StatsKey, *voicekit.AnalyticsStat)
 	trackStatsMutex       sync.RWMutex
 	trackStatsArgsForCall []struct {
 		arg1 telemetry.StatsKey
-		arg2 *livekit.AnalyticsStat
+		arg2 *voicekit.AnalyticsStat
 	}
-	TrackSubscribeFailedStub        func(context.Context, livekit.ParticipantID, livekit.TrackID, error, bool)
+	TrackSubscribeFailedStub        func(context.Context, voicekit.ParticipantID, voicekit.TrackID, error, bool)
 	trackSubscribeFailedMutex       sync.RWMutex
 	trackSubscribeFailedArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.TrackID
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.TrackID
 		arg4 error
 		arg5 bool
 	}
-	TrackSubscribeRTPStatsStub        func(context.Context, livekit.ParticipantID, livekit.TrackID, mime.MimeType, *livekit.RTPStats)
+	TrackSubscribeRTPStatsStub        func(context.Context, voicekit.ParticipantID, voicekit.TrackID, mime.MimeType, *voicekit.RTPStats)
 	trackSubscribeRTPStatsMutex       sync.RWMutex
 	trackSubscribeRTPStatsArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.TrackID
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.TrackID
 		arg4 mime.MimeType
-		arg5 *livekit.RTPStats
+		arg5 *voicekit.RTPStats
 	}
-	TrackSubscribeRequestedStub        func(context.Context, livekit.ParticipantID, *livekit.TrackInfo)
+	TrackSubscribeRequestedStub        func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo)
 	trackSubscribeRequestedMutex       sync.RWMutex
 	trackSubscribeRequestedArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 	}
-	TrackSubscribedStub        func(context.Context, livekit.ParticipantID, *livekit.TrackInfo, *livekit.ParticipantInfo, bool)
+	TrackSubscribedStub        func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo, *voicekit.ParticipantInfo, bool)
 	trackSubscribedMutex       sync.RWMutex
 	trackSubscribedArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
-		arg4 *livekit.ParticipantInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
+		arg4 *voicekit.ParticipantInfo
 		arg5 bool
 	}
-	TrackUnmutedStub        func(context.Context, livekit.ParticipantID, *livekit.TrackInfo)
+	TrackUnmutedStub        func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo)
 	trackUnmutedMutex       sync.RWMutex
 	trackUnmutedArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 	}
-	TrackUnpublishedStub        func(context.Context, livekit.ParticipantID, livekit.ParticipantIdentity, *livekit.TrackInfo, bool)
+	TrackUnpublishedStub        func(context.Context, voicekit.ParticipantID, voicekit.ParticipantIdentity, *voicekit.TrackInfo, bool)
 	trackUnpublishedMutex       sync.RWMutex
 	trackUnpublishedArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.ParticipantIdentity
-		arg4 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.ParticipantIdentity
+		arg4 *voicekit.TrackInfo
 		arg5 bool
 	}
-	TrackUnsubscribedStub        func(context.Context, livekit.ParticipantID, *livekit.TrackInfo, bool)
+	TrackUnsubscribedStub        func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo, bool)
 	trackUnsubscribedMutex       sync.RWMutex
 	trackUnsubscribedArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 		arg4 bool
 	}
-	WebhookStub        func(context.Context, *livekit.WebhookInfo)
+	WebhookStub        func(context.Context, *voicekit.WebhookInfo)
 	webhookMutex       sync.RWMutex
 	webhookArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.WebhookInfo
+		arg2 *voicekit.WebhookInfo
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeTelemetryService) APICall(arg1 context.Context, arg2 *livekit.APICallInfo) {
+func (fake *FakeTelemetryService) APICall(arg1 context.Context, arg2 *voicekit.APICallInfo) {
 	fake.aPICallMutex.Lock()
 	fake.aPICallArgsForCall = append(fake.aPICallArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.APICallInfo
+		arg2 *voicekit.APICallInfo
 	}{arg1, arg2})
 	stub := fake.APICallStub
 	fake.recordInvocation("APICall", []interface{}{arg1, arg2})
@@ -309,24 +309,24 @@ func (fake *FakeTelemetryService) APICallCallCount() int {
 	return len(fake.aPICallArgsForCall)
 }
 
-func (fake *FakeTelemetryService) APICallCalls(stub func(context.Context, *livekit.APICallInfo)) {
+func (fake *FakeTelemetryService) APICallCalls(stub func(context.Context, *voicekit.APICallInfo)) {
 	fake.aPICallMutex.Lock()
 	defer fake.aPICallMutex.Unlock()
 	fake.APICallStub = stub
 }
 
-func (fake *FakeTelemetryService) APICallArgsForCall(i int) (context.Context, *livekit.APICallInfo) {
+func (fake *FakeTelemetryService) APICallArgsForCall(i int) (context.Context, *voicekit.APICallInfo) {
 	fake.aPICallMutex.RLock()
 	defer fake.aPICallMutex.RUnlock()
 	argsForCall := fake.aPICallArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) EgressEnded(arg1 context.Context, arg2 *livekit.EgressInfo) {
+func (fake *FakeTelemetryService) EgressEnded(arg1 context.Context, arg2 *voicekit.EgressInfo) {
 	fake.egressEndedMutex.Lock()
 	fake.egressEndedArgsForCall = append(fake.egressEndedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}{arg1, arg2})
 	stub := fake.EgressEndedStub
 	fake.recordInvocation("EgressEnded", []interface{}{arg1, arg2})
@@ -342,24 +342,24 @@ func (fake *FakeTelemetryService) EgressEndedCallCount() int {
 	return len(fake.egressEndedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) EgressEndedCalls(stub func(context.Context, *livekit.EgressInfo)) {
+func (fake *FakeTelemetryService) EgressEndedCalls(stub func(context.Context, *voicekit.EgressInfo)) {
 	fake.egressEndedMutex.Lock()
 	defer fake.egressEndedMutex.Unlock()
 	fake.EgressEndedStub = stub
 }
 
-func (fake *FakeTelemetryService) EgressEndedArgsForCall(i int) (context.Context, *livekit.EgressInfo) {
+func (fake *FakeTelemetryService) EgressEndedArgsForCall(i int) (context.Context, *voicekit.EgressInfo) {
 	fake.egressEndedMutex.RLock()
 	defer fake.egressEndedMutex.RUnlock()
 	argsForCall := fake.egressEndedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) EgressStarted(arg1 context.Context, arg2 *livekit.EgressInfo) {
+func (fake *FakeTelemetryService) EgressStarted(arg1 context.Context, arg2 *voicekit.EgressInfo) {
 	fake.egressStartedMutex.Lock()
 	fake.egressStartedArgsForCall = append(fake.egressStartedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}{arg1, arg2})
 	stub := fake.EgressStartedStub
 	fake.recordInvocation("EgressStarted", []interface{}{arg1, arg2})
@@ -375,24 +375,24 @@ func (fake *FakeTelemetryService) EgressStartedCallCount() int {
 	return len(fake.egressStartedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) EgressStartedCalls(stub func(context.Context, *livekit.EgressInfo)) {
+func (fake *FakeTelemetryService) EgressStartedCalls(stub func(context.Context, *voicekit.EgressInfo)) {
 	fake.egressStartedMutex.Lock()
 	defer fake.egressStartedMutex.Unlock()
 	fake.EgressStartedStub = stub
 }
 
-func (fake *FakeTelemetryService) EgressStartedArgsForCall(i int) (context.Context, *livekit.EgressInfo) {
+func (fake *FakeTelemetryService) EgressStartedArgsForCall(i int) (context.Context, *voicekit.EgressInfo) {
 	fake.egressStartedMutex.RLock()
 	defer fake.egressStartedMutex.RUnlock()
 	argsForCall := fake.egressStartedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) EgressUpdated(arg1 context.Context, arg2 *livekit.EgressInfo) {
+func (fake *FakeTelemetryService) EgressUpdated(arg1 context.Context, arg2 *voicekit.EgressInfo) {
 	fake.egressUpdatedMutex.Lock()
 	fake.egressUpdatedArgsForCall = append(fake.egressUpdatedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}{arg1, arg2})
 	stub := fake.EgressUpdatedStub
 	fake.recordInvocation("EgressUpdated", []interface{}{arg1, arg2})
@@ -408,13 +408,13 @@ func (fake *FakeTelemetryService) EgressUpdatedCallCount() int {
 	return len(fake.egressUpdatedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) EgressUpdatedCalls(stub func(context.Context, *livekit.EgressInfo)) {
+func (fake *FakeTelemetryService) EgressUpdatedCalls(stub func(context.Context, *voicekit.EgressInfo)) {
 	fake.egressUpdatedMutex.Lock()
 	defer fake.egressUpdatedMutex.Unlock()
 	fake.EgressUpdatedStub = stub
 }
 
-func (fake *FakeTelemetryService) EgressUpdatedArgsForCall(i int) (context.Context, *livekit.EgressInfo) {
+func (fake *FakeTelemetryService) EgressUpdatedArgsForCall(i int) (context.Context, *voicekit.EgressInfo) {
 	fake.egressUpdatedMutex.RLock()
 	defer fake.egressUpdatedMutex.RUnlock()
 	argsForCall := fake.egressUpdatedArgsForCall[i]
@@ -445,11 +445,11 @@ func (fake *FakeTelemetryService) FlushStatsCalls(stub func()) {
 	fake.FlushStatsStub = stub
 }
 
-func (fake *FakeTelemetryService) IngressCreated(arg1 context.Context, arg2 *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressCreated(arg1 context.Context, arg2 *voicekit.IngressInfo) {
 	fake.ingressCreatedMutex.Lock()
 	fake.ingressCreatedArgsForCall = append(fake.ingressCreatedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}{arg1, arg2})
 	stub := fake.IngressCreatedStub
 	fake.recordInvocation("IngressCreated", []interface{}{arg1, arg2})
@@ -465,24 +465,24 @@ func (fake *FakeTelemetryService) IngressCreatedCallCount() int {
 	return len(fake.ingressCreatedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) IngressCreatedCalls(stub func(context.Context, *livekit.IngressInfo)) {
+func (fake *FakeTelemetryService) IngressCreatedCalls(stub func(context.Context, *voicekit.IngressInfo)) {
 	fake.ingressCreatedMutex.Lock()
 	defer fake.ingressCreatedMutex.Unlock()
 	fake.IngressCreatedStub = stub
 }
 
-func (fake *FakeTelemetryService) IngressCreatedArgsForCall(i int) (context.Context, *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressCreatedArgsForCall(i int) (context.Context, *voicekit.IngressInfo) {
 	fake.ingressCreatedMutex.RLock()
 	defer fake.ingressCreatedMutex.RUnlock()
 	argsForCall := fake.ingressCreatedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) IngressDeleted(arg1 context.Context, arg2 *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressDeleted(arg1 context.Context, arg2 *voicekit.IngressInfo) {
 	fake.ingressDeletedMutex.Lock()
 	fake.ingressDeletedArgsForCall = append(fake.ingressDeletedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}{arg1, arg2})
 	stub := fake.IngressDeletedStub
 	fake.recordInvocation("IngressDeleted", []interface{}{arg1, arg2})
@@ -498,24 +498,24 @@ func (fake *FakeTelemetryService) IngressDeletedCallCount() int {
 	return len(fake.ingressDeletedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) IngressDeletedCalls(stub func(context.Context, *livekit.IngressInfo)) {
+func (fake *FakeTelemetryService) IngressDeletedCalls(stub func(context.Context, *voicekit.IngressInfo)) {
 	fake.ingressDeletedMutex.Lock()
 	defer fake.ingressDeletedMutex.Unlock()
 	fake.IngressDeletedStub = stub
 }
 
-func (fake *FakeTelemetryService) IngressDeletedArgsForCall(i int) (context.Context, *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressDeletedArgsForCall(i int) (context.Context, *voicekit.IngressInfo) {
 	fake.ingressDeletedMutex.RLock()
 	defer fake.ingressDeletedMutex.RUnlock()
 	argsForCall := fake.ingressDeletedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) IngressEnded(arg1 context.Context, arg2 *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressEnded(arg1 context.Context, arg2 *voicekit.IngressInfo) {
 	fake.ingressEndedMutex.Lock()
 	fake.ingressEndedArgsForCall = append(fake.ingressEndedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}{arg1, arg2})
 	stub := fake.IngressEndedStub
 	fake.recordInvocation("IngressEnded", []interface{}{arg1, arg2})
@@ -531,24 +531,24 @@ func (fake *FakeTelemetryService) IngressEndedCallCount() int {
 	return len(fake.ingressEndedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) IngressEndedCalls(stub func(context.Context, *livekit.IngressInfo)) {
+func (fake *FakeTelemetryService) IngressEndedCalls(stub func(context.Context, *voicekit.IngressInfo)) {
 	fake.ingressEndedMutex.Lock()
 	defer fake.ingressEndedMutex.Unlock()
 	fake.IngressEndedStub = stub
 }
 
-func (fake *FakeTelemetryService) IngressEndedArgsForCall(i int) (context.Context, *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressEndedArgsForCall(i int) (context.Context, *voicekit.IngressInfo) {
 	fake.ingressEndedMutex.RLock()
 	defer fake.ingressEndedMutex.RUnlock()
 	argsForCall := fake.ingressEndedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) IngressStarted(arg1 context.Context, arg2 *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressStarted(arg1 context.Context, arg2 *voicekit.IngressInfo) {
 	fake.ingressStartedMutex.Lock()
 	fake.ingressStartedArgsForCall = append(fake.ingressStartedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}{arg1, arg2})
 	stub := fake.IngressStartedStub
 	fake.recordInvocation("IngressStarted", []interface{}{arg1, arg2})
@@ -564,24 +564,24 @@ func (fake *FakeTelemetryService) IngressStartedCallCount() int {
 	return len(fake.ingressStartedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) IngressStartedCalls(stub func(context.Context, *livekit.IngressInfo)) {
+func (fake *FakeTelemetryService) IngressStartedCalls(stub func(context.Context, *voicekit.IngressInfo)) {
 	fake.ingressStartedMutex.Lock()
 	defer fake.ingressStartedMutex.Unlock()
 	fake.IngressStartedStub = stub
 }
 
-func (fake *FakeTelemetryService) IngressStartedArgsForCall(i int) (context.Context, *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressStartedArgsForCall(i int) (context.Context, *voicekit.IngressInfo) {
 	fake.ingressStartedMutex.RLock()
 	defer fake.ingressStartedMutex.RUnlock()
 	argsForCall := fake.ingressStartedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) IngressUpdated(arg1 context.Context, arg2 *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressUpdated(arg1 context.Context, arg2 *voicekit.IngressInfo) {
 	fake.ingressUpdatedMutex.Lock()
 	fake.ingressUpdatedArgsForCall = append(fake.ingressUpdatedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}{arg1, arg2})
 	stub := fake.IngressUpdatedStub
 	fake.recordInvocation("IngressUpdated", []interface{}{arg1, arg2})
@@ -597,24 +597,24 @@ func (fake *FakeTelemetryService) IngressUpdatedCallCount() int {
 	return len(fake.ingressUpdatedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) IngressUpdatedCalls(stub func(context.Context, *livekit.IngressInfo)) {
+func (fake *FakeTelemetryService) IngressUpdatedCalls(stub func(context.Context, *voicekit.IngressInfo)) {
 	fake.ingressUpdatedMutex.Lock()
 	defer fake.ingressUpdatedMutex.Unlock()
 	fake.IngressUpdatedStub = stub
 }
 
-func (fake *FakeTelemetryService) IngressUpdatedArgsForCall(i int) (context.Context, *livekit.IngressInfo) {
+func (fake *FakeTelemetryService) IngressUpdatedArgsForCall(i int) (context.Context, *voicekit.IngressInfo) {
 	fake.ingressUpdatedMutex.RLock()
 	defer fake.ingressUpdatedMutex.RUnlock()
 	argsForCall := fake.ingressUpdatedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) LocalRoomState(arg1 context.Context, arg2 *livekit.AnalyticsNodeRooms) {
+func (fake *FakeTelemetryService) LocalRoomState(arg1 context.Context, arg2 *voicekit.AnalyticsNodeRooms) {
 	fake.localRoomStateMutex.Lock()
 	fake.localRoomStateArgsForCall = append(fake.localRoomStateArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsNodeRooms
+		arg2 *voicekit.AnalyticsNodeRooms
 	}{arg1, arg2})
 	stub := fake.LocalRoomStateStub
 	fake.recordInvocation("LocalRoomState", []interface{}{arg1, arg2})
@@ -630,25 +630,25 @@ func (fake *FakeTelemetryService) LocalRoomStateCallCount() int {
 	return len(fake.localRoomStateArgsForCall)
 }
 
-func (fake *FakeTelemetryService) LocalRoomStateCalls(stub func(context.Context, *livekit.AnalyticsNodeRooms)) {
+func (fake *FakeTelemetryService) LocalRoomStateCalls(stub func(context.Context, *voicekit.AnalyticsNodeRooms)) {
 	fake.localRoomStateMutex.Lock()
 	defer fake.localRoomStateMutex.Unlock()
 	fake.LocalRoomStateStub = stub
 }
 
-func (fake *FakeTelemetryService) LocalRoomStateArgsForCall(i int) (context.Context, *livekit.AnalyticsNodeRooms) {
+func (fake *FakeTelemetryService) LocalRoomStateArgsForCall(i int) (context.Context, *voicekit.AnalyticsNodeRooms) {
 	fake.localRoomStateMutex.RLock()
 	defer fake.localRoomStateMutex.RUnlock()
 	argsForCall := fake.localRoomStateArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) NotifyEgressEvent(arg1 context.Context, arg2 string, arg3 *livekit.EgressInfo) {
+func (fake *FakeTelemetryService) NotifyEgressEvent(arg1 context.Context, arg2 string, arg3 *voicekit.EgressInfo) {
 	fake.notifyEgressEventMutex.Lock()
 	fake.notifyEgressEventArgsForCall = append(fake.notifyEgressEventArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 *livekit.EgressInfo
+		arg3 *voicekit.EgressInfo
 	}{arg1, arg2, arg3})
 	stub := fake.NotifyEgressEventStub
 	fake.recordInvocation("NotifyEgressEvent", []interface{}{arg1, arg2, arg3})
@@ -664,26 +664,26 @@ func (fake *FakeTelemetryService) NotifyEgressEventCallCount() int {
 	return len(fake.notifyEgressEventArgsForCall)
 }
 
-func (fake *FakeTelemetryService) NotifyEgressEventCalls(stub func(context.Context, string, *livekit.EgressInfo)) {
+func (fake *FakeTelemetryService) NotifyEgressEventCalls(stub func(context.Context, string, *voicekit.EgressInfo)) {
 	fake.notifyEgressEventMutex.Lock()
 	defer fake.notifyEgressEventMutex.Unlock()
 	fake.NotifyEgressEventStub = stub
 }
 
-func (fake *FakeTelemetryService) NotifyEgressEventArgsForCall(i int) (context.Context, string, *livekit.EgressInfo) {
+func (fake *FakeTelemetryService) NotifyEgressEventArgsForCall(i int) (context.Context, string, *voicekit.EgressInfo) {
 	fake.notifyEgressEventMutex.RLock()
 	defer fake.notifyEgressEventMutex.RUnlock()
 	argsForCall := fake.notifyEgressEventArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeTelemetryService) ParticipantActive(arg1 context.Context, arg2 *livekit.Room, arg3 *livekit.ParticipantInfo, arg4 *livekit.AnalyticsClientMeta, arg5 bool) {
+func (fake *FakeTelemetryService) ParticipantActive(arg1 context.Context, arg2 *voicekit.Room, arg3 *voicekit.ParticipantInfo, arg4 *voicekit.AnalyticsClientMeta, arg5 bool) {
 	fake.participantActiveMutex.Lock()
 	fake.participantActiveArgsForCall = append(fake.participantActiveArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.Room
-		arg3 *livekit.ParticipantInfo
-		arg4 *livekit.AnalyticsClientMeta
+		arg2 *voicekit.Room
+		arg3 *voicekit.ParticipantInfo
+		arg4 *voicekit.AnalyticsClientMeta
 		arg5 bool
 	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.ParticipantActiveStub
@@ -700,27 +700,27 @@ func (fake *FakeTelemetryService) ParticipantActiveCallCount() int {
 	return len(fake.participantActiveArgsForCall)
 }
 
-func (fake *FakeTelemetryService) ParticipantActiveCalls(stub func(context.Context, *livekit.Room, *livekit.ParticipantInfo, *livekit.AnalyticsClientMeta, bool)) {
+func (fake *FakeTelemetryService) ParticipantActiveCalls(stub func(context.Context, *voicekit.Room, *voicekit.ParticipantInfo, *voicekit.AnalyticsClientMeta, bool)) {
 	fake.participantActiveMutex.Lock()
 	defer fake.participantActiveMutex.Unlock()
 	fake.ParticipantActiveStub = stub
 }
 
-func (fake *FakeTelemetryService) ParticipantActiveArgsForCall(i int) (context.Context, *livekit.Room, *livekit.ParticipantInfo, *livekit.AnalyticsClientMeta, bool) {
+func (fake *FakeTelemetryService) ParticipantActiveArgsForCall(i int) (context.Context, *voicekit.Room, *voicekit.ParticipantInfo, *voicekit.AnalyticsClientMeta, bool) {
 	fake.participantActiveMutex.RLock()
 	defer fake.participantActiveMutex.RUnlock()
 	argsForCall := fake.participantActiveArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeTelemetryService) ParticipantJoined(arg1 context.Context, arg2 *livekit.Room, arg3 *livekit.ParticipantInfo, arg4 *livekit.ClientInfo, arg5 *livekit.AnalyticsClientMeta, arg6 bool) {
+func (fake *FakeTelemetryService) ParticipantJoined(arg1 context.Context, arg2 *voicekit.Room, arg3 *voicekit.ParticipantInfo, arg4 *voicekit.ClientInfo, arg5 *voicekit.AnalyticsClientMeta, arg6 bool) {
 	fake.participantJoinedMutex.Lock()
 	fake.participantJoinedArgsForCall = append(fake.participantJoinedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.Room
-		arg3 *livekit.ParticipantInfo
-		arg4 *livekit.ClientInfo
-		arg5 *livekit.AnalyticsClientMeta
+		arg2 *voicekit.Room
+		arg3 *voicekit.ParticipantInfo
+		arg4 *voicekit.ClientInfo
+		arg5 *voicekit.AnalyticsClientMeta
 		arg6 bool
 	}{arg1, arg2, arg3, arg4, arg5, arg6})
 	stub := fake.ParticipantJoinedStub
@@ -737,25 +737,25 @@ func (fake *FakeTelemetryService) ParticipantJoinedCallCount() int {
 	return len(fake.participantJoinedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) ParticipantJoinedCalls(stub func(context.Context, *livekit.Room, *livekit.ParticipantInfo, *livekit.ClientInfo, *livekit.AnalyticsClientMeta, bool)) {
+func (fake *FakeTelemetryService) ParticipantJoinedCalls(stub func(context.Context, *voicekit.Room, *voicekit.ParticipantInfo, *voicekit.ClientInfo, *voicekit.AnalyticsClientMeta, bool)) {
 	fake.participantJoinedMutex.Lock()
 	defer fake.participantJoinedMutex.Unlock()
 	fake.ParticipantJoinedStub = stub
 }
 
-func (fake *FakeTelemetryService) ParticipantJoinedArgsForCall(i int) (context.Context, *livekit.Room, *livekit.ParticipantInfo, *livekit.ClientInfo, *livekit.AnalyticsClientMeta, bool) {
+func (fake *FakeTelemetryService) ParticipantJoinedArgsForCall(i int) (context.Context, *voicekit.Room, *voicekit.ParticipantInfo, *voicekit.ClientInfo, *voicekit.AnalyticsClientMeta, bool) {
 	fake.participantJoinedMutex.RLock()
 	defer fake.participantJoinedMutex.RUnlock()
 	argsForCall := fake.participantJoinedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
 }
 
-func (fake *FakeTelemetryService) ParticipantLeft(arg1 context.Context, arg2 *livekit.Room, arg3 *livekit.ParticipantInfo, arg4 bool) {
+func (fake *FakeTelemetryService) ParticipantLeft(arg1 context.Context, arg2 *voicekit.Room, arg3 *voicekit.ParticipantInfo, arg4 bool) {
 	fake.participantLeftMutex.Lock()
 	fake.participantLeftArgsForCall = append(fake.participantLeftArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.Room
-		arg3 *livekit.ParticipantInfo
+		arg2 *voicekit.Room
+		arg3 *voicekit.ParticipantInfo
 		arg4 bool
 	}{arg1, arg2, arg3, arg4})
 	stub := fake.ParticipantLeftStub
@@ -772,27 +772,27 @@ func (fake *FakeTelemetryService) ParticipantLeftCallCount() int {
 	return len(fake.participantLeftArgsForCall)
 }
 
-func (fake *FakeTelemetryService) ParticipantLeftCalls(stub func(context.Context, *livekit.Room, *livekit.ParticipantInfo, bool)) {
+func (fake *FakeTelemetryService) ParticipantLeftCalls(stub func(context.Context, *voicekit.Room, *voicekit.ParticipantInfo, bool)) {
 	fake.participantLeftMutex.Lock()
 	defer fake.participantLeftMutex.Unlock()
 	fake.ParticipantLeftStub = stub
 }
 
-func (fake *FakeTelemetryService) ParticipantLeftArgsForCall(i int) (context.Context, *livekit.Room, *livekit.ParticipantInfo, bool) {
+func (fake *FakeTelemetryService) ParticipantLeftArgsForCall(i int) (context.Context, *voicekit.Room, *voicekit.ParticipantInfo, bool) {
 	fake.participantLeftMutex.RLock()
 	defer fake.participantLeftMutex.RUnlock()
 	argsForCall := fake.participantLeftArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeTelemetryService) ParticipantResumed(arg1 context.Context, arg2 *livekit.Room, arg3 *livekit.ParticipantInfo, arg4 livekit.NodeID, arg5 livekit.ReconnectReason) {
+func (fake *FakeTelemetryService) ParticipantResumed(arg1 context.Context, arg2 *voicekit.Room, arg3 *voicekit.ParticipantInfo, arg4 voicekit.NodeID, arg5 voicekit.ReconnectReason) {
 	fake.participantResumedMutex.Lock()
 	fake.participantResumedArgsForCall = append(fake.participantResumedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.Room
-		arg3 *livekit.ParticipantInfo
-		arg4 livekit.NodeID
-		arg5 livekit.ReconnectReason
+		arg2 *voicekit.Room
+		arg3 *voicekit.ParticipantInfo
+		arg4 voicekit.NodeID
+		arg5 voicekit.ReconnectReason
 	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.ParticipantResumedStub
 	fake.recordInvocation("ParticipantResumed", []interface{}{arg1, arg2, arg3, arg4, arg5})
@@ -808,24 +808,24 @@ func (fake *FakeTelemetryService) ParticipantResumedCallCount() int {
 	return len(fake.participantResumedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) ParticipantResumedCalls(stub func(context.Context, *livekit.Room, *livekit.ParticipantInfo, livekit.NodeID, livekit.ReconnectReason)) {
+func (fake *FakeTelemetryService) ParticipantResumedCalls(stub func(context.Context, *voicekit.Room, *voicekit.ParticipantInfo, voicekit.NodeID, voicekit.ReconnectReason)) {
 	fake.participantResumedMutex.Lock()
 	defer fake.participantResumedMutex.Unlock()
 	fake.ParticipantResumedStub = stub
 }
 
-func (fake *FakeTelemetryService) ParticipantResumedArgsForCall(i int) (context.Context, *livekit.Room, *livekit.ParticipantInfo, livekit.NodeID, livekit.ReconnectReason) {
+func (fake *FakeTelemetryService) ParticipantResumedArgsForCall(i int) (context.Context, *voicekit.Room, *voicekit.ParticipantInfo, voicekit.NodeID, voicekit.ReconnectReason) {
 	fake.participantResumedMutex.RLock()
 	defer fake.participantResumedMutex.RUnlock()
 	argsForCall := fake.participantResumedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeTelemetryService) Report(arg1 context.Context, arg2 *livekit.ReportInfo) {
+func (fake *FakeTelemetryService) Report(arg1 context.Context, arg2 *voicekit.ReportInfo) {
 	fake.reportMutex.Lock()
 	fake.reportArgsForCall = append(fake.reportArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.ReportInfo
+		arg2 *voicekit.ReportInfo
 	}{arg1, arg2})
 	stub := fake.ReportStub
 	fake.recordInvocation("Report", []interface{}{arg1, arg2})
@@ -841,24 +841,24 @@ func (fake *FakeTelemetryService) ReportCallCount() int {
 	return len(fake.reportArgsForCall)
 }
 
-func (fake *FakeTelemetryService) ReportCalls(stub func(context.Context, *livekit.ReportInfo)) {
+func (fake *FakeTelemetryService) ReportCalls(stub func(context.Context, *voicekit.ReportInfo)) {
 	fake.reportMutex.Lock()
 	defer fake.reportMutex.Unlock()
 	fake.ReportStub = stub
 }
 
-func (fake *FakeTelemetryService) ReportArgsForCall(i int) (context.Context, *livekit.ReportInfo) {
+func (fake *FakeTelemetryService) ReportArgsForCall(i int) (context.Context, *voicekit.ReportInfo) {
 	fake.reportMutex.RLock()
 	defer fake.reportMutex.RUnlock()
 	argsForCall := fake.reportArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) RoomEnded(arg1 context.Context, arg2 *livekit.Room) {
+func (fake *FakeTelemetryService) RoomEnded(arg1 context.Context, arg2 *voicekit.Room) {
 	fake.roomEndedMutex.Lock()
 	fake.roomEndedArgsForCall = append(fake.roomEndedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.Room
+		arg2 *voicekit.Room
 	}{arg1, arg2})
 	stub := fake.RoomEndedStub
 	fake.recordInvocation("RoomEnded", []interface{}{arg1, arg2})
@@ -874,13 +874,13 @@ func (fake *FakeTelemetryService) RoomEndedCallCount() int {
 	return len(fake.roomEndedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) RoomEndedCalls(stub func(context.Context, *livekit.Room)) {
+func (fake *FakeTelemetryService) RoomEndedCalls(stub func(context.Context, *voicekit.Room)) {
 	fake.roomEndedMutex.Lock()
 	defer fake.roomEndedMutex.Unlock()
 	fake.RoomEndedStub = stub
 }
 
-func (fake *FakeTelemetryService) RoomEndedArgsForCall(i int) (context.Context, *livekit.Room) {
+func (fake *FakeTelemetryService) RoomEndedArgsForCall(i int) (context.Context, *voicekit.Room) {
 	fake.roomEndedMutex.RLock()
 	defer fake.roomEndedMutex.RUnlock()
 	argsForCall := fake.roomEndedArgsForCall[i]
@@ -948,11 +948,11 @@ func (fake *FakeTelemetryService) RoomProjectReporterReturnsOnCall(i int, result
 	}{result1}
 }
 
-func (fake *FakeTelemetryService) RoomStarted(arg1 context.Context, arg2 *livekit.Room) {
+func (fake *FakeTelemetryService) RoomStarted(arg1 context.Context, arg2 *voicekit.Room) {
 	fake.roomStartedMutex.Lock()
 	fake.roomStartedArgsForCall = append(fake.roomStartedArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.Room
+		arg2 *voicekit.Room
 	}{arg1, arg2})
 	stub := fake.RoomStartedStub
 	fake.recordInvocation("RoomStarted", []interface{}{arg1, arg2})
@@ -968,24 +968,24 @@ func (fake *FakeTelemetryService) RoomStartedCallCount() int {
 	return len(fake.roomStartedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) RoomStartedCalls(stub func(context.Context, *livekit.Room)) {
+func (fake *FakeTelemetryService) RoomStartedCalls(stub func(context.Context, *voicekit.Room)) {
 	fake.roomStartedMutex.Lock()
 	defer fake.roomStartedMutex.Unlock()
 	fake.RoomStartedStub = stub
 }
 
-func (fake *FakeTelemetryService) RoomStartedArgsForCall(i int) (context.Context, *livekit.Room) {
+func (fake *FakeTelemetryService) RoomStartedArgsForCall(i int) (context.Context, *voicekit.Room) {
 	fake.roomStartedMutex.RLock()
 	defer fake.roomStartedMutex.RUnlock()
 	argsForCall := fake.roomStartedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) SendEvent(arg1 context.Context, arg2 *livekit.AnalyticsEvent) {
+func (fake *FakeTelemetryService) SendEvent(arg1 context.Context, arg2 *voicekit.AnalyticsEvent) {
 	fake.sendEventMutex.Lock()
 	fake.sendEventArgsForCall = append(fake.sendEventArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsEvent
+		arg2 *voicekit.AnalyticsEvent
 	}{arg1, arg2})
 	stub := fake.SendEventStub
 	fake.recordInvocation("SendEvent", []interface{}{arg1, arg2})
@@ -1001,24 +1001,24 @@ func (fake *FakeTelemetryService) SendEventCallCount() int {
 	return len(fake.sendEventArgsForCall)
 }
 
-func (fake *FakeTelemetryService) SendEventCalls(stub func(context.Context, *livekit.AnalyticsEvent)) {
+func (fake *FakeTelemetryService) SendEventCalls(stub func(context.Context, *voicekit.AnalyticsEvent)) {
 	fake.sendEventMutex.Lock()
 	defer fake.sendEventMutex.Unlock()
 	fake.SendEventStub = stub
 }
 
-func (fake *FakeTelemetryService) SendEventArgsForCall(i int) (context.Context, *livekit.AnalyticsEvent) {
+func (fake *FakeTelemetryService) SendEventArgsForCall(i int) (context.Context, *voicekit.AnalyticsEvent) {
 	fake.sendEventMutex.RLock()
 	defer fake.sendEventMutex.RUnlock()
 	argsForCall := fake.sendEventArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) SendNodeRoomStates(arg1 context.Context, arg2 *livekit.AnalyticsNodeRooms) {
+func (fake *FakeTelemetryService) SendNodeRoomStates(arg1 context.Context, arg2 *voicekit.AnalyticsNodeRooms) {
 	fake.sendNodeRoomStatesMutex.Lock()
 	fake.sendNodeRoomStatesArgsForCall = append(fake.sendNodeRoomStatesArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.AnalyticsNodeRooms
+		arg2 *voicekit.AnalyticsNodeRooms
 	}{arg1, arg2})
 	stub := fake.SendNodeRoomStatesStub
 	fake.recordInvocation("SendNodeRoomStates", []interface{}{arg1, arg2})
@@ -1034,29 +1034,29 @@ func (fake *FakeTelemetryService) SendNodeRoomStatesCallCount() int {
 	return len(fake.sendNodeRoomStatesArgsForCall)
 }
 
-func (fake *FakeTelemetryService) SendNodeRoomStatesCalls(stub func(context.Context, *livekit.AnalyticsNodeRooms)) {
+func (fake *FakeTelemetryService) SendNodeRoomStatesCalls(stub func(context.Context, *voicekit.AnalyticsNodeRooms)) {
 	fake.sendNodeRoomStatesMutex.Lock()
 	defer fake.sendNodeRoomStatesMutex.Unlock()
 	fake.SendNodeRoomStatesStub = stub
 }
 
-func (fake *FakeTelemetryService) SendNodeRoomStatesArgsForCall(i int) (context.Context, *livekit.AnalyticsNodeRooms) {
+func (fake *FakeTelemetryService) SendNodeRoomStatesArgsForCall(i int) (context.Context, *voicekit.AnalyticsNodeRooms) {
 	fake.sendNodeRoomStatesMutex.RLock()
 	defer fake.sendNodeRoomStatesMutex.RUnlock()
 	argsForCall := fake.sendNodeRoomStatesArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) SendStats(arg1 context.Context, arg2 []*livekit.AnalyticsStat) {
-	var arg2Copy []*livekit.AnalyticsStat
+func (fake *FakeTelemetryService) SendStats(arg1 context.Context, arg2 []*voicekit.AnalyticsStat) {
+	var arg2Copy []*voicekit.AnalyticsStat
 	if arg2 != nil {
-		arg2Copy = make([]*livekit.AnalyticsStat, len(arg2))
+		arg2Copy = make([]*voicekit.AnalyticsStat, len(arg2))
 		copy(arg2Copy, arg2)
 	}
 	fake.sendStatsMutex.Lock()
 	fake.sendStatsArgsForCall = append(fake.sendStatsArgsForCall, struct {
 		arg1 context.Context
-		arg2 []*livekit.AnalyticsStat
+		arg2 []*voicekit.AnalyticsStat
 	}{arg1, arg2Copy})
 	stub := fake.SendStatsStub
 	fake.recordInvocation("SendStats", []interface{}{arg1, arg2Copy})
@@ -1072,27 +1072,27 @@ func (fake *FakeTelemetryService) SendStatsCallCount() int {
 	return len(fake.sendStatsArgsForCall)
 }
 
-func (fake *FakeTelemetryService) SendStatsCalls(stub func(context.Context, []*livekit.AnalyticsStat)) {
+func (fake *FakeTelemetryService) SendStatsCalls(stub func(context.Context, []*voicekit.AnalyticsStat)) {
 	fake.sendStatsMutex.Lock()
 	defer fake.sendStatsMutex.Unlock()
 	fake.SendStatsStub = stub
 }
 
-func (fake *FakeTelemetryService) SendStatsArgsForCall(i int) (context.Context, []*livekit.AnalyticsStat) {
+func (fake *FakeTelemetryService) SendStatsArgsForCall(i int) (context.Context, []*voicekit.AnalyticsStat) {
 	fake.sendStatsMutex.RLock()
 	defer fake.sendStatsMutex.RUnlock()
 	argsForCall := fake.sendStatsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) TrackMaxSubscribedVideoQuality(arg1 context.Context, arg2 livekit.ParticipantID, arg3 *livekit.TrackInfo, arg4 mime.MimeType, arg5 livekit.VideoQuality) {
+func (fake *FakeTelemetryService) TrackMaxSubscribedVideoQuality(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 *voicekit.TrackInfo, arg4 mime.MimeType, arg5 voicekit.VideoQuality) {
 	fake.trackMaxSubscribedVideoQualityMutex.Lock()
 	fake.trackMaxSubscribedVideoQualityArgsForCall = append(fake.trackMaxSubscribedVideoQualityArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 		arg4 mime.MimeType
-		arg5 livekit.VideoQuality
+		arg5 voicekit.VideoQuality
 	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.TrackMaxSubscribedVideoQualityStub
 	fake.recordInvocation("TrackMaxSubscribedVideoQuality", []interface{}{arg1, arg2, arg3, arg4, arg5})
@@ -1108,25 +1108,25 @@ func (fake *FakeTelemetryService) TrackMaxSubscribedVideoQualityCallCount() int 
 	return len(fake.trackMaxSubscribedVideoQualityArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackMaxSubscribedVideoQualityCalls(stub func(context.Context, livekit.ParticipantID, *livekit.TrackInfo, mime.MimeType, livekit.VideoQuality)) {
+func (fake *FakeTelemetryService) TrackMaxSubscribedVideoQualityCalls(stub func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo, mime.MimeType, voicekit.VideoQuality)) {
 	fake.trackMaxSubscribedVideoQualityMutex.Lock()
 	defer fake.trackMaxSubscribedVideoQualityMutex.Unlock()
 	fake.TrackMaxSubscribedVideoQualityStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackMaxSubscribedVideoQualityArgsForCall(i int) (context.Context, livekit.ParticipantID, *livekit.TrackInfo, mime.MimeType, livekit.VideoQuality) {
+func (fake *FakeTelemetryService) TrackMaxSubscribedVideoQualityArgsForCall(i int) (context.Context, voicekit.ParticipantID, *voicekit.TrackInfo, mime.MimeType, voicekit.VideoQuality) {
 	fake.trackMaxSubscribedVideoQualityMutex.RLock()
 	defer fake.trackMaxSubscribedVideoQualityMutex.RUnlock()
 	argsForCall := fake.trackMaxSubscribedVideoQualityArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeTelemetryService) TrackMuted(arg1 context.Context, arg2 livekit.ParticipantID, arg3 *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackMuted(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 *voicekit.TrackInfo) {
 	fake.trackMutedMutex.Lock()
 	fake.trackMutedArgsForCall = append(fake.trackMutedArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 	}{arg1, arg2, arg3})
 	stub := fake.TrackMutedStub
 	fake.recordInvocation("TrackMuted", []interface{}{arg1, arg2, arg3})
@@ -1142,28 +1142,28 @@ func (fake *FakeTelemetryService) TrackMutedCallCount() int {
 	return len(fake.trackMutedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackMutedCalls(stub func(context.Context, livekit.ParticipantID, *livekit.TrackInfo)) {
+func (fake *FakeTelemetryService) TrackMutedCalls(stub func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo)) {
 	fake.trackMutedMutex.Lock()
 	defer fake.trackMutedMutex.Unlock()
 	fake.TrackMutedStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackMutedArgsForCall(i int) (context.Context, livekit.ParticipantID, *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackMutedArgsForCall(i int) (context.Context, voicekit.ParticipantID, *voicekit.TrackInfo) {
 	fake.trackMutedMutex.RLock()
 	defer fake.trackMutedMutex.RUnlock()
 	argsForCall := fake.trackMutedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeTelemetryService) TrackPublishRTPStats(arg1 context.Context, arg2 livekit.ParticipantID, arg3 livekit.TrackID, arg4 mime.MimeType, arg5 int, arg6 *livekit.RTPStats) {
+func (fake *FakeTelemetryService) TrackPublishRTPStats(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 voicekit.TrackID, arg4 mime.MimeType, arg5 int, arg6 *voicekit.RTPStats) {
 	fake.trackPublishRTPStatsMutex.Lock()
 	fake.trackPublishRTPStatsArgsForCall = append(fake.trackPublishRTPStatsArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.TrackID
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.TrackID
 		arg4 mime.MimeType
 		arg5 int
-		arg6 *livekit.RTPStats
+		arg6 *voicekit.RTPStats
 	}{arg1, arg2, arg3, arg4, arg5, arg6})
 	stub := fake.TrackPublishRTPStatsStub
 	fake.recordInvocation("TrackPublishRTPStats", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
@@ -1179,26 +1179,26 @@ func (fake *FakeTelemetryService) TrackPublishRTPStatsCallCount() int {
 	return len(fake.trackPublishRTPStatsArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackPublishRTPStatsCalls(stub func(context.Context, livekit.ParticipantID, livekit.TrackID, mime.MimeType, int, *livekit.RTPStats)) {
+func (fake *FakeTelemetryService) TrackPublishRTPStatsCalls(stub func(context.Context, voicekit.ParticipantID, voicekit.TrackID, mime.MimeType, int, *voicekit.RTPStats)) {
 	fake.trackPublishRTPStatsMutex.Lock()
 	defer fake.trackPublishRTPStatsMutex.Unlock()
 	fake.TrackPublishRTPStatsStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackPublishRTPStatsArgsForCall(i int) (context.Context, livekit.ParticipantID, livekit.TrackID, mime.MimeType, int, *livekit.RTPStats) {
+func (fake *FakeTelemetryService) TrackPublishRTPStatsArgsForCall(i int) (context.Context, voicekit.ParticipantID, voicekit.TrackID, mime.MimeType, int, *voicekit.RTPStats) {
 	fake.trackPublishRTPStatsMutex.RLock()
 	defer fake.trackPublishRTPStatsMutex.RUnlock()
 	argsForCall := fake.trackPublishRTPStatsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
 }
 
-func (fake *FakeTelemetryService) TrackPublishRequested(arg1 context.Context, arg2 livekit.ParticipantID, arg3 livekit.ParticipantIdentity, arg4 *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackPublishRequested(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 voicekit.ParticipantIdentity, arg4 *voicekit.TrackInfo) {
 	fake.trackPublishRequestedMutex.Lock()
 	fake.trackPublishRequestedArgsForCall = append(fake.trackPublishRequestedArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.ParticipantIdentity
-		arg4 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.ParticipantIdentity
+		arg4 *voicekit.TrackInfo
 	}{arg1, arg2, arg3, arg4})
 	stub := fake.TrackPublishRequestedStub
 	fake.recordInvocation("TrackPublishRequested", []interface{}{arg1, arg2, arg3, arg4})
@@ -1214,26 +1214,26 @@ func (fake *FakeTelemetryService) TrackPublishRequestedCallCount() int {
 	return len(fake.trackPublishRequestedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackPublishRequestedCalls(stub func(context.Context, livekit.ParticipantID, livekit.ParticipantIdentity, *livekit.TrackInfo)) {
+func (fake *FakeTelemetryService) TrackPublishRequestedCalls(stub func(context.Context, voicekit.ParticipantID, voicekit.ParticipantIdentity, *voicekit.TrackInfo)) {
 	fake.trackPublishRequestedMutex.Lock()
 	defer fake.trackPublishRequestedMutex.Unlock()
 	fake.TrackPublishRequestedStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackPublishRequestedArgsForCall(i int) (context.Context, livekit.ParticipantID, livekit.ParticipantIdentity, *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackPublishRequestedArgsForCall(i int) (context.Context, voicekit.ParticipantID, voicekit.ParticipantIdentity, *voicekit.TrackInfo) {
 	fake.trackPublishRequestedMutex.RLock()
 	defer fake.trackPublishRequestedMutex.RUnlock()
 	argsForCall := fake.trackPublishRequestedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeTelemetryService) TrackPublished(arg1 context.Context, arg2 livekit.ParticipantID, arg3 livekit.ParticipantIdentity, arg4 *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackPublished(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 voicekit.ParticipantIdentity, arg4 *voicekit.TrackInfo) {
 	fake.trackPublishedMutex.Lock()
 	fake.trackPublishedArgsForCall = append(fake.trackPublishedArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.ParticipantIdentity
-		arg4 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.ParticipantIdentity
+		arg4 *voicekit.TrackInfo
 	}{arg1, arg2, arg3, arg4})
 	stub := fake.TrackPublishedStub
 	fake.recordInvocation("TrackPublished", []interface{}{arg1, arg2, arg3, arg4})
@@ -1249,25 +1249,25 @@ func (fake *FakeTelemetryService) TrackPublishedCallCount() int {
 	return len(fake.trackPublishedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackPublishedCalls(stub func(context.Context, livekit.ParticipantID, livekit.ParticipantIdentity, *livekit.TrackInfo)) {
+func (fake *FakeTelemetryService) TrackPublishedCalls(stub func(context.Context, voicekit.ParticipantID, voicekit.ParticipantIdentity, *voicekit.TrackInfo)) {
 	fake.trackPublishedMutex.Lock()
 	defer fake.trackPublishedMutex.Unlock()
 	fake.TrackPublishedStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackPublishedArgsForCall(i int) (context.Context, livekit.ParticipantID, livekit.ParticipantIdentity, *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackPublishedArgsForCall(i int) (context.Context, voicekit.ParticipantID, voicekit.ParticipantIdentity, *voicekit.TrackInfo) {
 	fake.trackPublishedMutex.RLock()
 	defer fake.trackPublishedMutex.RUnlock()
 	argsForCall := fake.trackPublishedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeTelemetryService) TrackPublishedUpdate(arg1 context.Context, arg2 livekit.ParticipantID, arg3 *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackPublishedUpdate(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 *voicekit.TrackInfo) {
 	fake.trackPublishedUpdateMutex.Lock()
 	fake.trackPublishedUpdateArgsForCall = append(fake.trackPublishedUpdateArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 	}{arg1, arg2, arg3})
 	stub := fake.TrackPublishedUpdateStub
 	fake.recordInvocation("TrackPublishedUpdate", []interface{}{arg1, arg2, arg3})
@@ -1283,24 +1283,24 @@ func (fake *FakeTelemetryService) TrackPublishedUpdateCallCount() int {
 	return len(fake.trackPublishedUpdateArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackPublishedUpdateCalls(stub func(context.Context, livekit.ParticipantID, *livekit.TrackInfo)) {
+func (fake *FakeTelemetryService) TrackPublishedUpdateCalls(stub func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo)) {
 	fake.trackPublishedUpdateMutex.Lock()
 	defer fake.trackPublishedUpdateMutex.Unlock()
 	fake.TrackPublishedUpdateStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackPublishedUpdateArgsForCall(i int) (context.Context, livekit.ParticipantID, *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackPublishedUpdateArgsForCall(i int) (context.Context, voicekit.ParticipantID, *voicekit.TrackInfo) {
 	fake.trackPublishedUpdateMutex.RLock()
 	defer fake.trackPublishedUpdateMutex.RUnlock()
 	argsForCall := fake.trackPublishedUpdateArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeTelemetryService) TrackStats(arg1 telemetry.StatsKey, arg2 *livekit.AnalyticsStat) {
+func (fake *FakeTelemetryService) TrackStats(arg1 telemetry.StatsKey, arg2 *voicekit.AnalyticsStat) {
 	fake.trackStatsMutex.Lock()
 	fake.trackStatsArgsForCall = append(fake.trackStatsArgsForCall, struct {
 		arg1 telemetry.StatsKey
-		arg2 *livekit.AnalyticsStat
+		arg2 *voicekit.AnalyticsStat
 	}{arg1, arg2})
 	stub := fake.TrackStatsStub
 	fake.recordInvocation("TrackStats", []interface{}{arg1, arg2})
@@ -1316,25 +1316,25 @@ func (fake *FakeTelemetryService) TrackStatsCallCount() int {
 	return len(fake.trackStatsArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackStatsCalls(stub func(telemetry.StatsKey, *livekit.AnalyticsStat)) {
+func (fake *FakeTelemetryService) TrackStatsCalls(stub func(telemetry.StatsKey, *voicekit.AnalyticsStat)) {
 	fake.trackStatsMutex.Lock()
 	defer fake.trackStatsMutex.Unlock()
 	fake.TrackStatsStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackStatsArgsForCall(i int) (telemetry.StatsKey, *livekit.AnalyticsStat) {
+func (fake *FakeTelemetryService) TrackStatsArgsForCall(i int) (telemetry.StatsKey, *voicekit.AnalyticsStat) {
 	fake.trackStatsMutex.RLock()
 	defer fake.trackStatsMutex.RUnlock()
 	argsForCall := fake.trackStatsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTelemetryService) TrackSubscribeFailed(arg1 context.Context, arg2 livekit.ParticipantID, arg3 livekit.TrackID, arg4 error, arg5 bool) {
+func (fake *FakeTelemetryService) TrackSubscribeFailed(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 voicekit.TrackID, arg4 error, arg5 bool) {
 	fake.trackSubscribeFailedMutex.Lock()
 	fake.trackSubscribeFailedArgsForCall = append(fake.trackSubscribeFailedArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.TrackID
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.TrackID
 		arg4 error
 		arg5 bool
 	}{arg1, arg2, arg3, arg4, arg5})
@@ -1352,27 +1352,27 @@ func (fake *FakeTelemetryService) TrackSubscribeFailedCallCount() int {
 	return len(fake.trackSubscribeFailedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackSubscribeFailedCalls(stub func(context.Context, livekit.ParticipantID, livekit.TrackID, error, bool)) {
+func (fake *FakeTelemetryService) TrackSubscribeFailedCalls(stub func(context.Context, voicekit.ParticipantID, voicekit.TrackID, error, bool)) {
 	fake.trackSubscribeFailedMutex.Lock()
 	defer fake.trackSubscribeFailedMutex.Unlock()
 	fake.TrackSubscribeFailedStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackSubscribeFailedArgsForCall(i int) (context.Context, livekit.ParticipantID, livekit.TrackID, error, bool) {
+func (fake *FakeTelemetryService) TrackSubscribeFailedArgsForCall(i int) (context.Context, voicekit.ParticipantID, voicekit.TrackID, error, bool) {
 	fake.trackSubscribeFailedMutex.RLock()
 	defer fake.trackSubscribeFailedMutex.RUnlock()
 	argsForCall := fake.trackSubscribeFailedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeTelemetryService) TrackSubscribeRTPStats(arg1 context.Context, arg2 livekit.ParticipantID, arg3 livekit.TrackID, arg4 mime.MimeType, arg5 *livekit.RTPStats) {
+func (fake *FakeTelemetryService) TrackSubscribeRTPStats(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 voicekit.TrackID, arg4 mime.MimeType, arg5 *voicekit.RTPStats) {
 	fake.trackSubscribeRTPStatsMutex.Lock()
 	fake.trackSubscribeRTPStatsArgsForCall = append(fake.trackSubscribeRTPStatsArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.TrackID
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.TrackID
 		arg4 mime.MimeType
-		arg5 *livekit.RTPStats
+		arg5 *voicekit.RTPStats
 	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.TrackSubscribeRTPStatsStub
 	fake.recordInvocation("TrackSubscribeRTPStats", []interface{}{arg1, arg2, arg3, arg4, arg5})
@@ -1388,25 +1388,25 @@ func (fake *FakeTelemetryService) TrackSubscribeRTPStatsCallCount() int {
 	return len(fake.trackSubscribeRTPStatsArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackSubscribeRTPStatsCalls(stub func(context.Context, livekit.ParticipantID, livekit.TrackID, mime.MimeType, *livekit.RTPStats)) {
+func (fake *FakeTelemetryService) TrackSubscribeRTPStatsCalls(stub func(context.Context, voicekit.ParticipantID, voicekit.TrackID, mime.MimeType, *voicekit.RTPStats)) {
 	fake.trackSubscribeRTPStatsMutex.Lock()
 	defer fake.trackSubscribeRTPStatsMutex.Unlock()
 	fake.TrackSubscribeRTPStatsStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackSubscribeRTPStatsArgsForCall(i int) (context.Context, livekit.ParticipantID, livekit.TrackID, mime.MimeType, *livekit.RTPStats) {
+func (fake *FakeTelemetryService) TrackSubscribeRTPStatsArgsForCall(i int) (context.Context, voicekit.ParticipantID, voicekit.TrackID, mime.MimeType, *voicekit.RTPStats) {
 	fake.trackSubscribeRTPStatsMutex.RLock()
 	defer fake.trackSubscribeRTPStatsMutex.RUnlock()
 	argsForCall := fake.trackSubscribeRTPStatsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeTelemetryService) TrackSubscribeRequested(arg1 context.Context, arg2 livekit.ParticipantID, arg3 *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackSubscribeRequested(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 *voicekit.TrackInfo) {
 	fake.trackSubscribeRequestedMutex.Lock()
 	fake.trackSubscribeRequestedArgsForCall = append(fake.trackSubscribeRequestedArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 	}{arg1, arg2, arg3})
 	stub := fake.TrackSubscribeRequestedStub
 	fake.recordInvocation("TrackSubscribeRequested", []interface{}{arg1, arg2, arg3})
@@ -1422,26 +1422,26 @@ func (fake *FakeTelemetryService) TrackSubscribeRequestedCallCount() int {
 	return len(fake.trackSubscribeRequestedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackSubscribeRequestedCalls(stub func(context.Context, livekit.ParticipantID, *livekit.TrackInfo)) {
+func (fake *FakeTelemetryService) TrackSubscribeRequestedCalls(stub func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo)) {
 	fake.trackSubscribeRequestedMutex.Lock()
 	defer fake.trackSubscribeRequestedMutex.Unlock()
 	fake.TrackSubscribeRequestedStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackSubscribeRequestedArgsForCall(i int) (context.Context, livekit.ParticipantID, *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackSubscribeRequestedArgsForCall(i int) (context.Context, voicekit.ParticipantID, *voicekit.TrackInfo) {
 	fake.trackSubscribeRequestedMutex.RLock()
 	defer fake.trackSubscribeRequestedMutex.RUnlock()
 	argsForCall := fake.trackSubscribeRequestedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeTelemetryService) TrackSubscribed(arg1 context.Context, arg2 livekit.ParticipantID, arg3 *livekit.TrackInfo, arg4 *livekit.ParticipantInfo, arg5 bool) {
+func (fake *FakeTelemetryService) TrackSubscribed(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 *voicekit.TrackInfo, arg4 *voicekit.ParticipantInfo, arg5 bool) {
 	fake.trackSubscribedMutex.Lock()
 	fake.trackSubscribedArgsForCall = append(fake.trackSubscribedArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
-		arg4 *livekit.ParticipantInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
+		arg4 *voicekit.ParticipantInfo
 		arg5 bool
 	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.TrackSubscribedStub
@@ -1458,25 +1458,25 @@ func (fake *FakeTelemetryService) TrackSubscribedCallCount() int {
 	return len(fake.trackSubscribedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackSubscribedCalls(stub func(context.Context, livekit.ParticipantID, *livekit.TrackInfo, *livekit.ParticipantInfo, bool)) {
+func (fake *FakeTelemetryService) TrackSubscribedCalls(stub func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo, *voicekit.ParticipantInfo, bool)) {
 	fake.trackSubscribedMutex.Lock()
 	defer fake.trackSubscribedMutex.Unlock()
 	fake.TrackSubscribedStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackSubscribedArgsForCall(i int) (context.Context, livekit.ParticipantID, *livekit.TrackInfo, *livekit.ParticipantInfo, bool) {
+func (fake *FakeTelemetryService) TrackSubscribedArgsForCall(i int) (context.Context, voicekit.ParticipantID, *voicekit.TrackInfo, *voicekit.ParticipantInfo, bool) {
 	fake.trackSubscribedMutex.RLock()
 	defer fake.trackSubscribedMutex.RUnlock()
 	argsForCall := fake.trackSubscribedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeTelemetryService) TrackUnmuted(arg1 context.Context, arg2 livekit.ParticipantID, arg3 *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackUnmuted(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 *voicekit.TrackInfo) {
 	fake.trackUnmutedMutex.Lock()
 	fake.trackUnmutedArgsForCall = append(fake.trackUnmutedArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 	}{arg1, arg2, arg3})
 	stub := fake.TrackUnmutedStub
 	fake.recordInvocation("TrackUnmuted", []interface{}{arg1, arg2, arg3})
@@ -1492,26 +1492,26 @@ func (fake *FakeTelemetryService) TrackUnmutedCallCount() int {
 	return len(fake.trackUnmutedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackUnmutedCalls(stub func(context.Context, livekit.ParticipantID, *livekit.TrackInfo)) {
+func (fake *FakeTelemetryService) TrackUnmutedCalls(stub func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo)) {
 	fake.trackUnmutedMutex.Lock()
 	defer fake.trackUnmutedMutex.Unlock()
 	fake.TrackUnmutedStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackUnmutedArgsForCall(i int) (context.Context, livekit.ParticipantID, *livekit.TrackInfo) {
+func (fake *FakeTelemetryService) TrackUnmutedArgsForCall(i int) (context.Context, voicekit.ParticipantID, *voicekit.TrackInfo) {
 	fake.trackUnmutedMutex.RLock()
 	defer fake.trackUnmutedMutex.RUnlock()
 	argsForCall := fake.trackUnmutedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeTelemetryService) TrackUnpublished(arg1 context.Context, arg2 livekit.ParticipantID, arg3 livekit.ParticipantIdentity, arg4 *livekit.TrackInfo, arg5 bool) {
+func (fake *FakeTelemetryService) TrackUnpublished(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 voicekit.ParticipantIdentity, arg4 *voicekit.TrackInfo, arg5 bool) {
 	fake.trackUnpublishedMutex.Lock()
 	fake.trackUnpublishedArgsForCall = append(fake.trackUnpublishedArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 livekit.ParticipantIdentity
-		arg4 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 voicekit.ParticipantIdentity
+		arg4 *voicekit.TrackInfo
 		arg5 bool
 	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.TrackUnpublishedStub
@@ -1528,25 +1528,25 @@ func (fake *FakeTelemetryService) TrackUnpublishedCallCount() int {
 	return len(fake.trackUnpublishedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackUnpublishedCalls(stub func(context.Context, livekit.ParticipantID, livekit.ParticipantIdentity, *livekit.TrackInfo, bool)) {
+func (fake *FakeTelemetryService) TrackUnpublishedCalls(stub func(context.Context, voicekit.ParticipantID, voicekit.ParticipantIdentity, *voicekit.TrackInfo, bool)) {
 	fake.trackUnpublishedMutex.Lock()
 	defer fake.trackUnpublishedMutex.Unlock()
 	fake.TrackUnpublishedStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackUnpublishedArgsForCall(i int) (context.Context, livekit.ParticipantID, livekit.ParticipantIdentity, *livekit.TrackInfo, bool) {
+func (fake *FakeTelemetryService) TrackUnpublishedArgsForCall(i int) (context.Context, voicekit.ParticipantID, voicekit.ParticipantIdentity, *voicekit.TrackInfo, bool) {
 	fake.trackUnpublishedMutex.RLock()
 	defer fake.trackUnpublishedMutex.RUnlock()
 	argsForCall := fake.trackUnpublishedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeTelemetryService) TrackUnsubscribed(arg1 context.Context, arg2 livekit.ParticipantID, arg3 *livekit.TrackInfo, arg4 bool) {
+func (fake *FakeTelemetryService) TrackUnsubscribed(arg1 context.Context, arg2 voicekit.ParticipantID, arg3 *voicekit.TrackInfo, arg4 bool) {
 	fake.trackUnsubscribedMutex.Lock()
 	fake.trackUnsubscribedArgsForCall = append(fake.trackUnsubscribedArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.ParticipantID
-		arg3 *livekit.TrackInfo
+		arg2 voicekit.ParticipantID
+		arg3 *voicekit.TrackInfo
 		arg4 bool
 	}{arg1, arg2, arg3, arg4})
 	stub := fake.TrackUnsubscribedStub
@@ -1563,24 +1563,24 @@ func (fake *FakeTelemetryService) TrackUnsubscribedCallCount() int {
 	return len(fake.trackUnsubscribedArgsForCall)
 }
 
-func (fake *FakeTelemetryService) TrackUnsubscribedCalls(stub func(context.Context, livekit.ParticipantID, *livekit.TrackInfo, bool)) {
+func (fake *FakeTelemetryService) TrackUnsubscribedCalls(stub func(context.Context, voicekit.ParticipantID, *voicekit.TrackInfo, bool)) {
 	fake.trackUnsubscribedMutex.Lock()
 	defer fake.trackUnsubscribedMutex.Unlock()
 	fake.TrackUnsubscribedStub = stub
 }
 
-func (fake *FakeTelemetryService) TrackUnsubscribedArgsForCall(i int) (context.Context, livekit.ParticipantID, *livekit.TrackInfo, bool) {
+func (fake *FakeTelemetryService) TrackUnsubscribedArgsForCall(i int) (context.Context, voicekit.ParticipantID, *voicekit.TrackInfo, bool) {
 	fake.trackUnsubscribedMutex.RLock()
 	defer fake.trackUnsubscribedMutex.RUnlock()
 	argsForCall := fake.trackUnsubscribedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeTelemetryService) Webhook(arg1 context.Context, arg2 *livekit.WebhookInfo) {
+func (fake *FakeTelemetryService) Webhook(arg1 context.Context, arg2 *voicekit.WebhookInfo) {
 	fake.webhookMutex.Lock()
 	fake.webhookArgsForCall = append(fake.webhookArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.WebhookInfo
+		arg2 *voicekit.WebhookInfo
 	}{arg1, arg2})
 	stub := fake.WebhookStub
 	fake.recordInvocation("Webhook", []interface{}{arg1, arg2})
@@ -1596,13 +1596,13 @@ func (fake *FakeTelemetryService) WebhookCallCount() int {
 	return len(fake.webhookArgsForCall)
 }
 
-func (fake *FakeTelemetryService) WebhookCalls(stub func(context.Context, *livekit.WebhookInfo)) {
+func (fake *FakeTelemetryService) WebhookCalls(stub func(context.Context, *voicekit.WebhookInfo)) {
 	fake.webhookMutex.Lock()
 	defer fake.webhookMutex.Unlock()
 	fake.WebhookStub = stub
 }
 
-func (fake *FakeTelemetryService) WebhookArgsForCall(i int) (context.Context, *livekit.WebhookInfo) {
+func (fake *FakeTelemetryService) WebhookArgsForCall(i int) (context.Context, *voicekit.WebhookInfo) {
 	fake.webhookMutex.RLock()
 	defer fake.webhookMutex.RUnlock()
 	argsForCall := fake.webhookArgsForCall[i]

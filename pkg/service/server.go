@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,17 +35,17 @@ import (
 	"go.uber.org/atomic"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/xtwirp"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/xtwirp"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/version"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/version"
 )
 
-type LivekitServer struct {
+type VoicekitServer struct {
 	config         *config.Config
 	ioService      *IOInfoService
 	rtcService     *RTCService
@@ -63,8 +63,8 @@ type LivekitServer struct {
 	closedChan     chan struct{}
 }
 
-func NewLivekitServer(conf *config.Config,
-	roomService livekit.RoomService,
+func NewVoicekitServer(conf *config.Config,
+	roomService voicekit.RoomService,
 	agentDispatchService *AgentDispatchService,
 	egressService *EgressService,
 	ingressService *IngressService,
@@ -79,8 +79,8 @@ func NewLivekitServer(conf *config.Config,
 	signalServer *SignalServer,
 	turnServer *turn.Server,
 	currentNode routing.LocalNode,
-) (s *LivekitServer, err error) {
-	s = &LivekitServer{
+) (s *VoicekitServer, err error) {
+	s = &VoicekitServer{
 		config:         conf,
 		ioService:      ioService,
 		rtcService:     rtcService,
@@ -124,11 +124,11 @@ func NewLivekitServer(conf *config.Config,
 	for _, opt := range xtwirp.DefaultServerOptions() {
 		serverOptions = append(serverOptions, opt)
 	}
-	roomServer := livekit.NewRoomServiceServer(roomService, serverOptions...)
-	agentDispatchServer := livekit.NewAgentDispatchServiceServer(agentDispatchService, serverOptions...)
-	egressServer := livekit.NewEgressServer(egressService, serverOptions...)
-	ingressServer := livekit.NewIngressServer(ingressService, serverOptions...)
-	sipServer := livekit.NewSIPServer(sipService, serverOptions...)
+	roomServer := voicekit.NewRoomServiceServer(roomService, serverOptions...)
+	agentDispatchServer := voicekit.NewAgentDispatchServiceServer(agentDispatchService, serverOptions...)
+	egressServer := voicekit.NewEgressServer(egressService, serverOptions...)
+	ingressServer := voicekit.NewIngressServer(ingressService, serverOptions...)
+	sipServer := voicekit.NewSIPServer(sipService, serverOptions...)
 
 	mux := http.NewServeMux()
 	if conf.Development {
@@ -178,19 +178,19 @@ func NewLivekitServer(conf *config.Config,
 	return
 }
 
-func (s *LivekitServer) Node() *livekit.Node {
+func (s *VoicekitServer) Node() *voicekit.Node {
 	return s.currentNode.Clone()
 }
 
-func (s *LivekitServer) HTTPPort() int {
+func (s *VoicekitServer) HTTPPort() int {
 	return int(s.config.Port)
 }
 
-func (s *LivekitServer) IsRunning() bool {
+func (s *VoicekitServer) IsRunning() bool {
 	return s.running.Load()
 }
 
-func (s *LivekitServer) Start() error {
+func (s *VoicekitServer) Start() error {
 	if s.running.Load() {
 		return errors.New("already running")
 	}
@@ -262,7 +262,7 @@ func (s *LivekitServer) Start() error {
 	if s.config.Region != "" {
 		values = append(values, "region", s.config.Region)
 	}
-	logger.Infow("starting LiveKit server", values...)
+	logger.Infow("starting VoiceKit server", values...)
 	if runtime.GOOS == "windows" {
 		logger.Infow("Windows detected, capacity management is unavailable")
 	}
@@ -315,7 +315,7 @@ func (s *LivekitServer) Start() error {
 	return nil
 }
 
-func (s *LivekitServer) Stop(force bool) {
+func (s *VoicekitServer) Stop(force bool) {
 	// wait for all participants to exit
 	s.router.Drain()
 	partTicker := time.NewTicker(5 * time.Second)
@@ -338,15 +338,15 @@ func (s *LivekitServer) Stop(force bool) {
 	<-s.closedChan
 }
 
-func (s *LivekitServer) RoomManager() *RoomManager {
+func (s *VoicekitServer) RoomManager() *RoomManager {
 	return s.roomManager
 }
 
-func (s *LivekitServer) debugGoroutines(w http.ResponseWriter, _ *http.Request) {
+func (s *VoicekitServer) debugGoroutines(w http.ResponseWriter, _ *http.Request) {
 	_ = pprof.Lookup("goroutine").WriteTo(w, 2)
 }
 
-func (s *LivekitServer) debugInfo(w http.ResponseWriter, _ *http.Request) {
+func (s *VoicekitServer) debugInfo(w http.ResponseWriter, _ *http.Request) {
 	s.roomManager.lock.RLock()
 	info := make([]map[string]interface{}, 0, len(s.roomManager.rooms))
 	for _, room := range s.roomManager.rooms {
@@ -363,7 +363,7 @@ func (s *LivekitServer) debugInfo(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func (s *LivekitServer) defaultHandler(w http.ResponseWriter, r *http.Request) {
+func (s *VoicekitServer) defaultHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
 		s.healthCheck(w, r)
 	} else {
@@ -371,7 +371,7 @@ func (s *LivekitServer) defaultHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *LivekitServer) healthCheck(w http.ResponseWriter, _ *http.Request) {
+func (s *VoicekitServer) healthCheck(w http.ResponseWriter, _ *http.Request) {
 	var updatedAt time.Time
 	if s.Node().Stats != nil {
 		updatedAt = time.Unix(s.Node().Stats.UpdatedAt, 0)
@@ -387,7 +387,7 @@ func (s *LivekitServer) healthCheck(w http.ResponseWriter, _ *http.Request) {
 }
 
 // worker to perform periodic tasks per node
-func (s *LivekitServer) backgroundWorker() {
+func (s *VoicekitServer) backgroundWorker() {
 	roomTicker := time.NewTicker(1 * time.Second)
 	defer roomTicker.Stop()
 	for {

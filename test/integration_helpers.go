@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,18 +25,18 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/twitchtv/twirp"
 
-	"github.com/livekit/mediatransportutil/pkg/rtcconfig"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/mediatransportutil/pkg/rtcconfig"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/guid"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/livekit-server/pkg/testutils"
-	testclient "github.com/livekit/livekit-server/test/client"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
+	testclient "github.com/voicekit/voicekit-server/test/client"
 )
 
 const (
@@ -54,15 +54,15 @@ const (
 	// connectTimeout = 5000 * time.Second
 )
 
-var roomClient livekit.RoomService
+var roomClient voicekit.RoomService
 
 func init() {
 	config.InitLoggerFromConfig(&config.DefaultConfig.Logging)
 
-	prometheus.Init("test", livekit.NodeType_SERVER)
+	prometheus.Init("test", voicekit.NodeType_SERVER)
 }
 
-func setupSingleNodeTest(name string) (*service.LivekitServer, func()) {
+func setupSingleNodeTest(name string) (*service.VoicekitServer, func()) {
 	logger.Infow("----------------STARTING TEST----------------", "test", name)
 	s := createSingleNodeServer(nil)
 	go func() {
@@ -79,7 +79,7 @@ func setupSingleNodeTest(name string) (*service.LivekitServer, func()) {
 	}
 }
 
-func setupMultiNodeTest(name string) (*service.LivekitServer, *service.LivekitServer, func()) {
+func setupMultiNodeTest(name string) (*service.VoicekitServer, *service.VoicekitServer, func()) {
 	logger.Infow("----------------STARTING TEST----------------", "test", name)
 	s1 := createMultiNodeServer(guid.New(nodeID1), defaultServerPort)
 	s2 := createMultiNodeServer(guid.New(nodeID2), secondServerPort)
@@ -107,7 +107,7 @@ func contextWithToken(token string) context.Context {
 	return tctx
 }
 
-func waitForServerToStart(s *service.LivekitServer) {
+func waitForServerToStart(s *service.VoicekitServer) {
 	// wait till ready
 	ctx, cancel := context.WithTimeout(context.Background(), testutils.ConnectTimeout)
 	defer cancel()
@@ -147,7 +147,7 @@ func waitUntilConnected(t *testing.T, clients ...*testclient.RTCClient) {
 	}
 }
 
-func createSingleNodeServer(configUpdater func(*config.Config)) *service.LivekitServer {
+func createSingleNodeServer(configUpdater func(*config.Config)) *service.VoicekitServer {
 	var err error
 	conf, err := config.NewConfig("", true, nil, nil)
 	if err != nil {
@@ -162,18 +162,18 @@ func createSingleNodeServer(configUpdater func(*config.Config)) *service.Livekit
 	if err != nil {
 		panic(fmt.Sprintf("could not create local node: %v", err))
 	}
-	currentNode.SetNodeID(livekit.NodeID(guid.New(nodeID1)))
+	currentNode.SetNodeID(voicekit.NodeID(guid.New(nodeID1)))
 
 	s, err := service.InitializeServer(conf, currentNode)
 	if err != nil {
 		panic(fmt.Sprintf("could not create server: %v", err))
 	}
 
-	roomClient = livekit.NewRoomServiceJSONClient(fmt.Sprintf("http://localhost:%d", defaultServerPort), &http.Client{})
+	roomClient = voicekit.NewRoomServiceJSONClient(fmt.Sprintf("http://localhost:%d", defaultServerPort), &http.Client{})
 	return s
 }
 
-func createMultiNodeServer(nodeID string, port uint32) *service.LivekitServer {
+func createMultiNodeServer(nodeID string, port uint32) *service.VoicekitServer {
 	var err error
 	conf, err := config.NewConfig("", true, nil, nil)
 	if err != nil {
@@ -189,7 +189,7 @@ func createMultiNodeServer(nodeID string, port uint32) *service.LivekitServer {
 	if err != nil {
 		panic(err)
 	}
-	currentNode.SetNodeID(livekit.NodeID(nodeID))
+	currentNode.SetNodeID(voicekit.NodeID(nodeID))
 
 	// redis routing and store
 	s, err := service.InitializeServer(conf, currentNode)
@@ -197,7 +197,7 @@ func createMultiNodeServer(nodeID string, port uint32) *service.LivekitServer {
 		panic(fmt.Sprintf("could not create server: %v", err))
 	}
 
-	roomClient = livekit.NewRoomServiceJSONClient(fmt.Sprintf("http://localhost:%d", port), &http.Client{})
+	roomClient = voicekit.NewRoomServiceJSONClient(fmt.Sprintf("http://localhost:%d", port), &http.Client{})
 	return s
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package types
 import (
 	"time"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type TrafficStats struct {
@@ -31,8 +31,8 @@ type TrafficStats struct {
 }
 
 type TrafficTypeStats struct {
-	TrackType    livekit.TrackType
-	StreamType   livekit.StreamType
+	TrackType    voicekit.TrackType
+	StreamType   voicekit.StreamType
 	TrafficStats *TrafficStats
 }
 
@@ -40,7 +40,7 @@ type TrafficLoad struct {
 	TrafficTypeStats []*TrafficTypeStats
 }
 
-func RTPStatsDiffToTrafficStats(before, after *livekit.RTPStats) *TrafficStats {
+func RTPStatsDiffToTrafficStats(before, after *voicekit.RTPStats) *TrafficStats {
 	if after == nil {
 		return nil
 	}
@@ -149,10 +149,10 @@ func TrafficLoadToTrafficRate(trafficLoad *TrafficLoad) (
 		packetRate := float64(trafficTypeStat.TrafficStats.Packets) / elapsed
 		byteRate := float64(trafficTypeStat.TrafficStats.Bytes) / elapsed
 		switch trafficTypeStat.StreamType {
-		case livekit.StreamType_UPSTREAM:
+		case voicekit.StreamType_UPSTREAM:
 			packetRateIn += packetRate
 			byteRateIn += byteRate
-		case livekit.StreamType_DOWNSTREAM:
+		case voicekit.StreamType_DOWNSTREAM:
 			packetRateOut += packetRate
 			byteRateOut += byteRate
 		}

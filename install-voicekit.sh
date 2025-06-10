@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2023 LiveKit, Inc.
+# Copyright 2025 Rixy Ai.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# LiveKit install script for Linux
+# VoiceKit install script for Linux
 
 set -u
 set -o errtrace
 set -o errexit
 set -o pipefail
 
-REPO="livekit"
+REPO="voicekit"
 INSTALL_PATH="/usr/local/bin"
 
 log()  { printf "%b\n" "$*"; }
@@ -33,7 +33,7 @@ abort() {
 # i.e. 1.0.0
 get_latest_version()
 {
-  latest_version=$(curl -s https://api.github.com/repos/livekit/$REPO/releases/latest | grep -oP '"tarball_url": ".*/tarball/v\K([^/]*)(?=")')
+  latest_version=$(curl -s https://api.github.com/repos/voicekit/$REPO/releases/latest | grep -oP '"tarball_url": ".*/tarball/v\K([^/]*)(?=")')
   printf "%s" "$latest_version"
 }
 
@@ -85,7 +85,7 @@ then
 fi
 
 VERSION=$(get_latest_version)
-ARCHIVE_URL="https://github.com/livekit/$REPO/releases/download/v${VERSION}/${REPO}_${VERSION}_linux_${ARCH}.tar.gz"
+ARCHIVE_URL="https://github.com/voicekit/$REPO/releases/download/v${VERSION}/${REPO}_${VERSION}_linux_${ARCH}.tar.gz"
 
 # Ensure version follows SemVer
 if ! [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
@@ -98,4 +98,4 @@ log "Downloading from ${ARCHIVE_URL}..."
 
 curl -s -L "${ARCHIVE_URL}" | ${SUDO_PREFIX} tar xzf - -C "${INSTALL_PATH}" --wildcards --no-anchored "$REPO*"
 
-log "\nlivekit-server is installed to $INSTALL_PATH\n"
+log "\nvoicekit-server is installed to $INSTALL_PATH\n"

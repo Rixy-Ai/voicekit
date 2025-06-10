@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,27 +37,27 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/rtc/transport"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu/bwe"
-	"github.com/livekit/livekit-server/pkg/sfu/bwe/remotebwe"
-	"github.com/livekit/livekit-server/pkg/sfu/bwe/sendsidebwe"
-	"github.com/livekit/livekit-server/pkg/sfu/datachannel"
-	sfuinterceptor "github.com/livekit/livekit-server/pkg/sfu/interceptor"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/sfu/pacer"
-	pd "github.com/livekit/livekit-server/pkg/sfu/rtpextension/playoutdelay"
-	"github.com/livekit/livekit-server/pkg/sfu/streamallocator"
-	sfuutils "github.com/livekit/livekit-server/pkg/sfu/utils"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/livekit-server/pkg/utils"
-	lkinterceptor "github.com/livekit/mediatransportutil/pkg/interceptor"
-	lktwcc "github.com/livekit/mediatransportutil/pkg/twcc"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/logger/pionlogger"
-	lksdp "github.com/livekit/protocol/sdp"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/rtc/transport"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu/bwe"
+	"github.com/voicekit/voicekit-server/pkg/sfu/bwe/remotebwe"
+	"github.com/voicekit/voicekit-server/pkg/sfu/bwe/sendsidebwe"
+	"github.com/voicekit/voicekit-server/pkg/sfu/datachannel"
+	sfuinterceptor "github.com/voicekit/voicekit-server/pkg/sfu/interceptor"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/sfu/pacer"
+	pd "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/playoutdelay"
+	"github.com/voicekit/voicekit-server/pkg/sfu/streamallocator"
+	sfuutils "github.com/voicekit/voicekit-server/pkg/sfu/utils"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	lkinterceptor "github.com/voicekit/mediatransportutil/pkg/interceptor"
+	lktwcc "github.com/voicekit/mediatransportutil/pkg/twcc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/logger/pionlogger"
+	lksdp "github.com/voicekit/protocol/sdp"
 )
 
 const (
@@ -261,9 +261,9 @@ type TransportParams struct {
 	Twcc                         *lktwcc.Responder
 	DirectionConfig              DirectionConfig
 	CongestionControlConfig      config.CongestionControlConfig
-	EnabledCodecs                []*livekit.Codec
+	EnabledCodecs                []*voicekit.Codec
 	Logger                       logger.Logger
-	Transport                    livekit.SignalTarget
+	Transport                    voicekit.SignalTarget
 	SimTracks                    map[uint32]SimulcastTrackInfo
 	ClientInfo                   ClientInfo
 	IsOfferer                    bool
@@ -793,14 +793,14 @@ func (t *PCTransport) onPeerConnectionStateChange(state webrtc.PeerConnectionSta
 func (t *PCTransport) onDataChannel(dc *webrtc.DataChannel) {
 	dc.OnOpen(func() {
 		t.params.Logger.Debugw(dc.Label() + " data channel open")
-		var kind livekit.DataPacket_Kind
+		var kind voicekit.DataPacket_Kind
 		var isUnlabeled bool
 		switch dc.Label() {
 		case ReliableDataChannel:
-			kind = livekit.DataPacket_RELIABLE
+			kind = voicekit.DataPacket_RELIABLE
 
 		case LossyDataChannel:
-			kind = livekit.DataPacket_LOSSY
+			kind = voicekit.DataPacket_LOSSY
 
 		default:
 			t.params.Logger.Infow("unlabeled datachannel added", "label", dc.Label())
@@ -822,7 +822,7 @@ func (t *PCTransport) onDataChannel(dc *webrtc.DataChannel) {
 			)
 			t.lock.Unlock()
 
-		case kind == livekit.DataPacket_RELIABLE:
+		case kind == voicekit.DataPacket_RELIABLE:
 			t.lock.Lock()
 			if t.reliableDC != nil {
 				t.reliableDC.Close()
@@ -831,7 +831,7 @@ func (t *PCTransport) onDataChannel(dc *webrtc.DataChannel) {
 			t.reliableDCOpened = true
 			t.lock.Unlock()
 
-		case kind == livekit.DataPacket_LOSSY:
+		case kind == voicekit.DataPacket_LOSSY:
 			t.lock.Lock()
 			if t.lossyDC != nil {
 				t.lossyDC.Close()
@@ -1142,7 +1142,7 @@ func (t *PCTransport) WriteRTCP(pkts []rtcp.Packet) error {
 	return t.pc.WriteRTCP(pkts)
 }
 
-func (t *PCTransport) SendDataMessage(kind livekit.DataPacket_Kind, data []byte) error {
+func (t *PCTransport) SendDataMessage(kind voicekit.DataPacket_Kind, data []byte) error {
 	convertFromUserPacket := false
 	var dc *datachannel.DataChannelWriter[*webrtc.DataChannel]
 	t.lock.RLock()
@@ -1153,7 +1153,7 @@ func (t *PCTransport) SendDataMessage(kind livekit.DataPacket_Kind, data []byte)
 		}
 		convertFromUserPacket = true
 	} else {
-		if kind == livekit.DataPacket_RELIABLE {
+		if kind == voicekit.DataPacket_RELIABLE {
 			dc = t.reliableDC
 		} else {
 			dc = t.lossyDC
@@ -1162,13 +1162,13 @@ func (t *PCTransport) SendDataMessage(kind livekit.DataPacket_Kind, data []byte)
 	t.lock.RUnlock()
 
 	if convertFromUserPacket {
-		dp := &livekit.DataPacket{}
+		dp := &voicekit.DataPacket{}
 		if err := proto.Unmarshal(data, dp); err != nil {
 			return err
 		}
 
 		switch payload := dp.Value.(type) {
-		case *livekit.DataPacket_User:
+		case *voicekit.DataPacket_User:
 			return t.sendDataMessage(dc, payload.User.Payload)
 		default:
 			return errors.New("cannot forward non user data packet")
@@ -1178,7 +1178,7 @@ func (t *PCTransport) SendDataMessage(kind livekit.DataPacket_Kind, data []byte)
 	return t.sendDataMessage(dc, data)
 }
 
-func (t *PCTransport) SendDataMessageUnlabeled(data []byte, useRaw bool, sender livekit.ParticipantIdentity) error {
+func (t *PCTransport) SendDataMessageUnlabeled(data []byte, useRaw bool, sender voicekit.ParticipantIdentity) error {
 	convertToUserPacket := false
 	var dc *datachannel.DataChannelWriter[*webrtc.DataChannel]
 	t.lock.RLock()
@@ -1199,10 +1199,10 @@ func (t *PCTransport) SendDataMessageUnlabeled(data []byte, useRaw bool, sender 
 	t.lock.RUnlock()
 
 	if convertToUserPacket {
-		dpData, err := proto.Marshal(&livekit.DataPacket{
+		dpData, err := proto.Marshal(&voicekit.DataPacket{
 			ParticipantIdentity: string(sender),
-			Value: &livekit.DataPacket_User{
-				User: &livekit.UserPacket{Payload: data},
+			Value: &voicekit.DataPacket_User{
+				User: &voicekit.UserPacket{Payload: data},
 			},
 		})
 		if err != nil {

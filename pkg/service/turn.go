@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,18 +26,18 @@ import (
 	"github.com/pion/turn/v4"
 	"github.com/pkg/errors"
 
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/logger/pionlogger"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/logger/pionlogger"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
 )
 
 const (
-	LivekitRealm = "livekit"
+	VoicekitRealm = "voicekit"
 
 	allocateRetries = 50
 	turnMinPort     = 1024
@@ -55,7 +55,7 @@ func NewTurnServer(conf *config.Config, authHandler turn.AuthHandler, standalone
 	}
 
 	serverConfig := turn.ServerConfig{
-		Realm:         LivekitRealm,
+		Realm:         VoicekitRealm,
 		AuthHandler:   authHandler,
 		LoggerFactory: pionlogger.NewLoggerFactory(logger.GetLogger()),
 	}
@@ -160,11 +160,11 @@ func NewTURNAuthHandler(keyProvider auth.KeyProvider) *TURNAuthHandler {
 	}
 }
 
-func (h *TURNAuthHandler) CreateUsername(apiKey string, pID livekit.ParticipantID) string {
+func (h *TURNAuthHandler) CreateUsername(apiKey string, pID voicekit.ParticipantID) string {
 	return base62.EncodeToString([]byte(fmt.Sprintf("%s|%s", apiKey, pID)))
 }
 
-func (h *TURNAuthHandler) ParseUsername(username string) (apiKey string, pID livekit.ParticipantID, err error) {
+func (h *TURNAuthHandler) ParseUsername(username string) (apiKey string, pID voicekit.ParticipantID, err error) {
 	decoded, err := base62.DecodeString(username)
 	if err != nil {
 		return "", "", err
@@ -174,10 +174,10 @@ func (h *TURNAuthHandler) ParseUsername(username string) (apiKey string, pID liv
 		return "", "", errors.New("invalid username")
 	}
 
-	return parts[0], livekit.ParticipantID(parts[1]), nil
+	return parts[0], voicekit.ParticipantID(parts[1]), nil
 }
 
-func (h *TURNAuthHandler) CreatePassword(apiKey string, pID livekit.ParticipantID) (string, error) {
+func (h *TURNAuthHandler) CreatePassword(apiKey string, pID voicekit.ParticipantID) (string, error) {
 	secret := h.keyProvider.GetSecret(apiKey)
 	if secret == "" {
 		return "", ErrInvalidAPIKey
@@ -196,10 +196,10 @@ func (h *TURNAuthHandler) HandleAuth(username, realm string, srcAddr net.Addr) (
 	if len(parts) != 2 {
 		return nil, false
 	}
-	password, err := h.CreatePassword(parts[0], livekit.ParticipantID(parts[1]))
+	password, err := h.CreatePassword(parts[0], voicekit.ParticipantID(parts[1]))
 	if err != nil {
 		logger.Warnw("could not create TURN password", err, "username", username)
 		return nil, false
 	}
-	return turn.GenerateAuthKey(username, LivekitRealm, password), true
+	return turn.GenerateAuthKey(username, VoicekitRealm, password), true
 }

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,18 +24,18 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/livekit-server/pkg/service/servicefakes"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/voicekit-server/pkg/service/servicefakes"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/psrpc"
 )
 
 func init() {
-	prometheus.Init("node", livekit.NodeType_CONTROLLER)
+	prometheus.Init("node", voicekit.NodeType_CONTROLLER)
 }
 
 func TestSignal(t *testing.T) {
@@ -49,18 +49,18 @@ func TestSignal(t *testing.T) {
 	t.Run("messages are delivered", func(t *testing.T) {
 		bus := psrpc.NewLocalMessageBus()
 
-		reqMessageIn := &livekit.SignalRequest{
-			Message: &livekit.SignalRequest_Ping{Ping: 123},
+		reqMessageIn := &voicekit.SignalRequest{
+			Message: &voicekit.SignalRequest_Ping{Ping: 123},
 		}
-		resMessageIn := &livekit.SignalResponse{
-			Message: &livekit.SignalResponse_Pong{Pong: 321},
+		resMessageIn := &voicekit.SignalResponse{
+			Message: &voicekit.SignalResponse_Pong{Pong: 321},
 		}
 
 		var reqMessageOut proto.Message
 		var resErr error
 		done := make(chan struct{})
 
-		client, err := routing.NewSignalClient(livekit.NodeID("node0"), bus, cfg)
+		client, err := routing.NewSignalClient(voicekit.NodeID("node0"), bus, cfg)
 		require.NoError(t, err)
 
 		handler := &servicefakes.FakeSessionHandler{
@@ -68,7 +68,7 @@ func TestSignal(t *testing.T) {
 			HandleSessionStub: func(
 				ctx context.Context,
 				pi routing.ParticipantInit,
-				connectionID livekit.ConnectionID,
+				connectionID voicekit.ConnectionID,
 				requestSource routing.MessageSource,
 				responseSink routing.MessageSink,
 			) error {
@@ -81,7 +81,7 @@ func TestSignal(t *testing.T) {
 				return nil
 			},
 		}
-		server, err := service.NewSignalServer(livekit.NodeID("node1"), "region", bus, cfg, handler)
+		server, err := service.NewSignalServer(voicekit.NodeID("node1"), "region", bus, cfg, handler)
 		require.NoError(t, err)
 
 		err = server.Start()
@@ -89,9 +89,9 @@ func TestSignal(t *testing.T) {
 
 		_, reqSink, resSource, err := client.StartParticipantSignal(
 			context.Background(),
-			livekit.RoomName("room1"),
+			voicekit.RoomName("room1"),
 			routing.ParticipantInit{},
-			livekit.NodeID("node1"),
+			voicekit.NodeID("node1"),
 		)
 		require.NoError(t, err)
 
@@ -109,14 +109,14 @@ func TestSignal(t *testing.T) {
 	t.Run("messages are delivered when session handler fails", func(t *testing.T) {
 		bus := psrpc.NewLocalMessageBus()
 
-		resMessageIn := &livekit.SignalResponse{
-			Message: &livekit.SignalResponse_Pong{Pong: 321},
+		resMessageIn := &voicekit.SignalResponse{
+			Message: &voicekit.SignalResponse_Pong{Pong: 321},
 		}
 
 		var resErr error
 		done := make(chan struct{})
 
-		client, err := routing.NewSignalClient(livekit.NodeID("node0"), bus, cfg)
+		client, err := routing.NewSignalClient(voicekit.NodeID("node0"), bus, cfg)
 		require.NoError(t, err)
 
 		handler := &servicefakes.FakeSessionHandler{
@@ -124,7 +124,7 @@ func TestSignal(t *testing.T) {
 			HandleSessionStub: func(
 				ctx context.Context,
 				pi routing.ParticipantInit,
-				connectionID livekit.ConnectionID,
+				connectionID voicekit.ConnectionID,
 				requestSource routing.MessageSource,
 				responseSink routing.MessageSink,
 			) error {
@@ -133,7 +133,7 @@ func TestSignal(t *testing.T) {
 				return errors.New("start session failed")
 			},
 		}
-		server, err := service.NewSignalServer(livekit.NodeID("node1"), "region", bus, cfg, handler)
+		server, err := service.NewSignalServer(voicekit.NodeID("node1"), "region", bus, cfg, handler)
 		require.NoError(t, err)
 
 		err = server.Start()
@@ -141,9 +141,9 @@ func TestSignal(t *testing.T) {
 
 		_, _, resSource, err := client.StartParticipantSignal(
 			context.Background(),
-			livekit.RoomName("room1"),
+			voicekit.RoomName("room1"),
 			routing.ParticipantInit{},
-			livekit.NodeID("node1"),
+			voicekit.NodeID("node1"),
 		)
 		require.NoError(t, err)
 

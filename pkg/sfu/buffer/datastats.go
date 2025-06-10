@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type DataStatsParam struct {
@@ -57,19 +57,19 @@ func (s *DataStats) Update(bytes int, time int64) {
 	s.windowBytes += int64(bytes)
 }
 
-func (s *DataStats) ToProtoActive() *livekit.RTPStats {
+func (s *DataStats) ToProtoActive() *voicekit.RTPStats {
 	if s.params.WindowDuration == 0 {
-		return &livekit.RTPStats{}
+		return &voicekit.RTPStats{}
 	}
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	now := time.Now().UnixNano()
 	duration := now - s.windowStart
 	if duration > s.params.WindowDuration.Nanoseconds() {
-		return &livekit.RTPStats{}
+		return &voicekit.RTPStats{}
 	}
 
-	return &livekit.RTPStats{
+	return &voicekit.RTPStats{
 		StartTime: timestamppb.New(time.Unix(s.windowStart/1e9, s.windowStart%1e9)),
 		EndTime:   timestamppb.New(time.Unix(0, now)),
 		Duration:  float64(duration / 1e9),
@@ -84,7 +84,7 @@ func (s *DataStats) Stop() {
 	s.lock.Unlock()
 }
 
-func (s *DataStats) ToProtoAggregateOnly() *livekit.RTPStats {
+func (s *DataStats) ToProtoAggregateOnly() *voicekit.RTPStats {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -92,7 +92,7 @@ func (s *DataStats) ToProtoAggregateOnly() *livekit.RTPStats {
 	if end.IsZero() {
 		end = time.Now()
 	}
-	return &livekit.RTPStats{
+	return &voicekit.RTPStats{
 		StartTime: timestamppb.New(s.startTime),
 		EndTime:   timestamppb.New(end),
 		Duration:  end.Sub(s.startTime).Seconds(),

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,19 +31,19 @@ import (
 	"github.com/pion/webrtc/v4"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/livekit-server/pkg/sfu/audio"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	act "github.com/livekit/livekit-server/pkg/sfu/rtpextension/abscapturetime"
-	dd "github.com/livekit/livekit-server/pkg/sfu/rtpextension/dependencydescriptor"
-	"github.com/livekit/livekit-server/pkg/sfu/rtpstats"
-	"github.com/livekit/livekit-server/pkg/sfu/utils"
-	sutils "github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/mediatransportutil/pkg/bucket"
-	"github.com/livekit/mediatransportutil/pkg/nack"
-	"github.com/livekit/mediatransportutil/pkg/twcc"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/voicekit-server/pkg/sfu/audio"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	act "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/abscapturetime"
+	dd "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/dependencydescriptor"
+	"github.com/voicekit/voicekit-server/pkg/sfu/rtpstats"
+	"github.com/voicekit/voicekit-server/pkg/sfu/utils"
+	sutils "github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/mediatransportutil/pkg/bucket"
+	"github.com/voicekit/mediatransportutil/pkg/nack"
+	"github.com/voicekit/mediatransportutil/pkg/twcc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/mono"
 )
 
 const (
@@ -123,7 +123,7 @@ type Buffer struct {
 	onRtcpFeedback     func([]rtcp.Packet)
 	onRtcpSenderReport func()
 	onFpsChanged       func()
-	onFinalRtpStats    func(*livekit.RTPStats)
+	onFinalRtpStats    func(*voicekit.RTPStats)
 	onCodecChange      func(webrtc.RTPCodecParameters)
 
 	// logger
@@ -1061,7 +1061,7 @@ func (b *Buffer) buildReceptionReport() *rtcp.ReceptionReport {
 
 func (b *Buffer) SetSenderReportData(rtpTime uint32, ntpTime uint64, packets uint32, octets uint32) {
 	b.RLock()
-	srData := &livekit.RTCPSenderReportState{
+	srData := &voicekit.RTCPSenderReportState{
 		RtpTimestamp: rtpTime,
 		NtpTimestamp: ntpTime,
 		At:           mono.UnixNano(),
@@ -1082,7 +1082,7 @@ func (b *Buffer) SetSenderReportData(rtpTime uint32, ntpTime uint64, packets uin
 	}
 }
 
-func (b *Buffer) GetSenderReportData() *livekit.RTCPSenderReportState {
+func (b *Buffer) GetSenderReportData() *voicekit.RTCPSenderReportState {
 	b.RLock()
 	defer b.RUnlock()
 
@@ -1154,13 +1154,13 @@ func (b *Buffer) getOnRtcpSenderReport() func() {
 	return b.onRtcpSenderReport
 }
 
-func (b *Buffer) OnFinalRtpStats(fn func(*livekit.RTPStats)) {
+func (b *Buffer) OnFinalRtpStats(fn func(*voicekit.RTPStats)) {
 	b.Lock()
 	b.onFinalRtpStats = fn
 	b.Unlock()
 }
 
-func (b *Buffer) getOnFinalRtpStats() func(*livekit.RTPStats) {
+func (b *Buffer) getOnFinalRtpStats() func(*voicekit.RTPStats) {
 	b.RLock()
 	defer b.RUnlock()
 
@@ -1177,7 +1177,7 @@ func (b *Buffer) GetClockRate() uint32 {
 	return b.clockRate
 }
 
-func (b *Buffer) GetStats() *livekit.RTPStats {
+func (b *Buffer) GetStats() *voicekit.RTPStats {
 	b.RLock()
 	defer b.RUnlock()
 

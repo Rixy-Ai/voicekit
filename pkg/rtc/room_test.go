@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,26 +22,26 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/protocol/auth/authfakes"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/webhook"
+	"github.com/voicekit/protocol/auth/authfakes"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/webhook"
 
-	"github.com/livekit/livekit-server/version"
+	"github.com/voicekit/voicekit-server/version"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/rtc/types/typesfakes"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/audio"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/livekit-server/pkg/telemetry/telemetryfakes"
-	"github.com/livekit/livekit-server/pkg/testutils"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types/typesfakes"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/audio"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/telemetryfakes"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
 )
 
 func init() {
-	prometheus.Init("test", livekit.NodeType_SERVER)
+	prometheus.Init("test", voicekit.NodeType_SERVER)
 }
 
 const (
@@ -55,7 +55,7 @@ func init() {
 	roomUpdateInterval = defaultDelay
 }
 
-var iceServersForRoom = []*livekit.ICEServer{{Urls: []string{"stun:stun.l.google.com:19302"}}}
+var iceServersForRoom = []*voicekit.ICEServer{{Urls: []string{"stun:stun.l.google.com:19302"}}}
 
 func TestJoinedState(t *testing.T) {
 	t.Run("new room should return joinedAt 0", func(t *testing.T) {
@@ -96,7 +96,7 @@ func TestRoomJoin(t *testing.T) {
 
 		// expect new participant to get a JoinReply
 		res := pNew.SendJoinResponseArgsForCall(0)
-		require.Equal(t, livekit.RoomID(res.Room.Sid), rm.ID())
+		require.Equal(t, voicekit.RoomID(res.Room.Sid), rm.ID())
 		require.Len(t, res.OtherParticipants, numParticipants)
 		require.Len(t, rm.GetParticipants(), numParticipants+1)
 		require.NotEmpty(t, res.IceServers)
@@ -112,7 +112,7 @@ func TestRoomJoin(t *testing.T) {
 
 		stateChangeCB := p.OnStateChangeArgsForCall(0)
 		require.NotNil(t, stateChangeCB)
-		p.StateReturns(livekit.ParticipantInfo_ACTIVE)
+		p.StateReturns(voicekit.ParticipantInfo_ACTIVE)
 		stateChangeCB(p)
 
 		// it should become a subscriber when connectivity changes
@@ -136,7 +136,7 @@ func TestRoomJoin(t *testing.T) {
 		participants := rm.GetParticipants()
 		p := participants[0].(*typesfakes.FakeLocalParticipant)
 		disconnectedParticipant := participants[1].(*typesfakes.FakeLocalParticipant)
-		disconnectedParticipant.StateReturns(livekit.ParticipantInfo_DISCONNECTED)
+		disconnectedParticipant.StateReturns(voicekit.ParticipantInfo_DISCONNECTED)
 
 		rm.RemoveParticipant(p.Identity(), p.ID(), types.ParticipantCloseReasonClientRequestLeave)
 		time.Sleep(defaultDelay)
@@ -193,8 +193,8 @@ func TestParticipantUpdate(t *testing.T) {
 			"track publishes are sent to existing participants",
 			true,
 			func(p types.LocalParticipant) {
-				p.AddTrack(&livekit.AddTrackRequest{
-					Type: livekit.TrackType_VIDEO,
+				p.AddTrack(&voicekit.AddTrackRequest{
+					Type: voicekit.TrackType_VIDEO,
 				})
 			},
 		},
@@ -204,7 +204,7 @@ func TestParticipantUpdate(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			rm := newRoomWithParticipants(t, testRoomOpts{num: 3})
 			// remember how many times send has been called for each
-			callCounts := make(map[livekit.ParticipantID]int)
+			callCounts := make(map[voicekit.ParticipantID]int)
 			for _, p := range rm.GetParticipants() {
 				fp := p.(*typesfakes.FakeLocalParticipant)
 				callCounts[p.ID()] = fp.SendParticipantUpdateCallCount()
@@ -228,48 +228,48 @@ func TestParticipantUpdate(t *testing.T) {
 
 func TestPushAndDequeueUpdates(t *testing.T) {
 	identity := "test_user"
-	publisher1v1 := &livekit.ParticipantInfo{
+	publisher1v1 := &voicekit.ParticipantInfo{
 		Identity:    identity,
 		Sid:         "1",
 		IsPublisher: true,
 		Version:     1,
 		JoinedAt:    0,
 	}
-	publisher1v2 := &livekit.ParticipantInfo{
+	publisher1v2 := &voicekit.ParticipantInfo{
 		Identity:    identity,
 		Sid:         "1",
 		IsPublisher: true,
 		Version:     2,
 		JoinedAt:    1,
 	}
-	publisher2 := &livekit.ParticipantInfo{
+	publisher2 := &voicekit.ParticipantInfo{
 		Identity:    identity,
 		Sid:         "2",
 		IsPublisher: true,
 		Version:     1,
 		JoinedAt:    2,
 	}
-	subscriber1v1 := &livekit.ParticipantInfo{
+	subscriber1v1 := &voicekit.ParticipantInfo{
 		Identity: identity,
 		Sid:      "1",
 		Version:  1,
 		JoinedAt: 0,
 	}
-	subscriber1v2 := &livekit.ParticipantInfo{
+	subscriber1v2 := &voicekit.ParticipantInfo{
 		Identity: identity,
 		Sid:      "1",
 		Version:  2,
 		JoinedAt: 1,
 	}
 
-	requirePIEquals := func(t *testing.T, a, b *livekit.ParticipantInfo) {
+	requirePIEquals := func(t *testing.T, a, b *voicekit.ParticipantInfo) {
 		require.Equal(t, a.Sid, b.Sid)
 		require.Equal(t, a.Identity, b.Identity)
 		require.Equal(t, a.Version, b.Version)
 	}
 	testCases := []struct {
 		name        string
-		pi          *livekit.ParticipantInfo
+		pi          *voicekit.ParticipantInfo
 		closeReason types.ParticipantCloseReason
 		immediate   bool
 		existing    *ParticipantUpdate
@@ -290,7 +290,7 @@ func TestPushAndDequeueUpdates(t *testing.T) {
 			pi:       subscriber1v2,
 			existing: &ParticipantUpdate{ParticipantInfo: utils.CloneProto(subscriber1v1)}, // clone the existing value since it can be modified when setting to disconnected
 			validate: func(t *testing.T, rm *Room, _ []*ParticipantUpdate) {
-				queued := rm.batchedUpdates[livekit.ParticipantIdentity(identity)]
+				queued := rm.batchedUpdates[voicekit.ParticipantIdentity(identity)]
 				require.NotNil(t, queued)
 				requirePIEquals(t, subscriber1v2, queued.ParticipantInfo)
 			},
@@ -302,7 +302,7 @@ func TestPushAndDequeueUpdates(t *testing.T) {
 			immediate: true,
 			expected:  []*ParticipantUpdate{{ParticipantInfo: subscriber1v2}},
 			validate: func(t *testing.T, rm *Room, _ []*ParticipantUpdate) {
-				queued := rm.batchedUpdates[livekit.ParticipantIdentity(identity)]
+				queued := rm.batchedUpdates[voicekit.ParticipantIdentity(identity)]
 				require.Nil(t, queued)
 			},
 		},
@@ -311,7 +311,7 @@ func TestPushAndDequeueUpdates(t *testing.T) {
 			pi:       subscriber1v1,
 			existing: &ParticipantUpdate{ParticipantInfo: utils.CloneProto(subscriber1v2)},
 			validate: func(t *testing.T, rm *Room, updates []*ParticipantUpdate) {
-				queued := rm.batchedUpdates[livekit.ParticipantIdentity(identity)]
+				queued := rm.batchedUpdates[voicekit.ParticipantIdentity(identity)]
 				requirePIEquals(t, subscriber1v2, queued.ParticipantInfo)
 			},
 		},
@@ -322,11 +322,11 @@ func TestPushAndDequeueUpdates(t *testing.T) {
 			existing:    &ParticipantUpdate{ParticipantInfo: utils.CloneProto(subscriber1v2), CloseReason: types.ParticipantCloseReasonStale},
 			expected: []*ParticipantUpdate{
 				{
-					ParticipantInfo: &livekit.ParticipantInfo{
+					ParticipantInfo: &voicekit.ParticipantInfo{
 						Identity: identity,
 						Sid:      "1",
 						Version:  2,
-						State:    livekit.ParticipantInfo_DISCONNECTED,
+						State:    voicekit.ParticipantInfo_DISCONNECTED,
 					},
 					IsSynthesizedDisconnect: true,
 					CloseReason:             types.ParticipantCloseReasonStale,
@@ -349,14 +349,14 @@ func TestPushAndDequeueUpdates(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			rm := newRoomWithParticipants(t, testRoomOpts{num: 1})
 			if tc.existing != nil {
-				rm.batchedUpdates[livekit.ParticipantIdentity(tc.existing.ParticipantInfo.Identity)] = tc.existing
+				rm.batchedUpdates[voicekit.ParticipantIdentity(tc.existing.ParticipantInfo.Identity)] = tc.existing
 			}
 			rm.batchedUpdatesMu.Lock()
 			updates := PushAndDequeueUpdates(
 				tc.pi,
 				tc.closeReason,
 				tc.immediate,
-				rm.GetParticipant(livekit.ParticipantIdentity(tc.pi.Identity)),
+				rm.GetParticipant(voicekit.ParticipantIdentity(tc.pi.Identity)),
 				rm.batchedUpdates,
 			)
 			rm.batchedUpdatesMu.Unlock()
@@ -429,14 +429,14 @@ func TestNewTrack(t *testing.T) {
 		rm := newRoomWithParticipants(t, testRoomOpts{num: 3})
 		participants := rm.GetParticipants()
 		p0 := participants[0].(*typesfakes.FakeLocalParticipant)
-		p0.StateReturns(livekit.ParticipantInfo_JOINED)
+		p0.StateReturns(voicekit.ParticipantInfo_JOINED)
 		p1 := participants[1].(*typesfakes.FakeLocalParticipant)
-		p1.StateReturns(livekit.ParticipantInfo_ACTIVE)
+		p1.StateReturns(voicekit.ParticipantInfo_ACTIVE)
 
 		pub := participants[2].(*typesfakes.FakeLocalParticipant)
 
 		// pub adds track
-		track := NewMockTrack(livekit.TrackType_VIDEO, "webcam")
+		track := NewMockTrack(voicekit.TrackType_VIDEO, "webcam")
 		trackCB := pub.OnTrackPublishedArgsForCall(0)
 		require.NotNil(t, trackCB)
 		trackCB(pub, track)
@@ -448,8 +448,8 @@ func TestNewTrack(t *testing.T) {
 
 func TestActiveSpeakers(t *testing.T) {
 	t.Parallel()
-	getActiveSpeakerUpdates := func(p *typesfakes.FakeLocalParticipant) [][]*livekit.SpeakerInfo {
-		var updates [][]*livekit.SpeakerInfo
+	getActiveSpeakerUpdates := func(p *typesfakes.FakeLocalParticipant) [][]*voicekit.SpeakerInfo {
+		var updates [][]*voicekit.SpeakerInfo
 		numCalls := p.SendSpeakerUpdateCallCount()
 		for i := 0; i < numCalls; i++ {
 			infos, _ := p.SendSpeakerUpdateArgsForCall(i)
@@ -594,7 +594,7 @@ func TestDataChannel(t *testing.T) {
 		"cur", "legacy sid", "legacy identity",
 	}
 
-	setSource := func(mode int, dp *livekit.DataPacket, p types.LocalParticipant) {
+	setSource := func(mode int, dp *voicekit.DataPacket, p types.LocalParticipant) {
 		switch mode {
 		case curAPI:
 			dp.ParticipantIdentity = string(p.Identity())
@@ -604,7 +604,7 @@ func TestDataChannel(t *testing.T) {
 			dp.GetUser().ParticipantIdentity = string(p.Identity())
 		}
 	}
-	setDest := func(mode int, dp *livekit.DataPacket, p types.LocalParticipant) {
+	setDest := func(mode int, dp *voicekit.DataPacket, p types.LocalParticipant) {
 		switch mode {
 		case curAPI:
 			dp.DestinationIdentities = []string{string(p.Identity())}
@@ -624,10 +624,10 @@ func TestDataChannel(t *testing.T) {
 				participants := rm.GetParticipants()
 				p := participants[0].(*typesfakes.FakeLocalParticipant)
 
-				packet := &livekit.DataPacket{
-					Kind: livekit.DataPacket_RELIABLE,
-					Value: &livekit.DataPacket_User{
-						User: &livekit.UserPacket{
+				packet := &voicekit.DataPacket{
+					Kind: voicekit.DataPacket_RELIABLE,
+					Value: &voicekit.DataPacket_User{
+						User: &voicekit.UserPacket{
 							Payload: []byte("message.."),
 						},
 					},
@@ -668,10 +668,10 @@ func TestDataChannel(t *testing.T) {
 				p := participants[0].(*typesfakes.FakeLocalParticipant)
 				p1 := participants[1].(*typesfakes.FakeLocalParticipant)
 
-				packet := &livekit.DataPacket{
-					Kind: livekit.DataPacket_RELIABLE,
-					Value: &livekit.DataPacket_User{
-						User: &livekit.UserPacket{
+				packet := &voicekit.DataPacket{
+					Kind: voicekit.DataPacket_RELIABLE,
+					Value: &voicekit.DataPacket_User{
+						User: &voicekit.UserPacket{
 							Payload: []byte("message to p1.."),
 						},
 					},
@@ -711,10 +711,10 @@ func TestDataChannel(t *testing.T) {
 		p := participants[0].(*typesfakes.FakeLocalParticipant)
 		p.CanPublishDataReturns(false)
 
-		packet := livekit.DataPacket{
-			Kind: livekit.DataPacket_RELIABLE,
-			Value: &livekit.DataPacket_User{
-				User: &livekit.UserPacket{
+		packet := voicekit.DataPacket{
+			Kind: voicekit.DataPacket_RELIABLE,
+			Value: &voicekit.DataPacket_User{
+				User: &voicekit.UserPacket{
 					Payload: []byte{},
 				},
 			},
@@ -741,7 +741,7 @@ func TestHiddenParticipants(t *testing.T) {
 
 		// expect new participant to get a JoinReply
 		res := pNew.SendJoinResponseArgsForCall(0)
-		require.Equal(t, livekit.RoomID(res.Room.Sid), rm.ID())
+		require.Equal(t, voicekit.RoomID(res.Room.Sid), rm.ID())
 		require.Len(t, res.OtherParticipants, 2)
 		require.Len(t, rm.GetParticipants(), 4)
 		require.NotEmpty(t, res.IceServers)
@@ -757,7 +757,7 @@ func TestHiddenParticipants(t *testing.T) {
 
 		stateChangeCB := hidden.OnStateChangeArgsForCall(0)
 		require.NotNil(t, stateChangeCB)
-		hidden.StateReturns(livekit.ParticipantInfo_ACTIVE)
+		hidden.StateReturns(voicekit.ParticipantInfo_ACTIVE)
 		stateChangeCB(hidden)
 
 		require.Eventually(t, func() bool { return hidden.SubscribeToTrackCallCount() == 2 }, 5*time.Second, 10*time.Millisecond)
@@ -813,7 +813,7 @@ func newRoomWithParticipants(t *testing.T, opts testRoomOpts) *Room {
 	require.NoError(t, err)
 
 	rm := NewRoom(
-		&livekit.Room{Name: "room"},
+		&voicekit.Room{Name: "room"},
 		nil,
 		WebRTCConfig{},
 		config.RoomConfig{
@@ -826,8 +826,8 @@ func newRoomWithParticipants(t *testing.T, opts testRoomOpts) *Room {
 				SmoothIntervals: opts.audioSmoothIntervals,
 			},
 		},
-		&livekit.ServerInfo{
-			Edition:  livekit.ServerInfo_Standard,
+		&voicekit.ServerInfo{
+			Edition:  voicekit.ServerInfo_Standard,
 			Version:  version.Version,
 			Protocol: types.CurrentProtocol,
 			NodeId:   "testnode",
@@ -837,11 +837,11 @@ func newRoomWithParticipants(t *testing.T, opts testRoomOpts) *Room {
 		nil, nil, nil,
 	)
 	for i := 0; i < opts.num+opts.numHidden; i++ {
-		identity := livekit.ParticipantIdentity(fmt.Sprintf("p%d", i))
+		identity := voicekit.ParticipantIdentity(fmt.Sprintf("p%d", i))
 		participant := NewMockParticipant(identity, opts.protocol, i >= opts.num, true)
 		err := rm.Join(participant, nil, &ParticipantOptions{AutoSubscribe: true}, iceServersForRoom)
 		require.NoError(t, err)
-		participant.StateReturns(livekit.ParticipantInfo_ACTIVE)
+		participant.StateReturns(voicekit.ParticipantInfo_ACTIVE)
 		participant.IsReadyReturns(true)
 		// each participant has a track
 		participant.GetPublishedTracksReturns([]types.MediaTrack{

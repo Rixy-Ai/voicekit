@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 const (
@@ -38,7 +38,7 @@ func NewUserPacketDeduper() *UserPacketDeduper {
 	}
 }
 
-func (u *UserPacketDeduper) IsDuplicate(up *livekit.UserPacket) bool {
+func (u *UserPacketDeduper) IsDuplicate(up *voicekit.UserPacket) bool {
 	id, err := uuid.FromBytes(up.Nonce)
 	if err != nil {
 		return false

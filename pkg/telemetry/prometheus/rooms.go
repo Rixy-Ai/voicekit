@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 var (
@@ -49,15 +49,15 @@ var (
 	promPubSubTime             *prometheus.HistogramVec
 )
 
-func initRoomStats(nodeID string, nodeType livekit.NodeType) {
+func initRoomStats(nodeID string, nodeType voicekit.NodeType) {
 	promRoomCurrent = prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "room",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	})
 	promRoomDuration = prometheus.NewHistogram(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "room",
 		Name:        "duration_seconds",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -66,51 +66,51 @@ func initRoomStats(nodeID string, nodeType livekit.NodeType) {
 		},
 	})
 	promParticipantCurrent = prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "participant",
 		Name:        "total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	})
 	promTrackPublishedCurrent = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "track",
 		Name:        "published_total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, []string{"kind"})
 	promTrackSubscribedCurrent = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "track",
 		Name:        "subscribed_total",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, []string{"kind"})
 	promTrackPublishCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "track",
 		Name:        "publish_counter",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, []string{"kind", "state"})
 	promTrackSubscribeCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "track",
 		Name:        "subscribe_counter",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 	}, []string{"state", "error"})
 	promSessionStartTime = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "session",
 		Name:        "start_time_ms",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 		Buckets:     prometheus.ExponentialBucketsRange(100, 10000, 15),
 	}, []string{"protocol_version"})
 	promSessionDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "session",
 		Name:        "duration_ms",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 		Buckets:     prometheus.ExponentialBucketsRange(100, 4*60*60*1000, 15),
 	}, []string{"protocol_version"})
 	promPubSubTime = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "pubsubtime",
 		Name:        "ms",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -172,15 +172,15 @@ func AddPublishSuccess(kind string) {
 	promTrackPublishCounter.WithLabelValues(kind, "success").Inc()
 }
 
-func RecordPublishTime(source livekit.TrackSource, trackType livekit.TrackType, d time.Duration, sdk livekit.ClientInfo_SDK, kind livekit.ParticipantInfo_Kind) {
+func RecordPublishTime(source voicekit.TrackSource, trackType voicekit.TrackType, d time.Duration, sdk voicekit.ClientInfo_SDK, kind voicekit.ParticipantInfo_Kind) {
 	recordPubSubTime(true, source, trackType, d, sdk, kind, 1)
 }
 
-func RecordSubscribeTime(source livekit.TrackSource, trackType livekit.TrackType, d time.Duration, sdk livekit.ClientInfo_SDK, kind livekit.ParticipantInfo_Kind, count int) {
+func RecordSubscribeTime(source voicekit.TrackSource, trackType voicekit.TrackType, d time.Duration, sdk voicekit.ClientInfo_SDK, kind voicekit.ParticipantInfo_Kind, count int) {
 	recordPubSubTime(false, source, trackType, d, sdk, kind, count)
 }
 
-func recordPubSubTime(isPublish bool, source livekit.TrackSource, trackType livekit.TrackType, d time.Duration, sdk livekit.ClientInfo_SDK, kind livekit.ParticipantInfo_Kind, count int) {
+func recordPubSubTime(isPublish bool, source voicekit.TrackSource, trackType voicekit.TrackType, d time.Duration, sdk voicekit.ClientInfo_SDK, kind voicekit.ParticipantInfo_Kind, count int) {
 	direction := "subscribe"
 	if isPublish {
 		direction = "publish"

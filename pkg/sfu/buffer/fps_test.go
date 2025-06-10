@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import (
 	"github.com/pion/rtp"
 	"github.com/stretchr/testify/require"
 
-	dd "github.com/livekit/livekit-server/pkg/sfu/rtpextension/dependencydescriptor"
-	"github.com/livekit/protocol/logger"
+	dd "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/dependencydescriptor"
+	"github.com/voicekit/protocol/logger"
 )
 
 type testFrameInfo struct {

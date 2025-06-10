@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 LiveKit, Inc
+ * Copyright 2025 Rixy Ai
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ import (
 	"go.uber.org/atomic"
 	"golang.org/x/exp/maps"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 )
 
 // using var instead of const to override in tests
@@ -48,7 +48,7 @@ var (
 )
 
 const (
-	trackIDForReconcileSubscriptions = livekit.TrackID("subscriptions_reconcile")
+	trackIDForReconcileSubscriptions = voicekit.TrackID("subscriptions_reconcile")
 )
 
 type SubscriptionManagerParams struct {
@@ -57,7 +57,7 @@ type SubscriptionManagerParams struct {
 	TrackResolver       types.MediaTrackResolver
 	OnTrackSubscribed   func(subTrack types.SubscribedTrack)
 	OnTrackUnsubscribed func(subTrack types.SubscribedTrack)
-	OnSubscriptionError func(trackID livekit.TrackID, fatal bool, err error)
+	OnSubscriptionError func(trackID voicekit.TrackID, fatal bool, err error)
 	Telemetry           telemetry.TelemetryService
 
 	SubscriptionLimitVideo, SubscriptionLimitAudio int32
@@ -69,25 +69,25 @@ type SubscriptionManagerParams struct {
 type SubscriptionManager struct {
 	params              SubscriptionManagerParams
 	lock                sync.RWMutex
-	subscriptions       map[livekit.TrackID]*trackSubscription
+	subscriptions       map[voicekit.TrackID]*trackSubscription
 	pendingUnsubscribes atomic.Int32
 
 	subscribedVideoCount, subscribedAudioCount atomic.Int32
 
-	subscribedTo map[livekit.ParticipantID]map[livekit.TrackID]struct{}
-	reconcileCh  chan livekit.TrackID
+	subscribedTo map[voicekit.ParticipantID]map[voicekit.TrackID]struct{}
+	reconcileCh  chan voicekit.TrackID
 	closeCh      chan struct{}
 	doneCh       chan struct{}
 
-	onSubscribeStatusChanged func(publisherID livekit.ParticipantID, subscribed bool)
+	onSubscribeStatusChanged func(publisherID voicekit.ParticipantID, subscribed bool)
 }
 
 func NewSubscriptionManager(params SubscriptionManagerParams) *SubscriptionManager {
 	m := &SubscriptionManager{
 		params:        params,
-		subscriptions: make(map[livekit.TrackID]*trackSubscription),
-		subscribedTo:  make(map[livekit.ParticipantID]map[livekit.TrackID]struct{}),
-		reconcileCh:   make(chan livekit.TrackID, 50),
+		subscriptions: make(map[voicekit.TrackID]*trackSubscription),
+		subscribedTo:  make(map[voicekit.ParticipantID]map[voicekit.TrackID]struct{}),
+		reconcileCh:   make(chan voicekit.TrackID, 50),
 		closeCh:       make(chan struct{}),
 		doneCh:        make(chan struct{}),
 	}
@@ -139,7 +139,7 @@ func (m *SubscriptionManager) isClosed() bool {
 	}
 }
 
-func (m *SubscriptionManager) SubscribeToTrack(trackID livekit.TrackID) {
+func (m *SubscriptionManager) SubscribeToTrack(trackID voicekit.TrackID) {
 	if m.params.UseOneShotSignallingMode {
 		m.subscribeSynchronous(trackID)
 		return
@@ -166,7 +166,7 @@ func (m *SubscriptionManager) SubscribeToTrack(trackID livekit.TrackID) {
 	m.queueReconcile(trackID)
 }
 
-func (m *SubscriptionManager) UnsubscribeFromTrack(trackID livekit.TrackID) {
+func (m *SubscriptionManager) UnsubscribeFromTrack(trackID voicekit.TrackID) {
 	if m.params.UseOneShotSignallingMode {
 		m.unsubscribeSynchronous(trackID)
 		return
@@ -212,7 +212,7 @@ func (m *SubscriptionManager) GetSubscribedTracks() []types.SubscribedTrack {
 	return tracks
 }
 
-func (m *SubscriptionManager) IsTrackNameSubscribed(publisherIdentity livekit.ParticipantIdentity, trackName string) bool {
+func (m *SubscriptionManager) IsTrackNameSubscribed(publisherIdentity voicekit.ParticipantIdentity, trackName string) bool {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -225,11 +225,11 @@ func (m *SubscriptionManager) IsTrackNameSubscribed(publisherIdentity livekit.Pa
 	return false
 }
 
-func (m *SubscriptionManager) StopAndGetSubscribedTracksForwarderState() map[livekit.TrackID]*livekit.RTPForwarderState {
+func (m *SubscriptionManager) StopAndGetSubscribedTracksForwarderState() map[voicekit.TrackID]*voicekit.RTPForwarderState {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
-	states := make(map[livekit.TrackID]*livekit.RTPForwarderState, len(m.subscriptions))
+	states := make(map[voicekit.TrackID]*voicekit.RTPForwarderState, len(m.subscriptions))
 	for trackID, t := range m.subscriptions {
 		st := t.getSubscribedTrack()
 		if st != nil {
@@ -256,14 +256,14 @@ func (m *SubscriptionManager) HasSubscriptions() bool {
 	return false
 }
 
-func (m *SubscriptionManager) GetSubscribedParticipants() []livekit.ParticipantID {
+func (m *SubscriptionManager) GetSubscribedParticipants() []voicekit.ParticipantID {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
 	return maps.Keys(m.subscribedTo)
 }
 
-func (m *SubscriptionManager) IsSubscribedTo(participantID livekit.ParticipantID) bool {
+func (m *SubscriptionManager) IsSubscribedTo(participantID voicekit.ParticipantID) bool {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -271,7 +271,7 @@ func (m *SubscriptionManager) IsSubscribedTo(participantID livekit.ParticipantID
 	return ok
 }
 
-func (m *SubscriptionManager) UpdateSubscribedTrackSettings(trackID livekit.TrackID, settings *livekit.UpdateTrackSettings) {
+func (m *SubscriptionManager) UpdateSubscribedTrackSettings(trackID voicekit.TrackID, settings *voicekit.UpdateTrackSettings) {
 	m.lock.Lock()
 	sub, ok := m.subscriptions[trackID]
 	if !ok {
@@ -289,7 +289,7 @@ func (m *SubscriptionManager) UpdateSubscribedTrackSettings(trackID livekit.Trac
 // OnSubscribeStatusChanged callback will be notified when a participant subscribes or unsubscribes to another participant
 // it will only fire once per publisher. If current participant is subscribed to multiple tracks from another, this
 // callback will only fire once.
-func (m *SubscriptionManager) OnSubscribeStatusChanged(fn func(publisherID livekit.ParticipantID, subscribed bool)) {
+func (m *SubscriptionManager) OnSubscribeStatusChanged(fn func(publisherID voicekit.ParticipantID, subscribed bool)) {
 	m.lock.Lock()
 	m.onSubscribeStatusChanged = fn
 	m.lock.Unlock()
@@ -320,7 +320,7 @@ func (m *SubscriptionManager) ReconcileAll() {
 	m.queueReconcile(trackIDForReconcileSubscriptions)
 }
 
-func (m *SubscriptionManager) setDesired(trackID livekit.TrackID, desired bool) (*trackSubscription, bool) {
+func (m *SubscriptionManager) setDesired(trackID voicekit.TrackID, desired bool) (*trackSubscription, bool) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -374,7 +374,7 @@ func (m *SubscriptionManager) reconcileSubscription(s *trackSubscription) {
 			m.params.Telemetry.TrackSubscribeRequested(
 				context.Background(),
 				s.subscriberID,
-				&livekit.TrackInfo{
+				&voicekit.TrackInfo{
 					Sid: string(s.trackID),
 				},
 			)
@@ -461,7 +461,7 @@ func (m *SubscriptionManager) reconcileSubscription(s *trackSubscription) {
 }
 
 // trigger an immediate reconciliation, when trackID is empty, will reconcile all subscriptions
-func (m *SubscriptionManager) queueReconcile(trackID livekit.TrackID) {
+func (m *SubscriptionManager) queueReconcile(trackID voicekit.TrackID) {
 	select {
 	case m.reconcileCh <- trackID:
 	default:
@@ -493,14 +493,14 @@ func (m *SubscriptionManager) reconcileWorker() {
 	}
 }
 
-func (m *SubscriptionManager) hasCapacityForSubscription(kind livekit.TrackType) bool {
+func (m *SubscriptionManager) hasCapacityForSubscription(kind voicekit.TrackType) bool {
 	switch kind {
-	case livekit.TrackType_VIDEO:
+	case voicekit.TrackType_VIDEO:
 		if m.params.SubscriptionLimitVideo > 0 && m.subscribedVideoCount.Load() >= m.params.SubscriptionLimitVideo {
 			return false
 		}
 
-	case livekit.TrackType_AUDIO:
+	case voicekit.TrackType_AUDIO:
 		if m.params.SubscriptionLimitAudio > 0 && m.subscribedAudioCount.Load() >= m.params.SubscriptionLimitAudio {
 			return false
 		}
@@ -597,9 +597,9 @@ func (m *SubscriptionManager) subscribe(s *trackSubscription) error {
 		s.setSubscribedTrack(subTrack)
 
 		switch track.Kind() {
-		case livekit.TrackType_VIDEO:
+		case voicekit.TrackType_VIDEO:
 			m.subscribedVideoCount.Inc()
-		case livekit.TrackType_AUDIO:
+		case voicekit.TrackType_AUDIO:
 			m.subscribedAudioCount.Inc()
 		}
 
@@ -624,7 +624,7 @@ func (m *SubscriptionManager) subscribe(s *trackSubscription) error {
 	pTracks := m.subscribedTo[publisherID]
 	changedCB := m.onSubscribeStatusChanged
 	if pTracks == nil {
-		pTracks = make(map[livekit.TrackID]struct{})
+		pTracks = make(map[voicekit.TrackID]struct{})
 		m.subscribedTo[publisherID] = pTracks
 		firstSubscribe = true
 	}
@@ -637,7 +637,7 @@ func (m *SubscriptionManager) subscribe(s *trackSubscription) error {
 	return nil
 }
 
-func (m *SubscriptionManager) subscribeSynchronous(trackID livekit.TrackID) error {
+func (m *SubscriptionManager) subscribeSynchronous(trackID voicekit.TrackID) error {
 	m.params.Logger.Debugw("executing subscribe synchronous", "trackID", trackID)
 
 	if !m.params.Participant.CanSubscribe() {
@@ -698,9 +698,9 @@ func (m *SubscriptionManager) subscribeSynchronous(trackID livekit.TrackID) erro
 		sub.setSubscribedTrack(subTrack)
 
 		switch track.Kind() {
-		case livekit.TrackType_VIDEO:
+		case voicekit.TrackType_VIDEO:
 			m.subscribedVideoCount.Inc()
-		case livekit.TrackType_AUDIO:
+		case voicekit.TrackType_AUDIO:
 			m.subscribedAudioCount.Inc()
 		}
 
@@ -736,7 +736,7 @@ func (m *SubscriptionManager) unsubscribe(s *trackSubscription) error {
 	return nil
 }
 
-func (m *SubscriptionManager) unsubscribeSynchronous(trackID livekit.TrackID) error {
+func (m *SubscriptionManager) unsubscribeSynchronous(trackID voicekit.TrackID) error {
 	m.lock.Lock()
 	sub := m.subscriptions[trackID]
 	delete(m.subscriptions, trackID)
@@ -759,7 +759,7 @@ func (m *SubscriptionManager) unsubscribeSynchronous(trackID livekit.TrackID) er
 	return nil
 }
 
-func (m *SubscriptionManager) handleSourceTrackRemoved(trackID livekit.TrackID) {
+func (m *SubscriptionManager) handleSourceTrackRemoved(trackID voicekit.TrackID) {
 	m.lock.Lock()
 	sub := m.subscriptions[trackID]
 	m.lock.Unlock()
@@ -788,10 +788,10 @@ func (m *SubscriptionManager) handleSubscribedTrackClose(s *trackSubscription, i
 
 	var relieveFromLimits bool
 	switch subTrack.MediaTrack().Kind() {
-	case livekit.TrackType_VIDEO:
+	case voicekit.TrackType_VIDEO:
 		videoCount := m.subscribedVideoCount.Dec()
 		relieveFromLimits = m.params.SubscriptionLimitVideo > 0 && videoCount == m.params.SubscriptionLimitVideo-1
-	case livekit.TrackType_AUDIO:
+	case voicekit.TrackType_AUDIO:
 		audioCount := m.subscribedAudioCount.Dec()
 		relieveFromLimits = m.params.SubscriptionLimitAudio > 0 && audioCount == m.params.SubscriptionLimitAudio-1
 	}
@@ -824,7 +824,7 @@ func (m *SubscriptionManager) handleSubscribedTrackClose(s *trackSubscription, i
 		m.params.Telemetry.TrackUnsubscribed(
 			context.Background(),
 			s.subscriberID,
-			&livekit.TrackInfo{Sid: string(s.trackID), Type: subTrack.MediaTrack().Kind()},
+			&voicekit.TrackInfo{Sid: string(s.trackID), Type: subTrack.MediaTrack().Kind()},
 			!isExpectedToResume,
 		)
 
@@ -880,15 +880,15 @@ func (m *SubscriptionManager) handleSubscribedTrackClose(s *trackSubscription, i
 // --------------------------------------------------------------------------------------
 
 type trackSubscription struct {
-	subscriberID livekit.ParticipantID
-	trackID      livekit.TrackID
+	subscriberID voicekit.ParticipantID
+	trackID      voicekit.TrackID
 	logger       logger.Logger
 
 	lock                     sync.RWMutex
 	desired                  bool
-	publisherID              livekit.ParticipantID
-	publisherIdentity        livekit.ParticipantIdentity
-	settings                 *livekit.UpdateTrackSettings
+	publisherID              voicekit.ParticipantID
+	publisherIdentity        voicekit.ParticipantIdentity
+	settings                 *voicekit.UpdateTrackSettings
 	changedNotifier          types.ChangeNotifier
 	removedNotifier          types.ChangeNotifier
 	hasPermissionInitialized bool
@@ -897,7 +897,7 @@ type trackSubscription struct {
 	eventSent                atomic.Bool
 	numAttempts              atomic.Int32
 	bound                    bool
-	kind                     atomic.Pointer[livekit.TrackType]
+	kind                     atomic.Pointer[voicekit.TrackType]
 
 	// the later of when subscription was requested OR when the first failure was encountered OR when permission is granted
 	// this timestamp determines when failures are reported
@@ -908,7 +908,7 @@ type trackSubscription struct {
 	succRecordCounter atomic.Int32
 }
 
-func newTrackSubscription(subscriberID livekit.ParticipantID, trackID livekit.TrackID, l logger.Logger) *trackSubscription {
+func newTrackSubscription(subscriberID voicekit.ParticipantID, trackID voicekit.TrackID, l logger.Logger) *trackSubscription {
 	s := &trackSubscription{
 		subscriberID: subscriberID,
 		trackID:      trackID,
@@ -919,7 +919,7 @@ func newTrackSubscription(subscriberID livekit.ParticipantID, trackID livekit.Tr
 	return s
 }
 
-func (s *trackSubscription) setPublisher(publisherIdentity livekit.ParticipantIdentity, publisherID livekit.ParticipantID) {
+func (s *trackSubscription) setPublisher(publisherIdentity voicekit.ParticipantIdentity, publisherID voicekit.ParticipantID) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -927,7 +927,7 @@ func (s *trackSubscription) setPublisher(publisherIdentity livekit.ParticipantId
 	s.publisherIdentity = publisherIdentity
 }
 
-func (s *trackSubscription) getPublisherID() livekit.ParticipantID {
+func (s *trackSubscription) getPublisherID() voicekit.ParticipantID {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	return s.publisherID
@@ -1009,14 +1009,14 @@ func (s *trackSubscription) setSubscribedTrack(track types.SubscribedTrack) {
 	}
 }
 
-func (s *trackSubscription) trySetKind(kind livekit.TrackType) {
+func (s *trackSubscription) trySetKind(kind voicekit.TrackType) {
 	s.kind.CompareAndSwap(nil, &kind)
 }
 
-func (s *trackSubscription) getKind() (livekit.TrackType, bool) {
+func (s *trackSubscription) getKind() (voicekit.TrackType, bool) {
 	kind := s.kind.Load()
 	if kind == nil {
-		return livekit.TrackType_AUDIO, false
+		return voicekit.TrackType_AUDIO, false
 	}
 	return *kind, true
 }
@@ -1067,7 +1067,7 @@ func (s *trackSubscription) setRemovedNotifierLocked(notifier types.ChangeNotifi
 	return true
 }
 
-func (s *trackSubscription) setSettings(settings *livekit.UpdateTrackSettings) {
+func (s *trackSubscription) setSettings(settings *voicekit.UpdateTrackSettings) {
 	s.lock.Lock()
 	s.settings = settings
 	subTrack := s.subscribedTrack
@@ -1119,7 +1119,7 @@ func (s *trackSubscription) handleSourceTrackRemoved() {
 	s.setRemovedNotifierLocked(nil)
 }
 
-func (s *trackSubscription) maybeRecordError(ts telemetry.TelemetryService, pID livekit.ParticipantID, err error, isUserError bool) {
+func (s *trackSubscription) maybeRecordError(ts telemetry.TelemetryService, pID voicekit.ParticipantID, err error, isUserError bool) {
 	if s.eventSent.Swap(true) {
 		return
 	}
@@ -1127,7 +1127,7 @@ func (s *trackSubscription) maybeRecordError(ts telemetry.TelemetryService, pID 
 	ts.TrackSubscribeFailed(context.Background(), pID, s.trackID, err, isUserError)
 }
 
-func (s *trackSubscription) maybeRecordSuccess(ts telemetry.TelemetryService, pID livekit.ParticipantID) {
+func (s *trackSubscription) maybeRecordSuccess(ts telemetry.TelemetryService, pID voicekit.ParticipantID) {
 	subTrack := s.getSubscribedTrack()
 	if subTrack == nil {
 		return
@@ -1144,7 +1144,7 @@ func (s *trackSubscription) maybeRecordSuccess(ts telemetry.TelemetryService, pI
 
 	eventSent := s.eventSent.Swap(true)
 
-	pi := &livekit.ParticipantInfo{
+	pi := &voicekit.ParticipantInfo{
 		Identity: string(subTrack.PublisherIdentity()),
 		Sid:      string(subTrack.PublisherID()),
 	}

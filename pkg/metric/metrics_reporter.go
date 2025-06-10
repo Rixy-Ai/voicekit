@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@ import (
 	"time"
 
 	"github.com/frostbyte73/core"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/mono"
 
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/utils"
 )
 
 type MetricsReporterConsumer interface {
-	MetricsReporterBatchReady(mb *livekit.MetricsBatch)
+	MetricsReporterBatchReady(mb *voicekit.MetricsBatch)
 }
 
 // --------------------------------------------------------
@@ -45,7 +45,7 @@ var (
 // --------------------------------------------------------
 
 type MetricsReporterParams struct {
-	ParticipantIdentity livekit.ParticipantIdentity
+	ParticipantIdentity voicekit.ParticipantIdentity
 	Config              MetricsReporterConfig
 	Consumer            MetricsReporterConsumer
 	Logger              logger.Logger
@@ -76,7 +76,7 @@ func (mr *MetricsReporter) Stop() {
 	}
 }
 
-func (mr *MetricsReporter) Merge(other *livekit.MetricsBatch) {
+func (mr *MetricsReporter) Merge(other *voicekit.MetricsBatch) {
 	if mr == nil {
 		return
 	}
@@ -87,7 +87,7 @@ func (mr *MetricsReporter) Merge(other *livekit.MetricsBatch) {
 	mr.mbb.Merge(other)
 }
 
-func (mr *MetricsReporter) getMetricsBatchAndReset() *livekit.MetricsBatch {
+func (mr *MetricsReporter) getMetricsBatchAndReset() *voicekit.MetricsBatch {
 	mr.lock.Lock()
 	mbb := mr.mbb
 
@@ -108,8 +108,8 @@ func (mr *MetricsReporter) reset() {
 	mr.mbb.SetRestrictedLabels(utils.MetricRestrictedLabels{
 		LabelRanges: []utils.MetricLabelRange{
 			{
-				StartInclusive: livekit.MetricLabel_CLIENT_VIDEO_SUBSCRIBER_FREEZE_COUNT,
-				EndInclusive:   livekit.MetricLabel_CLIENT_VIDEO_PUBLISHER_QUALITY_LIMITATION_DURATION_OTHER,
+				StartInclusive: voicekit.MetricLabel_CLIENT_VIDEO_SUBSCRIBER_FREEZE_COUNT,
+				EndInclusive:   voicekit.MetricLabel_CLIENT_VIDEO_PUBLISHER_QUALITY_LIMITATION_DURATION_OTHER,
 			},
 		},
 		ParticipantIdentity: mr.params.ParticipantIdentity,

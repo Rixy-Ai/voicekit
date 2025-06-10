@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 )
 
 var _ Router = (*LocalRouter)(nil)
@@ -58,15 +58,15 @@ func NewLocalRouter(
 	}
 }
 
-func (r *LocalRouter) GetNodeForRoom(_ context.Context, _ livekit.RoomName) (*livekit.Node, error) {
+func (r *LocalRouter) GetNodeForRoom(_ context.Context, _ voicekit.RoomName) (*voicekit.Node, error) {
 	return r.currentNode.Clone(), nil
 }
 
-func (r *LocalRouter) SetNodeForRoom(_ context.Context, _ livekit.RoomName, _ livekit.NodeID) error {
+func (r *LocalRouter) SetNodeForRoom(_ context.Context, _ voicekit.RoomName, _ voicekit.NodeID) error {
 	return nil
 }
 
-func (r *LocalRouter) ClearRoomState(_ context.Context, _ livekit.RoomName) error {
+func (r *LocalRouter) ClearRoomState(_ context.Context, _ voicekit.RoomName) error {
 	return nil
 }
 
@@ -82,32 +82,32 @@ func (r *LocalRouter) RemoveDeadNodes() error {
 	return nil
 }
 
-func (r *LocalRouter) GetNode(nodeID livekit.NodeID) (*livekit.Node, error) {
+func (r *LocalRouter) GetNode(nodeID voicekit.NodeID) (*voicekit.Node, error) {
 	if nodeID == r.currentNode.NodeID() {
 		return r.currentNode.Clone(), nil
 	}
 	return nil, ErrNotFound
 }
 
-func (r *LocalRouter) ListNodes() ([]*livekit.Node, error) {
-	return []*livekit.Node{
+func (r *LocalRouter) ListNodes() ([]*voicekit.Node, error) {
+	return []*voicekit.Node{
 		r.currentNode.Clone(),
 	}, nil
 }
 
-func (r *LocalRouter) CreateRoom(ctx context.Context, req *livekit.CreateRoomRequest) (res *livekit.Room, err error) {
+func (r *LocalRouter) CreateRoom(ctx context.Context, req *voicekit.CreateRoomRequest) (res *voicekit.Room, err error) {
 	return r.CreateRoomWithNodeID(ctx, req, r.currentNode.NodeID())
 }
 
-func (r *LocalRouter) CreateRoomWithNodeID(ctx context.Context, req *livekit.CreateRoomRequest, nodeID livekit.NodeID) (res *livekit.Room, err error) {
+func (r *LocalRouter) CreateRoomWithNodeID(ctx context.Context, req *voicekit.CreateRoomRequest, nodeID voicekit.NodeID) (res *voicekit.Room, err error) {
 	return r.roomManagerClient.CreateRoom(ctx, nodeID, req)
 }
 
-func (r *LocalRouter) StartParticipantSignal(ctx context.Context, roomName livekit.RoomName, pi ParticipantInit) (res StartParticipantSignalResults, err error) {
+func (r *LocalRouter) StartParticipantSignal(ctx context.Context, roomName voicekit.RoomName, pi ParticipantInit) (res StartParticipantSignalResults, err error) {
 	return r.StartParticipantSignalWithNodeID(ctx, roomName, pi, r.currentNode.NodeID())
 }
 
-func (r *LocalRouter) StartParticipantSignalWithNodeID(ctx context.Context, roomName livekit.RoomName, pi ParticipantInit, nodeID livekit.NodeID) (res StartParticipantSignalResults, err error) {
+func (r *LocalRouter) StartParticipantSignalWithNodeID(ctx context.Context, roomName voicekit.RoomName, pi ParticipantInit, nodeID voicekit.NodeID) (res StartParticipantSignalResults, err error) {
 	connectionID, reqSink, resSource, err := r.signalClient.StartParticipantSignal(ctx, roomName, pi, nodeID)
 	if err != nil {
 		logger.Errorw("could not handle new participant", err,
@@ -136,7 +136,7 @@ func (r *LocalRouter) Start() error {
 }
 
 func (r *LocalRouter) Drain() {
-	r.currentNode.SetState(livekit.NodeState_SHUTTING_DOWN)
+	r.currentNode.SetState(voicekit.NodeState_SHUTTING_DOWN)
 }
 
 func (r *LocalRouter) Stop() {}

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,29 +19,29 @@ import (
 	"sync"
 	"time"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
 
-	"github.com/livekit/livekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/config"
 )
 
 type LocalNode interface {
-	Clone() *livekit.Node
-	SetNodeID(nodeID livekit.NodeID)
-	NodeID() livekit.NodeID
-	NodeType() livekit.NodeType
+	Clone() *voicekit.Node
+	SetNodeID(nodeID voicekit.NodeID)
+	NodeID() voicekit.NodeID
+	NodeType() voicekit.NodeType
 	NodeIP() string
 	Region() string
-	SetState(state livekit.NodeState)
-	SetStats(stats *livekit.NodeStats)
+	SetState(state voicekit.NodeState)
+	SetStats(stats *voicekit.NodeStats)
 	UpdateNodeStats() bool
 	SecondsSinceNodeStatsUpdate() float64
 }
 
 type LocalNodeImpl struct {
 	lock sync.RWMutex
-	node *livekit.Node
+	node *voicekit.Node
 
 	nodeStats *NodeStats
 }
@@ -53,11 +53,11 @@ func NewLocalNode(conf *config.Config) (*LocalNodeImpl, error) {
 	}
 	nowUnix := time.Now().Unix()
 	l := &LocalNodeImpl{
-		node: &livekit.Node{
+		node: &voicekit.Node{
 			Id:      nodeID,
 			NumCpus: uint32(runtime.NumCPU()),
-			State:   livekit.NodeState_SERVING,
-			Stats: &livekit.NodeStats{
+			State:   voicekit.NodeState_SERVING,
+			Stats: &voicekit.NodeStats{
 				StartedAt: nowUnix,
 				UpdatedAt: nowUnix,
 			},
@@ -75,11 +75,11 @@ func NewLocalNode(conf *config.Config) (*LocalNodeImpl, error) {
 	return l, nil
 }
 
-func NewLocalNodeFromNodeProto(node *livekit.Node) (*LocalNodeImpl, error) {
+func NewLocalNodeFromNodeProto(node *voicekit.Node) (*LocalNodeImpl, error) {
 	return &LocalNodeImpl{node: utils.CloneProto(node)}, nil
 }
 
-func (l *LocalNodeImpl) Clone() *livekit.Node {
+func (l *LocalNodeImpl) Clone() *voicekit.Node {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
@@ -87,21 +87,21 @@ func (l *LocalNodeImpl) Clone() *livekit.Node {
 }
 
 // for testing only
-func (l *LocalNodeImpl) SetNodeID(nodeID livekit.NodeID) {
+func (l *LocalNodeImpl) SetNodeID(nodeID voicekit.NodeID) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	l.node.Id = string(nodeID)
 }
 
-func (l *LocalNodeImpl) NodeID() livekit.NodeID {
+func (l *LocalNodeImpl) NodeID() voicekit.NodeID {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
-	return livekit.NodeID(l.node.Id)
+	return voicekit.NodeID(l.node.Id)
 }
 
-func (l *LocalNodeImpl) NodeType() livekit.NodeType {
+func (l *LocalNodeImpl) NodeType() voicekit.NodeType {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
@@ -122,7 +122,7 @@ func (l *LocalNodeImpl) Region() string {
 	return l.node.Region
 }
 
-func (l *LocalNodeImpl) SetState(state livekit.NodeState) {
+func (l *LocalNodeImpl) SetState(state voicekit.NodeState) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -130,7 +130,7 @@ func (l *LocalNodeImpl) SetState(state livekit.NodeState) {
 }
 
 // for testing only
-func (l *LocalNodeImpl) SetStats(stats *livekit.NodeStats) {
+func (l *LocalNodeImpl) SetStats(stats *voicekit.NodeStats) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 

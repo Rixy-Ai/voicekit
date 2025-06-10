@@ -4,10 +4,10 @@ package transportfakes
 import (
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/rtc/transport"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu/streamallocator"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/rtc/transport"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu/streamallocator"
+	"github.com/voicekit/protocol/voicekit"
 	webrtc "github.com/pion/webrtc/v4"
 )
 
@@ -23,10 +23,10 @@ type FakeHandler struct {
 	onAnswerReturnsOnCall map[int]struct {
 		result1 error
 	}
-	OnDataMessageStub        func(livekit.DataPacket_Kind, []byte)
+	OnDataMessageStub        func(voicekit.DataPacket_Kind, []byte)
 	onDataMessageMutex       sync.RWMutex
 	onDataMessageArgsForCall []struct {
-		arg1 livekit.DataPacket_Kind
+		arg1 voicekit.DataPacket_Kind
 		arg2 []byte
 	}
 	OnDataMessageUnlabeledStub        func([]byte)
@@ -49,11 +49,11 @@ type FakeHandler struct {
 	onFullyEstablishedMutex       sync.RWMutex
 	onFullyEstablishedArgsForCall []struct {
 	}
-	OnICECandidateStub        func(*webrtc.ICECandidate, livekit.SignalTarget) error
+	OnICECandidateStub        func(*webrtc.ICECandidate, voicekit.SignalTarget) error
 	onICECandidateMutex       sync.RWMutex
 	onICECandidateArgsForCall []struct {
 		arg1 *webrtc.ICECandidate
-		arg2 livekit.SignalTarget
+		arg2 voicekit.SignalTarget
 	}
 	onICECandidateReturns struct {
 		result1 error
@@ -167,7 +167,7 @@ func (fake *FakeHandler) OnAnswerReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeHandler) OnDataMessage(arg1 livekit.DataPacket_Kind, arg2 []byte) {
+func (fake *FakeHandler) OnDataMessage(arg1 voicekit.DataPacket_Kind, arg2 []byte) {
 	var arg2Copy []byte
 	if arg2 != nil {
 		arg2Copy = make([]byte, len(arg2))
@@ -175,7 +175,7 @@ func (fake *FakeHandler) OnDataMessage(arg1 livekit.DataPacket_Kind, arg2 []byte
 	}
 	fake.onDataMessageMutex.Lock()
 	fake.onDataMessageArgsForCall = append(fake.onDataMessageArgsForCall, struct {
-		arg1 livekit.DataPacket_Kind
+		arg1 voicekit.DataPacket_Kind
 		arg2 []byte
 	}{arg1, arg2Copy})
 	stub := fake.OnDataMessageStub
@@ -192,13 +192,13 @@ func (fake *FakeHandler) OnDataMessageCallCount() int {
 	return len(fake.onDataMessageArgsForCall)
 }
 
-func (fake *FakeHandler) OnDataMessageCalls(stub func(livekit.DataPacket_Kind, []byte)) {
+func (fake *FakeHandler) OnDataMessageCalls(stub func(voicekit.DataPacket_Kind, []byte)) {
 	fake.onDataMessageMutex.Lock()
 	defer fake.onDataMessageMutex.Unlock()
 	fake.OnDataMessageStub = stub
 }
 
-func (fake *FakeHandler) OnDataMessageArgsForCall(i int) (livekit.DataPacket_Kind, []byte) {
+func (fake *FakeHandler) OnDataMessageArgsForCall(i int) (voicekit.DataPacket_Kind, []byte) {
 	fake.onDataMessageMutex.RLock()
 	defer fake.onDataMessageMutex.RUnlock()
 	argsForCall := fake.onDataMessageArgsForCall[i]
@@ -331,12 +331,12 @@ func (fake *FakeHandler) OnFullyEstablishedCalls(stub func()) {
 	fake.OnFullyEstablishedStub = stub
 }
 
-func (fake *FakeHandler) OnICECandidate(arg1 *webrtc.ICECandidate, arg2 livekit.SignalTarget) error {
+func (fake *FakeHandler) OnICECandidate(arg1 *webrtc.ICECandidate, arg2 voicekit.SignalTarget) error {
 	fake.onICECandidateMutex.Lock()
 	ret, specificReturn := fake.onICECandidateReturnsOnCall[len(fake.onICECandidateArgsForCall)]
 	fake.onICECandidateArgsForCall = append(fake.onICECandidateArgsForCall, struct {
 		arg1 *webrtc.ICECandidate
-		arg2 livekit.SignalTarget
+		arg2 voicekit.SignalTarget
 	}{arg1, arg2})
 	stub := fake.OnICECandidateStub
 	fakeReturns := fake.onICECandidateReturns
@@ -357,13 +357,13 @@ func (fake *FakeHandler) OnICECandidateCallCount() int {
 	return len(fake.onICECandidateArgsForCall)
 }
 
-func (fake *FakeHandler) OnICECandidateCalls(stub func(*webrtc.ICECandidate, livekit.SignalTarget) error) {
+func (fake *FakeHandler) OnICECandidateCalls(stub func(*webrtc.ICECandidate, voicekit.SignalTarget) error) {
 	fake.onICECandidateMutex.Lock()
 	defer fake.onICECandidateMutex.Unlock()
 	fake.OnICECandidateStub = stub
 }
 
-func (fake *FakeHandler) OnICECandidateArgsForCall(i int) (*webrtc.ICECandidate, livekit.SignalTarget) {
+func (fake *FakeHandler) OnICECandidateArgsForCall(i int) (*webrtc.ICECandidate, voicekit.SignalTarget) {
 	fake.onICECandidateMutex.RLock()
 	defer fake.onICECandidateMutex.RUnlock()
 	argsForCall := fake.onICECandidateArgsForCall[i]

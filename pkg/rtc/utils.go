@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import (
 
 	"github.com/pion/webrtc/v4"
 
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 )
 
 const (
@@ -34,60 +34,60 @@ const (
 	cMinIPTruncateLen = 8
 )
 
-func UnpackStreamID(packed string) (participantID livekit.ParticipantID, trackID livekit.TrackID) {
+func UnpackStreamID(packed string) (participantID voicekit.ParticipantID, trackID voicekit.TrackID) {
 	parts := strings.Split(packed, trackIdSeparator)
 	if len(parts) > 1 {
-		return livekit.ParticipantID(parts[0]), livekit.TrackID(packed[len(parts[0])+1:])
+		return voicekit.ParticipantID(parts[0]), voicekit.TrackID(packed[len(parts[0])+1:])
 	}
-	return livekit.ParticipantID(packed), ""
+	return voicekit.ParticipantID(packed), ""
 }
 
-func PackStreamID(participantID livekit.ParticipantID, trackID livekit.TrackID) string {
+func PackStreamID(participantID voicekit.ParticipantID, trackID voicekit.TrackID) string {
 	return string(participantID) + trackIdSeparator + string(trackID)
 }
 
-func PackSyncStreamID(participantID livekit.ParticipantID, stream string) string {
+func PackSyncStreamID(participantID voicekit.ParticipantID, stream string) string {
 	return string(participantID) + trackIdSeparator + stream
 }
 
-func StreamFromTrackSource(source livekit.TrackSource) string {
+func StreamFromTrackSource(source voicekit.TrackSource) string {
 	// group camera/mic, screenshare/audio together
 	switch source {
-	case livekit.TrackSource_SCREEN_SHARE:
+	case voicekit.TrackSource_SCREEN_SHARE:
 		return "screen"
-	case livekit.TrackSource_SCREEN_SHARE_AUDIO:
+	case voicekit.TrackSource_SCREEN_SHARE_AUDIO:
 		return "screen"
-	case livekit.TrackSource_CAMERA:
+	case voicekit.TrackSource_CAMERA:
 		return "camera"
-	case livekit.TrackSource_MICROPHONE:
+	case voicekit.TrackSource_MICROPHONE:
 		return "camera"
 	}
 	return "unknown"
 }
 
-func PackDataTrackLabel(participantID livekit.ParticipantID, trackID livekit.TrackID, label string) string {
+func PackDataTrackLabel(participantID voicekit.ParticipantID, trackID voicekit.TrackID, label string) string {
 	return string(participantID) + trackIdSeparator + string(trackID) + trackIdSeparator + label
 }
 
-func UnpackDataTrackLabel(packed string) (participantID livekit.ParticipantID, trackID livekit.TrackID, label string) {
+func UnpackDataTrackLabel(packed string) (participantID voicekit.ParticipantID, trackID voicekit.TrackID, label string) {
 	parts := strings.Split(packed, trackIdSeparator)
 	if len(parts) != 3 {
-		return "", livekit.TrackID(packed), ""
+		return "", voicekit.TrackID(packed), ""
 	}
-	participantID = livekit.ParticipantID(parts[0])
-	trackID = livekit.TrackID(parts[1])
+	participantID = voicekit.ParticipantID(parts[0])
+	trackID = voicekit.TrackID(parts[1])
 	label = parts[2]
 	return
 }
 
-func ToProtoSessionDescription(sd webrtc.SessionDescription) *livekit.SessionDescription {
-	return &livekit.SessionDescription{
+func ToProtoSessionDescription(sd webrtc.SessionDescription) *voicekit.SessionDescription {
+	return &voicekit.SessionDescription{
 		Type: sd.Type.String(),
 		Sdp:  sd.SDP,
 	}
 }
 
-func FromProtoSessionDescription(sd *livekit.SessionDescription) webrtc.SessionDescription {
+func FromProtoSessionDescription(sd *voicekit.SessionDescription) webrtc.SessionDescription {
 	var sdType webrtc.SDPType
 	switch sd.Type {
 	case webrtc.SDPTypeOffer.String():
@@ -105,16 +105,16 @@ func FromProtoSessionDescription(sd *livekit.SessionDescription) webrtc.SessionD
 	}
 }
 
-func ToProtoTrickle(candidateInit webrtc.ICECandidateInit, target livekit.SignalTarget, final bool) *livekit.TrickleRequest {
+func ToProtoTrickle(candidateInit webrtc.ICECandidateInit, target voicekit.SignalTarget, final bool) *voicekit.TrickleRequest {
 	data, _ := json.Marshal(candidateInit)
-	return &livekit.TrickleRequest{
+	return &voicekit.TrickleRequest{
 		CandidateInit: string(data),
 		Target:        target,
 		Final:         final,
 	}
 }
 
-func FromProtoTrickle(trickle *livekit.TrickleRequest) (webrtc.ICECandidateInit, error) {
+func FromProtoTrickle(trickle *voicekit.TrickleRequest) (webrtc.ICECandidateInit, error) {
 	ci := webrtc.ICECandidateInit{}
 	err := json.Unmarshal([]byte(trickle.CandidateInit), &ci)
 	if err != nil {
@@ -123,12 +123,12 @@ func FromProtoTrickle(trickle *livekit.TrickleRequest) (webrtc.ICECandidateInit,
 	return ci, nil
 }
 
-func ToProtoTrackKind(kind webrtc.RTPCodecType) livekit.TrackType {
+func ToProtoTrackKind(kind webrtc.RTPCodecType) voicekit.TrackType {
 	switch kind {
 	case webrtc.RTPCodecTypeVideo:
-		return livekit.TrackType_VIDEO
+		return voicekit.TrackType_VIDEO
 	case webrtc.RTPCodecTypeAudio:
-		return livekit.TrackType_AUDIO
+		return voicekit.TrackType_AUDIO
 	}
 	panic("unsupported track direction")
 }
@@ -159,7 +159,7 @@ func Recover(l logger.Logger) any {
 }
 
 // logger helpers
-func LoggerWithParticipant(l logger.Logger, identity livekit.ParticipantIdentity, sid livekit.ParticipantID, isRemote bool) logger.Logger {
+func LoggerWithParticipant(l logger.Logger, identity voicekit.ParticipantIdentity, sid voicekit.ParticipantID, isRemote bool) logger.Logger {
 	values := make([]interface{}, 0, 4)
 	if identity != "" {
 		values = append(values, "participant", identity)
@@ -172,7 +172,7 @@ func LoggerWithParticipant(l logger.Logger, identity livekit.ParticipantIdentity
 	return l.WithValues(values...)
 }
 
-func LoggerWithRoom(l logger.Logger, name livekit.RoomName, roomID livekit.RoomID) logger.Logger {
+func LoggerWithRoom(l logger.Logger, name voicekit.RoomName, roomID voicekit.RoomID) logger.Logger {
 	values := make([]interface{}, 0, 2)
 	if name != "" {
 		values = append(values, "room", name)
@@ -184,7 +184,7 @@ func LoggerWithRoom(l logger.Logger, name livekit.RoomName, roomID livekit.RoomI
 	return l.WithItemSampler().WithValues(values...)
 }
 
-func LoggerWithTrack(l logger.Logger, trackID livekit.TrackID, isRelayed bool) logger.Logger {
+func LoggerWithTrack(l logger.Logger, trackID voicekit.TrackID, isRelayed bool) logger.Logger {
 	// sampling not required because caller already passing in participant's logger
 	if trackID != "" {
 		return l.WithValues("trackID", trackID, "relayed", isRelayed)
@@ -192,7 +192,7 @@ func LoggerWithTrack(l logger.Logger, trackID livekit.TrackID, isRelayed bool) l
 	return l
 }
 
-func LoggerWithPCTarget(l logger.Logger, target livekit.SignalTarget) logger.Logger {
+func LoggerWithPCTarget(l logger.Logger, target voicekit.SignalTarget) logger.Logger {
 	return l.WithValues("transport", target)
 }
 

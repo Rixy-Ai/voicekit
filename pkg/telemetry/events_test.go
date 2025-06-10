@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,16 +21,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func Test_OnParticipantJoin_EventIsSent(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{Sid: "RoomSid", Name: "RoomName"}
+	room := &voicekit.Room{Sid: "RoomSid", Name: "RoomName"}
 	partSID := "part1"
-	clientInfo := &livekit.ClientInfo{
+	clientInfo := &voicekit.ClientInfo{
 		Sdk:            2,
 		Version:        "v1",
 		Os:             "mac",
@@ -39,13 +39,13 @@ func Test_OnParticipantJoin_EventIsSent(t *testing.T) {
 		Browser:        "chrome",
 		BrowserVersion: "97.0.1",
 	}
-	clientMeta := &livekit.AnalyticsClientMeta{
+	clientMeta := &voicekit.AnalyticsClientMeta{
 		Region:            "dark-side",
 		Node:              "moon",
 		ClientAddr:        "127.0.0.1",
 		ClientConnectTime: 420,
 	}
-	participantInfo := &livekit.ParticipantInfo{Sid: partSID}
+	participantInfo := &voicekit.ParticipantInfo{Sid: partSID}
 
 	// do
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, clientInfo, clientMeta, true)
@@ -54,7 +54,7 @@ func Test_OnParticipantJoin_EventIsSent(t *testing.T) {
 	// test
 	require.Equal(t, 1, fixture.analytics.SendEventCallCount())
 	_, event := fixture.analytics.SendEventArgsForCall(0)
-	require.Equal(t, livekit.AnalyticsEventType_PARTICIPANT_JOINED, event.Type)
+	require.Equal(t, voicekit.AnalyticsEventType_PARTICIPANT_JOINED, event.Type)
 	require.Equal(t, partSID, event.ParticipantId)
 	require.Equal(t, participantInfo, event.Participant)
 	require.Equal(t, room.Sid, event.RoomId)
@@ -78,19 +78,19 @@ func Test_OnParticipantLeft_EventIsSent(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{Sid: "RoomSid", Name: "RoomName"}
+	room := &voicekit.Room{Sid: "RoomSid", Name: "RoomName"}
 	partSID := "part1"
-	participantInfo := &livekit.ParticipantInfo{Sid: partSID}
+	participantInfo := &voicekit.ParticipantInfo{Sid: partSID}
 
 	// do
-	fixture.sut.ParticipantActive(context.Background(), room, participantInfo, &livekit.AnalyticsClientMeta{}, false)
+	fixture.sut.ParticipantActive(context.Background(), room, participantInfo, &voicekit.AnalyticsClientMeta{}, false)
 	fixture.sut.ParticipantLeft(context.Background(), room, participantInfo, true)
 	time.Sleep(time.Millisecond * 500)
 
 	// test
 	require.Equal(t, 2, fixture.analytics.SendEventCallCount())
 	_, event := fixture.analytics.SendEventArgsForCall(1)
-	require.Equal(t, livekit.AnalyticsEventType_PARTICIPANT_LEFT, event.Type)
+	require.Equal(t, voicekit.AnalyticsEventType_PARTICIPANT_LEFT, event.Type)
 	require.Equal(t, partSID, event.ParticipantId)
 	require.Equal(t, room.Sid, event.RoomId)
 	require.Equal(t, room, event.Room)
@@ -102,30 +102,30 @@ func Test_OnTrackUpdate_EventIsSent(t *testing.T) {
 	// prepare
 	partID := "part1"
 	trackID := "track1"
-	layer := &livekit.VideoLayer{
-		Quality: livekit.VideoQuality_HIGH,
+	layer := &voicekit.VideoLayer{
+		Quality: voicekit.VideoQuality_HIGH,
 		Width:   uint32(360),
 		Height:  uint32(720),
 		Bitrate: 2048,
 	}
 
-	trackInfo := &livekit.TrackInfo{
+	trackInfo := &voicekit.TrackInfo{
 		Sid:        trackID,
-		Type:       livekit.TrackType_VIDEO,
+		Type:       voicekit.TrackType_VIDEO,
 		Muted:      false,
 		Simulcast:  false,
 		DisableDtx: false,
-		Layers:     []*livekit.VideoLayer{layer},
+		Layers:     []*voicekit.VideoLayer{layer},
 	}
 
 	// do
-	fixture.sut.TrackPublishedUpdate(context.Background(), livekit.ParticipantID(partID), trackInfo)
+	fixture.sut.TrackPublishedUpdate(context.Background(), voicekit.ParticipantID(partID), trackInfo)
 	time.Sleep(time.Millisecond * 500)
 
 	// test
 	require.Equal(t, 1, fixture.analytics.SendEventCallCount())
 	_, event := fixture.analytics.SendEventArgsForCall(0)
-	require.Equal(t, livekit.AnalyticsEventType_TRACK_PUBLISHED_UPDATE, event.Type)
+	require.Equal(t, voicekit.AnalyticsEventType_TRACK_PUBLISHED_UPDATE, event.Type)
 	require.Equal(t, partID, event.ParticipantId)
 
 	require.Equal(t, trackID, event.Track.Sid)
@@ -140,10 +140,10 @@ func Test_OnParticipantActive_EventIsSent(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare participant to change status
-	room := &livekit.Room{Sid: "RoomSid", Name: "RoomName"}
+	room := &voicekit.Room{Sid: "RoomSid", Name: "RoomName"}
 	partSID := "part1"
 
-	clientInfo := &livekit.ClientInfo{
+	clientInfo := &voicekit.ClientInfo{
 		Sdk:            2,
 		Version:        "v1",
 		Os:             "mac",
@@ -152,12 +152,12 @@ func Test_OnParticipantActive_EventIsSent(t *testing.T) {
 		Browser:        "chrome",
 		BrowserVersion: "97.0.1",
 	}
-	clientMeta := &livekit.AnalyticsClientMeta{
+	clientMeta := &voicekit.AnalyticsClientMeta{
 		Region:     "dark-side",
 		Node:       "moon",
 		ClientAddr: "127.0.0.1",
 	}
-	participantInfo := &livekit.ParticipantInfo{Sid: partSID}
+	participantInfo := &voicekit.ParticipantInfo{Sid: partSID}
 
 	// do
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, clientInfo, clientMeta, true)
@@ -169,7 +169,7 @@ func Test_OnParticipantActive_EventIsSent(t *testing.T) {
 
 	// test
 	// do
-	clientMetaConnect := &livekit.AnalyticsClientMeta{
+	clientMetaConnect := &voicekit.AnalyticsClientMeta{
 		ClientConnectTime: 420,
 	}
 
@@ -178,7 +178,7 @@ func Test_OnParticipantActive_EventIsSent(t *testing.T) {
 
 	require.Equal(t, 2, fixture.analytics.SendEventCallCount())
 	_, eventActive := fixture.analytics.SendEventArgsForCall(1)
-	require.Equal(t, livekit.AnalyticsEventType_PARTICIPANT_ACTIVE, eventActive.Type)
+	require.Equal(t, voicekit.AnalyticsEventType_PARTICIPANT_ACTIVE, eventActive.Type)
 	require.Equal(t, partSID, eventActive.ParticipantId)
 	require.Equal(t, room.Sid, eventActive.RoomId)
 	require.Equal(t, room, event.Room)
@@ -190,12 +190,12 @@ func Test_OnTrackSubscribed_EventIsSent(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare participant to change status
-	room := &livekit.Room{Sid: "RoomSid", Name: "RoomName"}
+	room := &voicekit.Room{Sid: "RoomSid", Name: "RoomName"}
 	partSID := "part1"
-	publisherInfo := &livekit.ParticipantInfo{Sid: "pub1", Identity: "publisher"}
-	trackInfo := &livekit.TrackInfo{Sid: "tr1", Type: livekit.TrackType_VIDEO}
+	publisherInfo := &voicekit.ParticipantInfo{Sid: "pub1", Identity: "publisher"}
+	trackInfo := &voicekit.TrackInfo{Sid: "tr1", Type: voicekit.TrackType_VIDEO}
 
-	clientInfo := &livekit.ClientInfo{
+	clientInfo := &voicekit.ClientInfo{
 		Sdk:            2,
 		Version:        "v1",
 		Os:             "mac",
@@ -204,12 +204,12 @@ func Test_OnTrackSubscribed_EventIsSent(t *testing.T) {
 		Browser:        "chrome",
 		BrowserVersion: "97.0.1",
 	}
-	clientMeta := &livekit.AnalyticsClientMeta{
+	clientMeta := &voicekit.AnalyticsClientMeta{
 		Region:     "dark-side",
 		Node:       "moon",
 		ClientAddr: "127.0.0.1",
 	}
-	participantInfo := &livekit.ParticipantInfo{Sid: partSID}
+	participantInfo := &voicekit.ParticipantInfo{Sid: partSID}
 
 	// do
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, clientInfo, clientMeta, true)
@@ -221,14 +221,14 @@ func Test_OnTrackSubscribed_EventIsSent(t *testing.T) {
 	require.Equal(t, room, event.Room)
 
 	// do
-	fixture.sut.TrackSubscribed(context.Background(), livekit.ParticipantID(partSID), trackInfo, publisherInfo, true)
+	fixture.sut.TrackSubscribed(context.Background(), voicekit.ParticipantID(partSID), trackInfo, publisherInfo, true)
 	time.Sleep(time.Millisecond * 500)
 
 	require.Eventually(t, func() bool {
 		return fixture.analytics.SendEventCallCount() == 2
 	}, time.Second, time.Millisecond*50, "expected send event to be called twice")
 	_, eventTrackSubscribed := fixture.analytics.SendEventArgsForCall(1)
-	require.Equal(t, livekit.AnalyticsEventType_TRACK_SUBSCRIBED, eventTrackSubscribed.Type)
+	require.Equal(t, voicekit.AnalyticsEventType_TRACK_SUBSCRIBED, eventTrackSubscribed.Type)
 	require.Equal(t, partSID, eventTrackSubscribed.ParticipantId)
 	require.Equal(t, trackInfo.Sid, eventTrackSubscribed.Track.Sid)
 	require.Equal(t, trackInfo.Type, eventTrackSubscribed.Track.Type)

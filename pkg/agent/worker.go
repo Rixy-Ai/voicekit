@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	pagent "github.com/livekit/protocol/agent"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/psrpc"
+	pagent "github.com/voicekit/protocol/agent"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/psrpc"
 )
 
 var (
@@ -53,41 +53,41 @@ const (
 )
 
 type SignalConn interface {
-	WriteServerMessage(msg *livekit.ServerMessage) (int, error)
-	ReadWorkerMessage() (*livekit.WorkerMessage, int, error)
+	WriteServerMessage(msg *voicekit.ServerMessage) (int, error)
+	ReadWorkerMessage() (*voicekit.WorkerMessage, int, error)
 	SetReadDeadline(time.Time) error
 	Close() error
 }
 
-func JobStatusIsEnded(s livekit.JobStatus) bool {
-	return s == livekit.JobStatus_JS_SUCCESS || s == livekit.JobStatus_JS_FAILED
+func JobStatusIsEnded(s voicekit.JobStatus) bool {
+	return s == voicekit.JobStatus_JS_SUCCESS || s == voicekit.JobStatus_JS_FAILED
 }
 
 type WorkerSignalHandler interface {
-	HandleRegister(*livekit.RegisterWorkerRequest) error
-	HandleAvailability(*livekit.AvailabilityResponse) error
-	HandleUpdateJob(*livekit.UpdateJobStatus) error
-	HandleSimulateJob(*livekit.SimulateJobRequest) error
-	HandlePing(*livekit.WorkerPing) error
-	HandleUpdateWorker(*livekit.UpdateWorkerStatus) error
-	HandleMigrateJob(*livekit.MigrateJobRequest) error
+	HandleRegister(*voicekit.RegisterWorkerRequest) error
+	HandleAvailability(*voicekit.AvailabilityResponse) error
+	HandleUpdateJob(*voicekit.UpdateJobStatus) error
+	HandleSimulateJob(*voicekit.SimulateJobRequest) error
+	HandlePing(*voicekit.WorkerPing) error
+	HandleUpdateWorker(*voicekit.UpdateWorkerStatus) error
+	HandleMigrateJob(*voicekit.MigrateJobRequest) error
 }
 
-func DispatchWorkerSignal(req *livekit.WorkerMessage, h WorkerSignalHandler) error {
+func DispatchWorkerSignal(req *voicekit.WorkerMessage, h WorkerSignalHandler) error {
 	switch m := req.Message.(type) {
-	case *livekit.WorkerMessage_Register:
+	case *voicekit.WorkerMessage_Register:
 		return h.HandleRegister(m.Register)
-	case *livekit.WorkerMessage_Availability:
+	case *voicekit.WorkerMessage_Availability:
 		return h.HandleAvailability(m.Availability)
-	case *livekit.WorkerMessage_UpdateJob:
+	case *voicekit.WorkerMessage_UpdateJob:
 		return h.HandleUpdateJob(m.UpdateJob)
-	case *livekit.WorkerMessage_SimulateJob:
+	case *voicekit.WorkerMessage_SimulateJob:
 		return h.HandleSimulateJob(m.SimulateJob)
-	case *livekit.WorkerMessage_Ping:
+	case *voicekit.WorkerMessage_Ping:
 		return h.HandlePing(m.Ping)
-	case *livekit.WorkerMessage_UpdateWorker:
+	case *voicekit.WorkerMessage_UpdateWorker:
 		return h.HandleUpdateWorker(m.UpdateWorker)
-	case *livekit.WorkerMessage_MigrateJob:
+	case *voicekit.WorkerMessage_MigrateJob:
 		return h.HandleMigrateJob(m.MigrateJob)
 	default:
 		return ErrUnknownWorkerSignal
@@ -98,25 +98,25 @@ var _ WorkerSignalHandler = (*UnimplementedWorkerSignalHandler)(nil)
 
 type UnimplementedWorkerSignalHandler struct{}
 
-func (UnimplementedWorkerSignalHandler) HandleRegister(*livekit.RegisterWorkerRequest) error {
+func (UnimplementedWorkerSignalHandler) HandleRegister(*voicekit.RegisterWorkerRequest) error {
 	return fmt.Errorf("%w: Register", ErrUnimplementedWrorkerSignal)
 }
-func (UnimplementedWorkerSignalHandler) HandleAvailability(*livekit.AvailabilityResponse) error {
+func (UnimplementedWorkerSignalHandler) HandleAvailability(*voicekit.AvailabilityResponse) error {
 	return fmt.Errorf("%w: Availability", ErrUnimplementedWrorkerSignal)
 }
-func (UnimplementedWorkerSignalHandler) HandleUpdateJob(*livekit.UpdateJobStatus) error {
+func (UnimplementedWorkerSignalHandler) HandleUpdateJob(*voicekit.UpdateJobStatus) error {
 	return fmt.Errorf("%w: UpdateJob", ErrUnimplementedWrorkerSignal)
 }
-func (UnimplementedWorkerSignalHandler) HandleSimulateJob(*livekit.SimulateJobRequest) error {
+func (UnimplementedWorkerSignalHandler) HandleSimulateJob(*voicekit.SimulateJobRequest) error {
 	return fmt.Errorf("%w: SimulateJob", ErrUnimplementedWrorkerSignal)
 }
-func (UnimplementedWorkerSignalHandler) HandlePing(*livekit.WorkerPing) error {
+func (UnimplementedWorkerSignalHandler) HandlePing(*voicekit.WorkerPing) error {
 	return fmt.Errorf("%w: Ping", ErrUnimplementedWrorkerSignal)
 }
-func (UnimplementedWorkerSignalHandler) HandleUpdateWorker(*livekit.UpdateWorkerStatus) error {
+func (UnimplementedWorkerSignalHandler) HandleUpdateWorker(*voicekit.UpdateWorkerStatus) error {
 	return fmt.Errorf("%w: UpdateWorker", ErrUnimplementedWrorkerSignal)
 }
-func (UnimplementedWorkerSignalHandler) HandleMigrateJob(*livekit.MigrateJobRequest) error {
+func (UnimplementedWorkerSignalHandler) HandleMigrateJob(*voicekit.MigrateJobRequest) error {
 	return fmt.Errorf("%w: MigrateJob", ErrUnimplementedWrorkerSignal)
 }
 
@@ -125,10 +125,10 @@ type WorkerPingHandler struct {
 	conn SignalConn
 }
 
-func (h WorkerPingHandler) HandlePing(ping *livekit.WorkerPing) error {
-	_, err := h.conn.WriteServerMessage(&livekit.ServerMessage{
-		Message: &livekit.ServerMessage_Pong{
-			Pong: &livekit.WorkerPong{
+func (h WorkerPingHandler) HandlePing(ping *voicekit.WorkerPing) error {
+	_, err := h.conn.WriteServerMessage(&voicekit.ServerMessage{
+		Message: &voicekit.ServerMessage_Pong{
+			Pong: &voicekit.WorkerPong{
 				LastTimestamp: ping.Timestamp,
 				Timestamp:     time.Now().UnixMilli(),
 			},
@@ -143,8 +143,8 @@ type WorkerRegistration struct {
 	Version     string
 	AgentName   string
 	Namespace   string
-	JobType     livekit.JobType
-	Permissions *livekit.ParticipantPermission
+	JobType     voicekit.JobType
+	Permissions *voicekit.ParticipantPermission
 	ClientIP    string
 }
 
@@ -159,14 +159,14 @@ var _ WorkerSignalHandler = (*WorkerRegisterer)(nil)
 
 type WorkerRegisterer struct {
 	WorkerPingHandler
-	serverInfo *livekit.ServerInfo
+	serverInfo *voicekit.ServerInfo
 	deadline   time.Time
 
 	registration WorkerRegistration
 	registered   bool
 }
 
-func NewWorkerRegisterer(conn SignalConn, serverInfo *livekit.ServerInfo, base WorkerRegistration) *WorkerRegisterer {
+func NewWorkerRegisterer(conn SignalConn, serverInfo *voicekit.ServerInfo, base WorkerRegistration) *WorkerRegisterer {
 	return &WorkerRegisterer{
 		WorkerPingHandler: WorkerPingHandler{conn: conn},
 		serverInfo:        serverInfo,
@@ -187,14 +187,14 @@ func (h *WorkerRegisterer) Registered() bool {
 	return h.registered
 }
 
-func (h *WorkerRegisterer) HandleRegister(req *livekit.RegisterWorkerRequest) error {
-	if !livekit.IsJobType(req.GetType()) {
+func (h *WorkerRegisterer) HandleRegister(req *voicekit.RegisterWorkerRequest) error {
+	if !voicekit.IsJobType(req.GetType()) {
 		return ErrUnknownJobType
 	}
 
 	permissions := req.AllowedPermissions
 	if permissions == nil {
-		permissions = &livekit.ParticipantPermission{
+		permissions = &voicekit.ParticipantPermission{
 			CanSubscribe:      true,
 			CanPublish:        true,
 			CanPublishData:    true,
@@ -209,9 +209,9 @@ func (h *WorkerRegisterer) HandleRegister(req *livekit.RegisterWorkerRequest) er
 	h.registration.Permissions = permissions
 	h.registered = true
 
-	_, err := h.conn.WriteServerMessage(&livekit.ServerMessage{
-		Message: &livekit.ServerMessage_Register{
-			Register: &livekit.RegisterWorkerResponse{
+	_, err := h.conn.WriteServerMessage(&voicekit.ServerMessage{
+		Message: &voicekit.ServerMessage_Register{
+			Register: &voicekit.RegisterWorkerResponse{
 				WorkerId:   h.registration.ID,
 				ServerInfo: h.serverInfo,
 			},
@@ -236,10 +236,10 @@ type Worker struct {
 
 	mu     sync.Mutex
 	load   float32
-	status livekit.WorkerStatus
+	status voicekit.WorkerStatus
 
-	runningJobs  map[livekit.JobID]*livekit.Job
-	availability map[livekit.JobID]chan *livekit.AvailabilityResponse
+	runningJobs  map[voicekit.JobID]*voicekit.Job
+	availability map[voicekit.JobID]chan *voicekit.AvailabilityResponse
 }
 
 func NewWorker(
@@ -266,18 +266,18 @@ func NewWorker(
 		cancel: cancel,
 		closed: make(chan struct{}),
 
-		runningJobs:  make(map[livekit.JobID]*livekit.Job),
-		availability: make(map[livekit.JobID]chan *livekit.AvailabilityResponse),
+		runningJobs:  make(map[voicekit.JobID]*voicekit.Job),
+		availability: make(map[voicekit.JobID]chan *voicekit.AvailabilityResponse),
 	}
 }
 
-func (w *Worker) sendRequest(req *livekit.ServerMessage) {
+func (w *Worker) sendRequest(req *voicekit.ServerMessage) {
 	if _, err := w.conn.WriteServerMessage(req); err != nil {
 		w.logger.Warnw("error writing to websocket", err)
 	}
 }
 
-func (w *Worker) Status() livekit.WorkerStatus {
+func (w *Worker) Status() voicekit.WorkerStatus {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	return w.status
@@ -293,10 +293,10 @@ func (w *Worker) Logger() logger.Logger {
 	return w.logger
 }
 
-func (w *Worker) RunningJobs() map[livekit.JobID]*livekit.Job {
+func (w *Worker) RunningJobs() map[voicekit.JobID]*voicekit.Job {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	jobs := make(map[livekit.JobID]*livekit.Job, len(w.runningJobs))
+	jobs := make(map[voicekit.JobID]*voicekit.Job, len(w.runningJobs))
 	for k, v := range w.runningJobs {
 		jobs[k] = v
 	}
@@ -309,7 +309,7 @@ func (w *Worker) RunningJobCount() int {
 	return len(w.runningJobs)
 }
 
-func (w *Worker) GetJobState(jobID livekit.JobID) (*livekit.JobState, error) {
+func (w *Worker) GetJobState(jobID voicekit.JobID) (*voicekit.JobState, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	j, ok := w.runningJobs[jobID]
@@ -319,10 +319,10 @@ func (w *Worker) GetJobState(jobID livekit.JobID) (*livekit.JobState, error) {
 	return utils.CloneProto(j.State), nil
 }
 
-func (w *Worker) AssignJob(ctx context.Context, job *livekit.Job) (*livekit.JobState, error) {
-	availCh := make(chan *livekit.AvailabilityResponse, 1)
+func (w *Worker) AssignJob(ctx context.Context, job *voicekit.Job) (*voicekit.JobState, error) {
+	availCh := make(chan *voicekit.AvailabilityResponse, 1)
 	job = utils.CloneProto(job)
-	jobID := livekit.JobID(job.Id)
+	jobID := voicekit.JobID(job.Id)
 
 	w.mu.Lock()
 	if _, ok := w.availability[jobID]; ok {
@@ -340,15 +340,15 @@ func (w *Worker) AssignJob(ctx context.Context, job *livekit.Job) (*livekit.JobS
 	}()
 
 	if job.State == nil {
-		job.State = &livekit.JobState{}
+		job.State = &voicekit.JobState{}
 	}
 	now := time.Now()
 	job.State.UpdatedAt = now.UnixNano()
 	job.State.StartedAt = now.UnixNano()
-	job.State.Status = livekit.JobStatus_JS_RUNNING
+	job.State.Status = voicekit.JobStatus_JS_RUNNING
 
-	w.sendRequest(&livekit.ServerMessage{Message: &livekit.ServerMessage_Availability{
-		Availability: &livekit.AvailabilityRequest{Job: job},
+	w.sendRequest(&voicekit.ServerMessage{Message: &voicekit.ServerMessage_Availability{
+		Availability: &voicekit.AvailabilityRequest{Job: job},
 	}})
 
 	timeout := time.NewTimer(AssignJobTimeout)
@@ -379,8 +379,8 @@ func (w *Worker) AssignJob(ctx context.Context, job *livekit.Job) (*livekit.JobS
 		}
 
 		// In OSS, Url is nil, and the used API Key is the same as the one used to connect the worker
-		w.sendRequest(&livekit.ServerMessage{Message: &livekit.ServerMessage_Assignment{
-			Assignment: &livekit.JobAssignment{Job: job, Url: nil, Token: token},
+		w.sendRequest(&voicekit.ServerMessage{Message: &voicekit.ServerMessage_Assignment{
+			Assignment: &voicekit.JobAssignment{Job: job, Url: nil, Token: token},
 		}})
 
 		state := utils.CloneProto(job.State)
@@ -401,7 +401,7 @@ func (w *Worker) AssignJob(ctx context.Context, job *livekit.Job) (*livekit.JobS
 	}
 }
 
-func (w *Worker) TerminateJob(jobID livekit.JobID, reason rpc.JobTerminateReason) (*livekit.JobState, error) {
+func (w *Worker) TerminateJob(jobID voicekit.JobID, reason rpc.JobTerminateReason) (*voicekit.JobState, error) {
 	w.mu.Lock()
 	_, ok := w.runningJobs[jobID]
 	w.mu.Unlock()
@@ -410,20 +410,20 @@ func (w *Worker) TerminateJob(jobID livekit.JobID, reason rpc.JobTerminateReason
 		return nil, ErrJobNotFound
 	}
 
-	w.sendRequest(&livekit.ServerMessage{Message: &livekit.ServerMessage_Termination{
-		Termination: &livekit.JobTermination{
+	w.sendRequest(&voicekit.ServerMessage{Message: &voicekit.ServerMessage_Termination{
+		Termination: &voicekit.JobTermination{
 			JobId: string(jobID),
 		},
 	}})
 
-	status := livekit.JobStatus_JS_SUCCESS
+	status := voicekit.JobStatus_JS_SUCCESS
 	errorStr := ""
 	if reason == rpc.JobTerminateReason_AGENT_LEFT_ROOM {
-		status = livekit.JobStatus_JS_FAILED
+		status = voicekit.JobStatus_JS_FAILED
 		errorStr = "agent worker left the room"
 	}
 
-	return w.UpdateJobStatus(&livekit.UpdateJobStatus{
+	return w.UpdateJobStatus(&voicekit.UpdateJobStatus{
 		JobId:  string(jobID),
 		Status: status,
 		Error:  errorStr,
@@ -458,11 +458,11 @@ func (w *Worker) Close() {
 	w.mu.Unlock()
 }
 
-func (w *Worker) HandleAvailability(res *livekit.AvailabilityResponse) error {
+func (w *Worker) HandleAvailability(res *voicekit.AvailabilityResponse) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	jobID := livekit.JobID(res.JobId)
+	jobID := voicekit.JobID(res.JobId)
 	availCh, ok := w.availability[jobID]
 	if !ok {
 		w.logger.Warnw("received availability response for unknown job", nil, "jobID", jobID)
@@ -475,7 +475,7 @@ func (w *Worker) HandleAvailability(res *livekit.AvailabilityResponse) error {
 	return nil
 }
 
-func (w *Worker) HandleUpdateJob(update *livekit.UpdateJobStatus) error {
+func (w *Worker) HandleUpdateJob(update *voicekit.UpdateJobStatus) error {
 	_, err := w.UpdateJobStatus(update)
 	if err != nil {
 		// treating this as a debug message only
@@ -487,11 +487,11 @@ func (w *Worker) HandleUpdateJob(update *livekit.UpdateJobStatus) error {
 	return nil
 }
 
-func (w *Worker) UpdateJobStatus(update *livekit.UpdateJobStatus) (*livekit.JobState, error) {
+func (w *Worker) UpdateJobStatus(update *voicekit.UpdateJobStatus) (*voicekit.JobState, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	jobID := livekit.JobID(update.JobId)
+	jobID := voicekit.JobID(update.JobId)
 	job, ok := w.runningJobs[jobID]
 	if !ok {
 		return nil, psrpc.NewErrorf(psrpc.NotFound, "received job update for unknown job")
@@ -500,7 +500,7 @@ func (w *Worker) UpdateJobStatus(update *livekit.UpdateJobStatus) (*livekit.JobS
 	now := time.Now()
 	job.State.UpdatedAt = now.UnixNano()
 
-	if job.State.Status == livekit.JobStatus_JS_PENDING && update.Status != livekit.JobStatus_JS_PENDING {
+	if job.State.Status == voicekit.JobStatus_JS_PENDING && update.Status != voicekit.JobStatus_JS_PENDING {
 		job.State.StartedAt = now.UnixNano()
 	}
 
@@ -514,16 +514,16 @@ func (w *Worker) UpdateJobStatus(update *livekit.UpdateJobStatus) (*livekit.JobS
 		w.logger.Infow("job ended", "jobID", update.JobId, "status", update.Status, "error", update.Error)
 	}
 
-	return proto.Clone(job.State).(*livekit.JobState), nil
+	return proto.Clone(job.State).(*voicekit.JobState), nil
 }
 
-func (w *Worker) HandleSimulateJob(simulate *livekit.SimulateJobRequest) error {
-	jobType := livekit.JobType_JT_ROOM
+func (w *Worker) HandleSimulateJob(simulate *voicekit.SimulateJobRequest) error {
+	jobType := voicekit.JobType_JT_ROOM
 	if simulate.Participant != nil {
-		jobType = livekit.JobType_JT_PUBLISHER
+		jobType = voicekit.JobType_JT_PUBLISHER
 	}
 
-	job := &livekit.Job{
+	job := &voicekit.Job{
 		Id:          guid.New(guid.AgentJobPrefix),
 		Type:        jobType,
 		Room:        simulate.Room,
@@ -542,7 +542,7 @@ func (w *Worker) HandleSimulateJob(simulate *livekit.SimulateJobRequest) error {
 	return nil
 }
 
-func (w *Worker) HandleUpdateWorker(update *livekit.UpdateWorkerStatus) error {
+func (w *Worker) HandleUpdateWorker(update *voicekit.UpdateWorkerStatus) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -555,7 +555,7 @@ func (w *Worker) HandleUpdateWorker(update *livekit.UpdateWorkerStatus) error {
 	return nil
 }
 
-func (w *Worker) HandleMigrateJob(req *livekit.MigrateJobRequest) error {
+func (w *Worker) HandleMigrateJob(req *voicekit.MigrateJobRequest) error {
 	// TODO(theomonnom): On OSS this is not implemented
 	// We could maybe just move a specific job to another worker
 	return nil

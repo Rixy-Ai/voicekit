@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package selector
 
 import (
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 // AnySelector selects any available node with no limitations
@@ -23,7 +23,7 @@ type AnySelector struct {
 	SortBy string
 }
 
-func (s *AnySelector) SelectNode(nodes []*livekit.Node) (*livekit.Node, error) {
+func (s *AnySelector) SelectNode(nodes []*voicekit.Node) (*voicekit.Node, error) {
 	nodes = GetAvailableNodes(nodes)
 	if len(nodes) == 0 {
 		return nil, ErrNoAvailableNodes

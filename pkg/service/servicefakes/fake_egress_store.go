@@ -5,45 +5,45 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type FakeEgressStore struct {
-	ListEgressStub        func(context.Context, livekit.RoomName, bool) ([]*livekit.EgressInfo, error)
+	ListEgressStub        func(context.Context, voicekit.RoomName, bool) ([]*voicekit.EgressInfo, error)
 	listEgressMutex       sync.RWMutex
 	listEgressArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 		arg3 bool
 	}
 	listEgressReturns struct {
-		result1 []*livekit.EgressInfo
+		result1 []*voicekit.EgressInfo
 		result2 error
 	}
 	listEgressReturnsOnCall map[int]struct {
-		result1 []*livekit.EgressInfo
+		result1 []*voicekit.EgressInfo
 		result2 error
 	}
-	LoadEgressStub        func(context.Context, string) (*livekit.EgressInfo, error)
+	LoadEgressStub        func(context.Context, string) (*voicekit.EgressInfo, error)
 	loadEgressMutex       sync.RWMutex
 	loadEgressArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 	}
 	loadEgressReturns struct {
-		result1 *livekit.EgressInfo
+		result1 *voicekit.EgressInfo
 		result2 error
 	}
 	loadEgressReturnsOnCall map[int]struct {
-		result1 *livekit.EgressInfo
+		result1 *voicekit.EgressInfo
 		result2 error
 	}
-	StoreEgressStub        func(context.Context, *livekit.EgressInfo) error
+	StoreEgressStub        func(context.Context, *voicekit.EgressInfo) error
 	storeEgressMutex       sync.RWMutex
 	storeEgressArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}
 	storeEgressReturns struct {
 		result1 error
@@ -51,11 +51,11 @@ type FakeEgressStore struct {
 	storeEgressReturnsOnCall map[int]struct {
 		result1 error
 	}
-	UpdateEgressStub        func(context.Context, *livekit.EgressInfo) error
+	UpdateEgressStub        func(context.Context, *voicekit.EgressInfo) error
 	updateEgressMutex       sync.RWMutex
 	updateEgressArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}
 	updateEgressReturns struct {
 		result1 error
@@ -67,12 +67,12 @@ type FakeEgressStore struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeEgressStore) ListEgress(arg1 context.Context, arg2 livekit.RoomName, arg3 bool) ([]*livekit.EgressInfo, error) {
+func (fake *FakeEgressStore) ListEgress(arg1 context.Context, arg2 voicekit.RoomName, arg3 bool) ([]*voicekit.EgressInfo, error) {
 	fake.listEgressMutex.Lock()
 	ret, specificReturn := fake.listEgressReturnsOnCall[len(fake.listEgressArgsForCall)]
 	fake.listEgressArgsForCall = append(fake.listEgressArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 		arg3 bool
 	}{arg1, arg2, arg3})
 	stub := fake.ListEgressStub
@@ -94,46 +94,46 @@ func (fake *FakeEgressStore) ListEgressCallCount() int {
 	return len(fake.listEgressArgsForCall)
 }
 
-func (fake *FakeEgressStore) ListEgressCalls(stub func(context.Context, livekit.RoomName, bool) ([]*livekit.EgressInfo, error)) {
+func (fake *FakeEgressStore) ListEgressCalls(stub func(context.Context, voicekit.RoomName, bool) ([]*voicekit.EgressInfo, error)) {
 	fake.listEgressMutex.Lock()
 	defer fake.listEgressMutex.Unlock()
 	fake.ListEgressStub = stub
 }
 
-func (fake *FakeEgressStore) ListEgressArgsForCall(i int) (context.Context, livekit.RoomName, bool) {
+func (fake *FakeEgressStore) ListEgressArgsForCall(i int) (context.Context, voicekit.RoomName, bool) {
 	fake.listEgressMutex.RLock()
 	defer fake.listEgressMutex.RUnlock()
 	argsForCall := fake.listEgressArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeEgressStore) ListEgressReturns(result1 []*livekit.EgressInfo, result2 error) {
+func (fake *FakeEgressStore) ListEgressReturns(result1 []*voicekit.EgressInfo, result2 error) {
 	fake.listEgressMutex.Lock()
 	defer fake.listEgressMutex.Unlock()
 	fake.ListEgressStub = nil
 	fake.listEgressReturns = struct {
-		result1 []*livekit.EgressInfo
+		result1 []*voicekit.EgressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeEgressStore) ListEgressReturnsOnCall(i int, result1 []*livekit.EgressInfo, result2 error) {
+func (fake *FakeEgressStore) ListEgressReturnsOnCall(i int, result1 []*voicekit.EgressInfo, result2 error) {
 	fake.listEgressMutex.Lock()
 	defer fake.listEgressMutex.Unlock()
 	fake.ListEgressStub = nil
 	if fake.listEgressReturnsOnCall == nil {
 		fake.listEgressReturnsOnCall = make(map[int]struct {
-			result1 []*livekit.EgressInfo
+			result1 []*voicekit.EgressInfo
 			result2 error
 		})
 	}
 	fake.listEgressReturnsOnCall[i] = struct {
-		result1 []*livekit.EgressInfo
+		result1 []*voicekit.EgressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeEgressStore) LoadEgress(arg1 context.Context, arg2 string) (*livekit.EgressInfo, error) {
+func (fake *FakeEgressStore) LoadEgress(arg1 context.Context, arg2 string) (*voicekit.EgressInfo, error) {
 	fake.loadEgressMutex.Lock()
 	ret, specificReturn := fake.loadEgressReturnsOnCall[len(fake.loadEgressArgsForCall)]
 	fake.loadEgressArgsForCall = append(fake.loadEgressArgsForCall, struct {
@@ -159,7 +159,7 @@ func (fake *FakeEgressStore) LoadEgressCallCount() int {
 	return len(fake.loadEgressArgsForCall)
 }
 
-func (fake *FakeEgressStore) LoadEgressCalls(stub func(context.Context, string) (*livekit.EgressInfo, error)) {
+func (fake *FakeEgressStore) LoadEgressCalls(stub func(context.Context, string) (*voicekit.EgressInfo, error)) {
 	fake.loadEgressMutex.Lock()
 	defer fake.loadEgressMutex.Unlock()
 	fake.LoadEgressStub = stub
@@ -172,38 +172,38 @@ func (fake *FakeEgressStore) LoadEgressArgsForCall(i int) (context.Context, stri
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeEgressStore) LoadEgressReturns(result1 *livekit.EgressInfo, result2 error) {
+func (fake *FakeEgressStore) LoadEgressReturns(result1 *voicekit.EgressInfo, result2 error) {
 	fake.loadEgressMutex.Lock()
 	defer fake.loadEgressMutex.Unlock()
 	fake.LoadEgressStub = nil
 	fake.loadEgressReturns = struct {
-		result1 *livekit.EgressInfo
+		result1 *voicekit.EgressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeEgressStore) LoadEgressReturnsOnCall(i int, result1 *livekit.EgressInfo, result2 error) {
+func (fake *FakeEgressStore) LoadEgressReturnsOnCall(i int, result1 *voicekit.EgressInfo, result2 error) {
 	fake.loadEgressMutex.Lock()
 	defer fake.loadEgressMutex.Unlock()
 	fake.LoadEgressStub = nil
 	if fake.loadEgressReturnsOnCall == nil {
 		fake.loadEgressReturnsOnCall = make(map[int]struct {
-			result1 *livekit.EgressInfo
+			result1 *voicekit.EgressInfo
 			result2 error
 		})
 	}
 	fake.loadEgressReturnsOnCall[i] = struct {
-		result1 *livekit.EgressInfo
+		result1 *voicekit.EgressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeEgressStore) StoreEgress(arg1 context.Context, arg2 *livekit.EgressInfo) error {
+func (fake *FakeEgressStore) StoreEgress(arg1 context.Context, arg2 *voicekit.EgressInfo) error {
 	fake.storeEgressMutex.Lock()
 	ret, specificReturn := fake.storeEgressReturnsOnCall[len(fake.storeEgressArgsForCall)]
 	fake.storeEgressArgsForCall = append(fake.storeEgressArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}{arg1, arg2})
 	stub := fake.StoreEgressStub
 	fakeReturns := fake.storeEgressReturns
@@ -224,13 +224,13 @@ func (fake *FakeEgressStore) StoreEgressCallCount() int {
 	return len(fake.storeEgressArgsForCall)
 }
 
-func (fake *FakeEgressStore) StoreEgressCalls(stub func(context.Context, *livekit.EgressInfo) error) {
+func (fake *FakeEgressStore) StoreEgressCalls(stub func(context.Context, *voicekit.EgressInfo) error) {
 	fake.storeEgressMutex.Lock()
 	defer fake.storeEgressMutex.Unlock()
 	fake.StoreEgressStub = stub
 }
 
-func (fake *FakeEgressStore) StoreEgressArgsForCall(i int) (context.Context, *livekit.EgressInfo) {
+func (fake *FakeEgressStore) StoreEgressArgsForCall(i int) (context.Context, *voicekit.EgressInfo) {
 	fake.storeEgressMutex.RLock()
 	defer fake.storeEgressMutex.RUnlock()
 	argsForCall := fake.storeEgressArgsForCall[i]
@@ -260,12 +260,12 @@ func (fake *FakeEgressStore) StoreEgressReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeEgressStore) UpdateEgress(arg1 context.Context, arg2 *livekit.EgressInfo) error {
+func (fake *FakeEgressStore) UpdateEgress(arg1 context.Context, arg2 *voicekit.EgressInfo) error {
 	fake.updateEgressMutex.Lock()
 	ret, specificReturn := fake.updateEgressReturnsOnCall[len(fake.updateEgressArgsForCall)]
 	fake.updateEgressArgsForCall = append(fake.updateEgressArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}{arg1, arg2})
 	stub := fake.UpdateEgressStub
 	fakeReturns := fake.updateEgressReturns
@@ -286,13 +286,13 @@ func (fake *FakeEgressStore) UpdateEgressCallCount() int {
 	return len(fake.updateEgressArgsForCall)
 }
 
-func (fake *FakeEgressStore) UpdateEgressCalls(stub func(context.Context, *livekit.EgressInfo) error) {
+func (fake *FakeEgressStore) UpdateEgressCalls(stub func(context.Context, *voicekit.EgressInfo) error) {
 	fake.updateEgressMutex.Lock()
 	defer fake.updateEgressMutex.Unlock()
 	fake.UpdateEgressStub = stub
 }
 
-func (fake *FakeEgressStore) UpdateEgressArgsForCall(i int) (context.Context, *livekit.EgressInfo) {
+func (fake *FakeEgressStore) UpdateEgressArgsForCall(i int) (context.Context, *voicekit.EgressInfo) {
 	fake.updateEgressMutex.RLock()
 	defer fake.updateEgressMutex.RUnlock()
 	argsForCall := fake.updateEgressArgsForCall[i]

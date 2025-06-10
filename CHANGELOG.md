@@ -344,7 +344,7 @@ The latest versions of server SDKs will include the permission grants automatica
 
 This release changes the default behavior when creating or updating WHIP
 ingress. WHIP ingress will now default to disabling transcoding and
-forwarding media unchanged to the LiveKit subscribers. This behavior can
+forwarding media unchanged to the VoiceKit subscribers. This behavior can
 be changed by using the new `enable_transcoding` available in updated
 SDKs. The behavior of existing ingresses is unchanged.
 
@@ -469,7 +469,7 @@ SDKs. The behavior of existing ingresses is unchanged.
 
 ## [1.5.2] - 2023-12-21
 
-Support for LiveKit SIP Bridge
+Support for VoiceKit SIP Bridge
 
 ### Added
 
@@ -487,7 +487,7 @@ Support for LiveKit SIP Bridge
 - Populate disconnect updates with participant identity (#2310)
 - Fix mid info lost when migrating multi-codec simulcast track (#2315)
 - Store identity in participant update cache. (#2320)
-- Fix panic occurs when starting livekit-server with key-file option (#2312) (#2313)
+- Fix panic occurs when starting voicekit-server with key-file option (#2312) (#2313)
 
 ### Changed
 
@@ -970,7 +970,7 @@ Support for the Agent framework.
 - Improves NACK stats to count as a miss only if i t's not EOF #1061
 - Store track MIME type during publishing #1065
 - Minor cleanup of media track & friends module #1067
-- Split out shared media transport code into livekit/mediatransportutil #1071
+- Split out shared media transport code into voicekit/mediatransportutil #1071
 - Cleaned up logging, improved consistency of debug vs info #1073
 - Reduced memory usage with sequencer #1100
 - Improved IP address mapping, handling of multiple IPs #1094
@@ -1000,7 +1000,7 @@ Support for the Agent framework.
 
 ### Removed
 
-- Fully removed references to VP9. LiveKit is focused on AV1. #1004
+- Fully removed references to VP9. VoiceKit is focused on AV1. #1004
 
 ## [1.2.1] - 2022-09-13
 
@@ -1063,7 +1063,7 @@ Support for the Agent framework.
 ### Added
 
 - Returns reason when server disconnects a client (#801 #806)
-- Allow livekit-server to start without keys configuration (#788)
+- Allow voicekit-server to start without keys configuration (#788)
 - Added recovery from negotiation failures (#807)
 
 ### Fixed

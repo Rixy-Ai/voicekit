@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	dd "github.com/livekit/livekit-server/pkg/sfu/rtpextension/dependencydescriptor"
+	dd "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/dependencydescriptor"
 )
 
 func TestFrameIntegrityChecker(t *testing.T) {

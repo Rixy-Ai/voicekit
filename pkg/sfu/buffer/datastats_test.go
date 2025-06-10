@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func TestDataStats(t *testing.T) {
@@ -35,7 +35,7 @@ func TestDataStats(t *testing.T) {
 	r.StartTime = nil
 	r.EndTime = nil
 	r.Duration = 0
-	require.True(t, proto.Equal(r, &livekit.RTPStats{}))
+	require.True(t, proto.Equal(r, &voicekit.RTPStats{}))
 
 	stats.Update(100, time.Now().UnixNano())
 	r = stats.ToProtoActive()
@@ -45,7 +45,7 @@ func TestDataStats(t *testing.T) {
 	// wait for window duration
 	time.Sleep(time.Second)
 	r = stats.ToProtoActive()
-	require.True(t, proto.Equal(r, &livekit.RTPStats{}))
+	require.True(t, proto.Equal(r, &voicekit.RTPStats{}))
 	stats.Stop()
 	r = stats.ToProtoAggregateOnly()
 	require.EqualValues(t, 100, r.Bytes)

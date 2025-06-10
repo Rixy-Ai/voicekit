@@ -25,8 +25,8 @@
     },
     {
       "matchManagers": ["gomod"],
-      "matchPackagePrefixes": ["github.com/livekit"],
-      "groupName": "livekit deps"
+      "matchPackagePrefixes": ["github.com/voicekit"],
+      "groupName": "voicekit deps"
     }
   ],
   "postUpdateOptions": ["gomodTidy"]

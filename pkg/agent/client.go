@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import (
 	"github.com/gammazero/workerpool"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	serverutils "github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/psrpc"
+	serverutils "github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/psrpc"
 )
 
 const (
@@ -41,26 +41,26 @@ const (
 	CheckEnabledTimeout = 5 * time.Second
 )
 
-var jobTypeTopics = map[livekit.JobType]string{
-	livekit.JobType_JT_ROOM:        RoomAgentTopic,
-	livekit.JobType_JT_PUBLISHER:   PublisherAgentTopic,
-	livekit.JobType_JT_PARTICIPANT: ParticipantAgentTopic,
+var jobTypeTopics = map[voicekit.JobType]string{
+	voicekit.JobType_JT_ROOM:        RoomAgentTopic,
+	voicekit.JobType_JT_PUBLISHER:   PublisherAgentTopic,
+	voicekit.JobType_JT_PARTICIPANT: ParticipantAgentTopic,
 }
 
 type Client interface {
 	// LaunchJob starts a room or participant job on an agent.
 	// it will launch a job once for each worker in each namespace
-	LaunchJob(ctx context.Context, desc *JobRequest) *serverutils.IncrementalDispatcher[*livekit.Job]
-	TerminateJob(ctx context.Context, jobID string, reason rpc.JobTerminateReason) (*livekit.JobState, error)
+	LaunchJob(ctx context.Context, desc *JobRequest) *serverutils.IncrementalDispatcher[*voicekit.Job]
+	TerminateJob(ctx context.Context, jobID string, reason rpc.JobTerminateReason) (*voicekit.JobState, error)
 	Stop() error
 }
 
 type JobRequest struct {
 	DispatchId string
-	JobType    livekit.JobType
-	Room       *livekit.Room
+	JobType    voicekit.JobType
+	Room       *voicekit.Room
 	// only set for participant jobs
-	Participant *livekit.ParticipantInfo
+	Participant *voicekit.ParticipantInfo
 	Metadata    string
 	AgentName   string
 }
@@ -125,9 +125,9 @@ func NewAgentClient(bus psrpc.MessageBus) (Client, error) {
 	return c, nil
 }
 
-func (c *agentClient) LaunchJob(ctx context.Context, desc *JobRequest) *serverutils.IncrementalDispatcher[*livekit.Job] {
+func (c *agentClient) LaunchJob(ctx context.Context, desc *JobRequest) *serverutils.IncrementalDispatcher[*voicekit.Job] {
 	var wg sync.WaitGroup
-	ret := serverutils.NewIncrementalDispatcher[*livekit.Job]()
+	ret := serverutils.NewIncrementalDispatcher[*voicekit.Job]()
 	defer func() {
 		c.workers.Submit(func() {
 			wg.Wait()
@@ -158,7 +158,7 @@ func (c *agentClient) LaunchJob(ctx context.Context, desc *JobRequest) *serverut
 		c.workers.Submit(func() {
 			defer wg.Done()
 			// The cached agent parameters do not provide the exact combination of available job type/agent name/namespace, so some of the JobRequest RPC may not trigger any worker
-			job := &livekit.Job{
+			job := &voicekit.Job{
 				Id:          utils.NewGuid(utils.AgentJobPrefix),
 				DispatchId:  desc.DispatchId,
 				Type:        desc.JobType,
@@ -181,7 +181,7 @@ func (c *agentClient) LaunchJob(ctx context.Context, desc *JobRequest) *serverut
 	return ret
 }
 
-func (c *agentClient) TerminateJob(ctx context.Context, jobID string, reason rpc.JobTerminateReason) (*livekit.JobState, error) {
+func (c *agentClient) TerminateJob(ctx context.Context, jobID string, reason rpc.JobTerminateReason) (*voicekit.JobState, error) {
 	resp, err := c.client.JobTerminate(context.Background(), jobID, &rpc.JobTerminateRequest{
 		JobId:  jobID,
 		Reason: reason,
@@ -194,7 +194,7 @@ func (c *agentClient) TerminateJob(ctx context.Context, jobID string, reason rpc
 	return resp.State, nil
 }
 
-func (c *agentClient) getDispatcher(agName string, jobType livekit.JobType) *serverutils.IncrementalDispatcher[string] {
+func (c *agentClient) getDispatcher(agName string, jobType voicekit.JobType) *serverutils.IncrementalDispatcher[string] {
 	c.mu.Lock()
 
 	if time.Since(c.enabledExpiresAt) > EnabledCacheTTL || c.roomNamespaces == nil ||
@@ -213,13 +213,13 @@ func (c *agentClient) getDispatcher(agName string, jobType livekit.JobType) *ser
 	var target *serverutils.IncrementalDispatcher[string]
 	var agentNames *serverutils.IncrementalDispatcher[string]
 	switch jobType {
-	case livekit.JobType_JT_ROOM:
+	case voicekit.JobType_JT_ROOM:
 		target = c.roomNamespaces
 		agentNames = c.roomAgentNames
-	case livekit.JobType_JT_PUBLISHER:
+	case voicekit.JobType_JT_PUBLISHER:
 		target = c.publisherNamespaces
 		agentNames = c.publisherAgentNames
-	case livekit.JobType_JT_PARTICIPANT:
+	case voicekit.JobType_JT_PARTICIPANT:
 		target = c.participantNamespaces
 		agentNames = c.participantAgentNames
 	}

@@ -4,8 +4,8 @@ package routingfakes
 import (
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/protocol/voicekit"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -14,15 +14,15 @@ type FakeMessageSource struct {
 	closeMutex       sync.RWMutex
 	closeArgsForCall []struct {
 	}
-	ConnectionIDStub        func() livekit.ConnectionID
+	ConnectionIDStub        func() voicekit.ConnectionID
 	connectionIDMutex       sync.RWMutex
 	connectionIDArgsForCall []struct {
 	}
 	connectionIDReturns struct {
-		result1 livekit.ConnectionID
+		result1 voicekit.ConnectionID
 	}
 	connectionIDReturnsOnCall map[int]struct {
-		result1 livekit.ConnectionID
+		result1 voicekit.ConnectionID
 	}
 	IsClosedStub        func() bool
 	isClosedMutex       sync.RWMutex
@@ -72,7 +72,7 @@ func (fake *FakeMessageSource) CloseCalls(stub func()) {
 	fake.CloseStub = stub
 }
 
-func (fake *FakeMessageSource) ConnectionID() livekit.ConnectionID {
+func (fake *FakeMessageSource) ConnectionID() voicekit.ConnectionID {
 	fake.connectionIDMutex.Lock()
 	ret, specificReturn := fake.connectionIDReturnsOnCall[len(fake.connectionIDArgsForCall)]
 	fake.connectionIDArgsForCall = append(fake.connectionIDArgsForCall, struct {
@@ -96,32 +96,32 @@ func (fake *FakeMessageSource) ConnectionIDCallCount() int {
 	return len(fake.connectionIDArgsForCall)
 }
 
-func (fake *FakeMessageSource) ConnectionIDCalls(stub func() livekit.ConnectionID) {
+func (fake *FakeMessageSource) ConnectionIDCalls(stub func() voicekit.ConnectionID) {
 	fake.connectionIDMutex.Lock()
 	defer fake.connectionIDMutex.Unlock()
 	fake.ConnectionIDStub = stub
 }
 
-func (fake *FakeMessageSource) ConnectionIDReturns(result1 livekit.ConnectionID) {
+func (fake *FakeMessageSource) ConnectionIDReturns(result1 voicekit.ConnectionID) {
 	fake.connectionIDMutex.Lock()
 	defer fake.connectionIDMutex.Unlock()
 	fake.ConnectionIDStub = nil
 	fake.connectionIDReturns = struct {
-		result1 livekit.ConnectionID
+		result1 voicekit.ConnectionID
 	}{result1}
 }
 
-func (fake *FakeMessageSource) ConnectionIDReturnsOnCall(i int, result1 livekit.ConnectionID) {
+func (fake *FakeMessageSource) ConnectionIDReturnsOnCall(i int, result1 voicekit.ConnectionID) {
 	fake.connectionIDMutex.Lock()
 	defer fake.connectionIDMutex.Unlock()
 	fake.ConnectionIDStub = nil
 	if fake.connectionIDReturnsOnCall == nil {
 		fake.connectionIDReturnsOnCall = make(map[int]struct {
-			result1 livekit.ConnectionID
+			result1 voicekit.ConnectionID
 		})
 	}
 	fake.connectionIDReturnsOnCall[i] = struct {
-		result1 livekit.ConnectionID
+		result1 voicekit.ConnectionID
 	}{result1}
 }
 

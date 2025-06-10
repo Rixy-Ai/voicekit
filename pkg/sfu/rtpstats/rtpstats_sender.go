@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/livekit/mediatransportutil"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/mediatransportutil"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/mono"
 )
 
 // -------------------------------------------------------------------
@@ -792,7 +792,7 @@ func (r *RTPStatsSender) LastReceiverReportTime() int64 {
 	return r.lastRRTime
 }
 
-func (r *RTPStatsSender) MaybeAdjustFirstPacketTime(publisherSRData *livekit.RTCPSenderReportState, tsOffset uint64) {
+func (r *RTPStatsSender) MaybeAdjustFirstPacketTime(publisherSRData *voicekit.RTCPSenderReportState, tsOffset uint64) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
@@ -820,7 +820,7 @@ func (r *RTPStatsSender) GetExpectedRTPTimestamp(at time.Time) (expectedTSExt ui
 	return
 }
 
-func (r *RTPStatsSender) GetRtcpSenderReport(ssrc uint32, publisherSRData *livekit.RTCPSenderReportState, tsOffset uint64, passThrough bool) *rtcp.SenderReport {
+func (r *RTPStatsSender) GetRtcpSenderReport(ssrc uint32, publisherSRData *voicekit.RTCPSenderReportState, tsOffset uint64, passThrough bool) *rtcp.SenderReport {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
@@ -851,7 +851,7 @@ func (r *RTPStatsSender) GetRtcpSenderReport(ssrc uint32, publisherSRData *livek
 
 	packetCount := uint32(r.getPacketsSeenPlusDuplicates(r.extStartSN, r.extHighestSN))
 	octetCount := r.bytes + r.bytesDuplicate + r.bytesPadding
-	srData := &livekit.RTCPSenderReportState{
+	srData := &voicekit.RTCPSenderReportState{
 		NtpTimestamp:    uint64(nowNTP),
 		RtpTimestamp:    uint32(nowRTPExt),
 		RtpTimestampExt: nowRTPExt,
@@ -1091,7 +1091,7 @@ func (r *RTPStatsSender) MarshalLogObject(e zapcore.ObjectEncoder) error {
 	return lockedRTPStatsSenderLogEncoder{r}.MarshalLogObject(e)
 }
 
-func (r *RTPStatsSender) ToProto() *livekit.RTPStats {
+func (r *RTPStatsSender) ToProto() *voicekit.RTPStats {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 

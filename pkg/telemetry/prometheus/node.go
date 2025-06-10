@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils/hwstats"
-	"github.com/livekit/protocol/webhook"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils/hwstats"
+	"github.com/voicekit/protocol/webhook"
 )
 
 const (
-	livekitNamespace string = "livekit"
+	voicekitNamespace string = "voicekit"
 )
 
 var (
@@ -47,14 +47,14 @@ var (
 	memoryStats *hwstats.MemoryStats
 )
 
-func Init(nodeID string, nodeType livekit.NodeType) error {
+func Init(nodeID string, nodeType voicekit.NodeType) error {
 	if initialized.Swap(true) {
 		return nil
 	}
 
 	MessageCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Namespace:   livekitNamespace,
+			Namespace:   voicekitNamespace,
 			Subsystem:   "node",
 			Name:        "messages",
 			ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -64,7 +64,7 @@ func Init(nodeID string, nodeType livekit.NodeType) error {
 
 	MessageBytes = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Namespace:   livekitNamespace,
+			Namespace:   voicekitNamespace,
 			Subsystem:   "node",
 			Name:        "message_bytes",
 			ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -74,7 +74,7 @@ func Init(nodeID string, nodeType livekit.NodeType) error {
 
 	ServiceOperationCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Namespace:   livekitNamespace,
+			Namespace:   voicekitNamespace,
 			Subsystem:   "node",
 			Name:        "service_operation",
 			ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -84,7 +84,7 @@ func Init(nodeID string, nodeType livekit.NodeType) error {
 
 	TwirpRequestStatusCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Namespace:   livekitNamespace,
+			Namespace:   voicekitNamespace,
 			Subsystem:   "node",
 			Name:        "twirp_request_status",
 			ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -94,7 +94,7 @@ func Init(nodeID string, nodeType livekit.NodeType) error {
 
 	promSysPacketGauge = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace:   livekitNamespace,
+			Namespace:   voicekitNamespace,
 			Subsystem:   "node",
 			Name:        "packet_total",
 			ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -132,7 +132,7 @@ func Init(nodeID string, nodeType livekit.NodeType) error {
 	return nil
 }
 
-func GetNodeStats(nodeStartedAt int64, prevStats []*livekit.NodeStats, rateIntervals []time.Duration) (*livekit.NodeStats, error) {
+func GetNodeStats(nodeStartedAt int64, prevStats []*voicekit.NodeStats, rateIntervals []time.Duration) (*voicekit.NodeStats, error) {
 	loadAvg, err := getLoadAvg()
 	if err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func GetNodeStats(nodeStartedAt int64, prevStats []*livekit.NodeStats, rateInter
 	promSysPacketGauge.WithLabelValues("out").Set(float64(sysPackets - sysPacketsStart))
 	promSysPacketGauge.WithLabelValues("dropped").Set(float64(sysDroppedPackets - sysDroppedPacketsStart))
 
-	stats := &livekit.NodeStats{
+	stats := &voicekit.NodeStats{
 		StartedAt:                  nodeStartedAt,
 		UpdatedAt:                  time.Now().Unix(),
 		NumRooms:                   roomCurrent.Load(),
@@ -199,7 +199,7 @@ func GetNodeStats(nodeStartedAt int64, prevStats []*livekit.NodeStats, rateInter
 	return stats, nil
 }
 
-func getNodeStatsRate(statsHistory []*livekit.NodeStats) *livekit.NodeStatsRate {
+func getNodeStatsRate(statsHistory []*voicekit.NodeStats) *voicekit.NodeStatsRate {
 	if len(statsHistory) == 0 {
 		return nil
 	}
@@ -233,7 +233,7 @@ func getNodeStatsRate(statsHistory []*livekit.NodeStats) *livekit.NodeStatsRate 
 
 	earlier := statsHistory[0]
 	later := statsHistory[len(statsHistory)-1]
-	rate := &livekit.NodeStatsRate{
+	rate := &voicekit.NodeStatsRate{
 		StartedAt:                  earlier.UpdatedAt,
 		EndedAt:                    later.UpdatedAt,
 		Duration:                   elapsed,

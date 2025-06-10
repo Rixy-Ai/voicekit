@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,24 +19,24 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/protocol/ingress"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/protocol/ingress"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/psrpc"
 )
 
 type IngressLauncher interface {
-	LaunchPullIngress(ctx context.Context, info *livekit.IngressInfo) (*livekit.IngressInfo, error)
+	LaunchPullIngress(ctx context.Context, info *voicekit.IngressInfo) (*voicekit.IngressInfo, error)
 }
 
 type IngressService struct {
 	conf        *config.IngressConfig
-	nodeID      livekit.NodeID
+	nodeID      voicekit.NodeID
 	bus         psrpc.MessageBus
 	psrpcClient rpc.IngressClient
 	store       IngressStore
@@ -47,7 +47,7 @@ type IngressService struct {
 
 func NewIngressServiceWithIngressLauncher(
 	conf *config.IngressConfig,
-	nodeID livekit.NodeID,
+	nodeID voicekit.NodeID,
 	bus psrpc.MessageBus,
 	psrpcClient rpc.IngressClient,
 	store IngressStore,
@@ -70,7 +70,7 @@ func NewIngressServiceWithIngressLauncher(
 
 func NewIngressService(
 	conf *config.IngressConfig,
-	nodeID livekit.NodeID,
+	nodeID voicekit.NodeID,
 	bus psrpc.MessageBus,
 	psrpcClient rpc.IngressClient,
 	store IngressStore,
@@ -84,7 +84,7 @@ func NewIngressService(
 	return s
 }
 
-func (s *IngressService) CreateIngress(ctx context.Context, req *livekit.CreateIngressRequest) (*livekit.IngressInfo, error) {
+func (s *IngressService) CreateIngress(ctx context.Context, req *voicekit.CreateIngressRequest) (*voicekit.IngressInfo, error) {
 	fields := []interface{}{
 		"inputType", req.InputType,
 		"name", req.Name,
@@ -98,11 +98,11 @@ func (s *IngressService) CreateIngress(ctx context.Context, req *livekit.CreateI
 
 	var url string
 	switch req.InputType {
-	case livekit.IngressInput_RTMP_INPUT:
+	case voicekit.IngressInput_RTMP_INPUT:
 		url = s.conf.RTMPBaseURL
-	case livekit.IngressInput_WHIP_INPUT:
+	case voicekit.IngressInput_WHIP_INPUT:
 		url = s.conf.WHIPBaseURL
-	case livekit.IngressInput_URL_INPUT:
+	case voicekit.IngressInput_URL_INPUT:
 	default:
 		return nil, ingress.ErrInvalidIngressType
 	}
@@ -116,7 +116,7 @@ func (s *IngressService) CreateIngress(ctx context.Context, req *livekit.CreateI
 	return ig, nil
 }
 
-func (s *IngressService) CreateIngressWithUrl(ctx context.Context, urlStr string, req *livekit.CreateIngressRequest) (*livekit.IngressInfo, error) {
+func (s *IngressService) CreateIngressWithUrl(ctx context.Context, urlStr string, req *voicekit.CreateIngressRequest) (*voicekit.IngressInfo, error) {
 	err := EnsureIngressAdminPermission(ctx)
 	if err != nil {
 		return nil, twirpAuthError(err)
@@ -125,7 +125,7 @@ func (s *IngressService) CreateIngressWithUrl(ctx context.Context, urlStr string
 		return nil, ErrIngressNotConnected
 	}
 
-	if req.InputType == livekit.IngressInput_URL_INPUT {
+	if req.InputType == voicekit.IngressInput_URL_INPUT {
 		if req.Url == "" {
 			return nil, ingress.ErrInvalidIngress("missing URL parameter")
 		}
@@ -141,11 +141,11 @@ func (s *IngressService) CreateIngressWithUrl(ctx context.Context, urlStr string
 	}
 
 	var sk string
-	if req.InputType != livekit.IngressInput_URL_INPUT {
+	if req.InputType != voicekit.IngressInput_URL_INPUT {
 		sk = guid.New("")
 	}
 
-	info := &livekit.IngressInfo{
+	info := &voicekit.IngressInfo{
 		IngressId:           guid.New(utils.IngressPrefix),
 		Name:                req.Name,
 		StreamKey:           sk,
@@ -158,18 +158,18 @@ func (s *IngressService) CreateIngressWithUrl(ctx context.Context, urlStr string
 		ParticipantIdentity: req.ParticipantIdentity,
 		ParticipantName:     req.ParticipantName,
 		ParticipantMetadata: req.ParticipantMetadata,
-		State:               &livekit.IngressState{},
+		State:               &voicekit.IngressState{},
 		Enabled:             req.Enabled,
 	}
 
 	switch req.InputType {
-	case livekit.IngressInput_RTMP_INPUT,
-		livekit.IngressInput_WHIP_INPUT:
+	case voicekit.IngressInput_RTMP_INPUT,
+		voicekit.IngressInput_WHIP_INPUT:
 		info.Reusable = true
 		if err := ingress.ValidateForSerialization(info); err != nil {
 			return nil, err
 		}
-	case livekit.IngressInput_URL_INPUT:
+	case voicekit.IngressInput_URL_INPUT:
 		if err := ingress.Validate(info); err != nil {
 			return nil, err
 		}
@@ -179,12 +179,12 @@ func (s *IngressService) CreateIngressWithUrl(ctx context.Context, urlStr string
 
 	updateEnableTranscoding(info)
 
-	if req.InputType == livekit.IngressInput_URL_INPUT {
+	if req.InputType == voicekit.IngressInput_URL_INPUT {
 		retInfo, err := s.launcher.LaunchPullIngress(ctx, info)
 		if retInfo != nil {
 			info = retInfo
 		} else {
-			info.State.Status = livekit.IngressState_ENDPOINT_ERROR
+			info.State.Status = voicekit.IngressState_ENDPOINT_ERROR
 			info.State.Error = err.Error()
 		}
 		if err != nil {
@@ -208,7 +208,7 @@ func (s *IngressService) CreateIngressWithUrl(ctx context.Context, urlStr string
 	return info, nil
 }
 
-func (s *IngressService) LaunchPullIngress(ctx context.Context, info *livekit.IngressInfo) (*livekit.IngressInfo, error) {
+func (s *IngressService) LaunchPullIngress(ctx context.Context, info *voicekit.IngressInfo) (*voicekit.IngressInfo, error) {
 	req := &rpc.StartIngressRequest{
 		Info: info,
 	}
@@ -216,7 +216,7 @@ func (s *IngressService) LaunchPullIngress(ctx context.Context, info *livekit.In
 	return s.psrpcClient.StartIngress(ctx, req)
 }
 
-func updateEnableTranscoding(info *livekit.IngressInfo) {
+func updateEnableTranscoding(info *voicekit.IngressInfo) {
 	// Set BypassTranscoding as well for backward compatiblity
 	if info.EnableTranscoding != nil {
 		info.BypassTranscoding = !*info.EnableTranscoding
@@ -224,7 +224,7 @@ func updateEnableTranscoding(info *livekit.IngressInfo) {
 	}
 
 	switch info.InputType {
-	case livekit.IngressInput_WHIP_INPUT:
+	case voicekit.IngressInput_WHIP_INPUT:
 		f := false
 		info.EnableTranscoding = &f
 		info.BypassTranscoding = true
@@ -234,7 +234,7 @@ func updateEnableTranscoding(info *livekit.IngressInfo) {
 	}
 }
 
-func updateInfoUsingRequest(req *livekit.UpdateIngressRequest, info *livekit.IngressInfo) error {
+func updateInfoUsingRequest(req *voicekit.UpdateIngressRequest, info *voicekit.IngressInfo) error {
 	if req.Name != "" {
 		info.Name = req.Name
 	}
@@ -274,7 +274,7 @@ func updateInfoUsingRequest(req *livekit.UpdateIngressRequest, info *livekit.Ing
 	return nil
 }
 
-func (s *IngressService) UpdateIngress(ctx context.Context, req *livekit.UpdateIngressRequest) (*livekit.IngressInfo, error) {
+func (s *IngressService) UpdateIngress(ctx context.Context, req *voicekit.UpdateIngressRequest) (*voicekit.IngressInfo, error) {
 	fields := []interface{}{
 		"ingress", req.IngressId,
 		"name", req.Name,
@@ -304,8 +304,8 @@ func (s *IngressService) UpdateIngress(ctx context.Context, req *livekit.UpdateI
 	}
 
 	switch info.State.Status {
-	case livekit.IngressState_ENDPOINT_ERROR:
-		info.State.Status = livekit.IngressState_ENDPOINT_INACTIVE
+	case voicekit.IngressState_ENDPOINT_ERROR:
+		info.State.Status = voicekit.IngressState_ENDPOINT_INACTIVE
 		_, err = s.io.UpdateIngressState(ctx, &rpc.UpdateIngressStateRequest{
 			IngressId: req.IngressId,
 			State:     info.State,
@@ -315,14 +315,14 @@ func (s *IngressService) UpdateIngress(ctx context.Context, req *livekit.UpdateI
 		}
 		fallthrough
 
-	case livekit.IngressState_ENDPOINT_INACTIVE:
+	case voicekit.IngressState_ENDPOINT_INACTIVE:
 		err = updateInfoUsingRequest(req, info)
 		if err != nil {
 			return nil, err
 		}
 
-	case livekit.IngressState_ENDPOINT_BUFFERING,
-		livekit.IngressState_ENDPOINT_PUBLISHING:
+	case voicekit.IngressState_ENDPOINT_BUFFERING,
+		voicekit.IngressState_ENDPOINT_PUBLISHING:
 		err := updateInfoUsingRequest(req, info)
 		if err != nil {
 			return nil, err
@@ -343,7 +343,7 @@ func (s *IngressService) UpdateIngress(ctx context.Context, req *livekit.UpdateI
 	return info, nil
 }
 
-func (s *IngressService) ListIngress(ctx context.Context, req *livekit.ListIngressRequest) (*livekit.ListIngressResponse, error) {
+func (s *IngressService) ListIngress(ctx context.Context, req *voicekit.ListIngressRequest) (*voicekit.ListIngressResponse, error) {
 	AppendLogFields(ctx, "room", req.RoomName)
 	err := EnsureIngressAdminPermission(ctx)
 	if err != nil {
@@ -353,25 +353,25 @@ func (s *IngressService) ListIngress(ctx context.Context, req *livekit.ListIngre
 		return nil, ErrIngressNotConnected
 	}
 
-	var infos []*livekit.IngressInfo
+	var infos []*voicekit.IngressInfo
 	if req.IngressId != "" {
 		info, err := s.store.LoadIngress(ctx, req.IngressId)
 		if err != nil {
 			return nil, err
 		}
-		infos = []*livekit.IngressInfo{info}
+		infos = []*voicekit.IngressInfo{info}
 	} else {
-		infos, err = s.store.ListIngress(ctx, livekit.RoomName(req.RoomName))
+		infos, err = s.store.ListIngress(ctx, voicekit.RoomName(req.RoomName))
 		if err != nil {
 			logger.Errorw("could not list ingress info", err)
 			return nil, err
 		}
 	}
 
-	return &livekit.ListIngressResponse{Items: infos}, nil
+	return &voicekit.ListIngressResponse{Items: infos}, nil
 }
 
-func (s *IngressService) DeleteIngress(ctx context.Context, req *livekit.DeleteIngressRequest) (*livekit.IngressInfo, error) {
+func (s *IngressService) DeleteIngress(ctx context.Context, req *voicekit.DeleteIngressRequest) (*voicekit.IngressInfo, error) {
 	AppendLogFields(ctx, "ingressID", req.IngressId)
 	if err := EnsureIngressAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
@@ -387,8 +387,8 @@ func (s *IngressService) DeleteIngress(ctx context.Context, req *livekit.DeleteI
 	}
 
 	switch info.State.Status {
-	case livekit.IngressState_ENDPOINT_BUFFERING,
-		livekit.IngressState_ENDPOINT_PUBLISHING:
+	case voicekit.IngressState_ENDPOINT_BUFFERING,
+		voicekit.IngressState_ENDPOINT_PUBLISHING:
 		if _, err = s.psrpcClient.DeleteIngress(ctx, req.IngressId, req); err != nil {
 			logger.Warnw("could not stop active ingress", err)
 		}
@@ -400,7 +400,7 @@ func (s *IngressService) DeleteIngress(ctx context.Context, req *livekit.DeleteI
 		return nil, err
 	}
 
-	info.State.Status = livekit.IngressState_ENDPOINT_INACTIVE
+	info.State.Status = voicekit.IngressState_ENDPOINT_INACTIVE
 
 	s.telemetry.IngressDeleted(ctx, info)
 

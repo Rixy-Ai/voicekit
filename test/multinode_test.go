@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/livekit-server/pkg/testutils"
-	"github.com/livekit/livekit-server/test/client"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
+	"github.com/voicekit/voicekit-server/test/client"
 )
 
 func TestMultiNodeRouting(t *testing.T) {
@@ -37,7 +37,7 @@ func TestMultiNodeRouting(t *testing.T) {
 	defer finish()
 
 	// creating room on node 1
-	_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &livekit.CreateRoomRequest{
+	_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &voicekit.CreateRoomRequest{
 		Name: testRoom,
 	})
 	require.NoError(t, err)
@@ -122,7 +122,7 @@ func TestMultinodeReconnectAfterNodeShutdown(t *testing.T) {
 	defer finish()
 
 	// creating room on node 1
-	_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &livekit.CreateRoomRequest{
+	_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &voicekit.CreateRoomRequest{
 		Name:   testRoom,
 		NodeId: s2.Node().Id,
 	})
@@ -192,10 +192,10 @@ func TestMultiNodeRefreshToken(t *testing.T) {
 
 	// update permissions and metadata
 	ctx := contextWithToken(adminRoomToken(testRoom))
-	_, err := roomClient.UpdateParticipant(ctx, &livekit.UpdateParticipantRequest{
+	_, err := roomClient.UpdateParticipant(ctx, &voicekit.UpdateParticipantRequest{
 		Room:     testRoom,
 		Identity: "c1",
-		Permission: &livekit.ParticipantPermission{
+		Permission: &voicekit.ParticipantPermission{
 			CanPublish:   false,
 			CanSubscribe: true,
 		},
@@ -277,7 +277,7 @@ func TestMultiNodeUpdateAttributes(t *testing.T) {
 	_ = c2.SetAttributes(map[string]string{"secondkey": "au2"})
 
 	// updates using room API should succeed
-	_, err := roomClient.UpdateParticipant(contextWithToken(adminRoomToken(testRoom)), &livekit.UpdateParticipantRequest{
+	_, err := roomClient.UpdateParticipant(contextWithToken(adminRoomToken(testRoom)), &voicekit.UpdateParticipantRequest{
 		Room:     testRoom,
 		Identity: "au1",
 		Attributes: map[string]string{
@@ -326,10 +326,10 @@ func TestMultiNodeRevokePublishPermission(t *testing.T) {
 
 	// revoke permission
 	ctx := contextWithToken(adminRoomToken(testRoom))
-	_, err := roomClient.UpdateParticipant(ctx, &livekit.UpdateParticipantRequest{
+	_, err := roomClient.UpdateParticipant(ctx, &voicekit.UpdateParticipantRequest{
 		Room:     testRoom,
 		Identity: "c1",
-		Permission: &livekit.ParticipantPermission{
+		Permission: &voicekit.ParticipantPermission{
 			CanPublish:     false,
 			CanPublishData: true,
 			CanSubscribe:   true,
@@ -361,17 +361,17 @@ func TestCloseDisconnectedParticipantOnSignalClose(t *testing.T) {
 	waitUntilConnected(t, c1)
 
 	c2 := createRTCClient("c2", defaultServerPort, &client.Options{
-		SignalRequestInterceptor: func(msg *livekit.SignalRequest, next client.SignalRequestHandler) error {
+		SignalRequestInterceptor: func(msg *voicekit.SignalRequest, next client.SignalRequestHandler) error {
 			switch msg.Message.(type) {
-			case *livekit.SignalRequest_Offer, *livekit.SignalRequest_Answer, *livekit.SignalRequest_Leave:
+			case *voicekit.SignalRequest_Offer, *voicekit.SignalRequest_Answer, *voicekit.SignalRequest_Leave:
 				return nil
 			default:
 				return next(msg)
 			}
 		},
-		SignalResponseInterceptor: func(msg *livekit.SignalResponse, next client.SignalResponseHandler) error {
+		SignalResponseInterceptor: func(msg *voicekit.SignalResponse, next client.SignalResponseHandler) error {
 			switch msg.Message.(type) {
-			case *livekit.SignalResponse_Offer, *livekit.SignalResponse_Answer:
+			case *voicekit.SignalResponse_Offer, *voicekit.SignalResponse_Answer:
 				return nil
 			default:
 				return next(msg)

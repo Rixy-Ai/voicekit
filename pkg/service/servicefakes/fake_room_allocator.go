@@ -5,8 +5,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type FakeRoomAllocator struct {
@@ -21,31 +21,31 @@ type FakeRoomAllocator struct {
 	autoCreateEnabledReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	CreateRoomStub        func(context.Context, *livekit.CreateRoomRequest, bool) (*livekit.Room, *livekit.RoomInternal, bool, error)
+	CreateRoomStub        func(context.Context, *voicekit.CreateRoomRequest, bool) (*voicekit.Room, *voicekit.RoomInternal, bool, error)
 	createRoomMutex       sync.RWMutex
 	createRoomArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.CreateRoomRequest
+		arg2 *voicekit.CreateRoomRequest
 		arg3 bool
 	}
 	createRoomReturns struct {
-		result1 *livekit.Room
-		result2 *livekit.RoomInternal
+		result1 *voicekit.Room
+		result2 *voicekit.RoomInternal
 		result3 bool
 		result4 error
 	}
 	createRoomReturnsOnCall map[int]struct {
-		result1 *livekit.Room
-		result2 *livekit.RoomInternal
+		result1 *voicekit.Room
+		result2 *voicekit.RoomInternal
 		result3 bool
 		result4 error
 	}
-	SelectRoomNodeStub        func(context.Context, livekit.RoomName, livekit.NodeID) error
+	SelectRoomNodeStub        func(context.Context, voicekit.RoomName, voicekit.NodeID) error
 	selectRoomNodeMutex       sync.RWMutex
 	selectRoomNodeArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
-		arg3 livekit.NodeID
+		arg2 voicekit.RoomName
+		arg3 voicekit.NodeID
 	}
 	selectRoomNodeReturns struct {
 		result1 error
@@ -53,11 +53,11 @@ type FakeRoomAllocator struct {
 	selectRoomNodeReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ValidateCreateRoomStub        func(context.Context, livekit.RoomName) error
+	ValidateCreateRoomStub        func(context.Context, voicekit.RoomName) error
 	validateCreateRoomMutex       sync.RWMutex
 	validateCreateRoomArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}
 	validateCreateRoomReturns struct {
 		result1 error
@@ -130,12 +130,12 @@ func (fake *FakeRoomAllocator) AutoCreateEnabledReturnsOnCall(i int, result1 boo
 	}{result1}
 }
 
-func (fake *FakeRoomAllocator) CreateRoom(arg1 context.Context, arg2 *livekit.CreateRoomRequest, arg3 bool) (*livekit.Room, *livekit.RoomInternal, bool, error) {
+func (fake *FakeRoomAllocator) CreateRoom(arg1 context.Context, arg2 *voicekit.CreateRoomRequest, arg3 bool) (*voicekit.Room, *voicekit.RoomInternal, bool, error) {
 	fake.createRoomMutex.Lock()
 	ret, specificReturn := fake.createRoomReturnsOnCall[len(fake.createRoomArgsForCall)]
 	fake.createRoomArgsForCall = append(fake.createRoomArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.CreateRoomRequest
+		arg2 *voicekit.CreateRoomRequest
 		arg3 bool
 	}{arg1, arg2, arg3})
 	stub := fake.CreateRoomStub
@@ -157,58 +157,58 @@ func (fake *FakeRoomAllocator) CreateRoomCallCount() int {
 	return len(fake.createRoomArgsForCall)
 }
 
-func (fake *FakeRoomAllocator) CreateRoomCalls(stub func(context.Context, *livekit.CreateRoomRequest, bool) (*livekit.Room, *livekit.RoomInternal, bool, error)) {
+func (fake *FakeRoomAllocator) CreateRoomCalls(stub func(context.Context, *voicekit.CreateRoomRequest, bool) (*voicekit.Room, *voicekit.RoomInternal, bool, error)) {
 	fake.createRoomMutex.Lock()
 	defer fake.createRoomMutex.Unlock()
 	fake.CreateRoomStub = stub
 }
 
-func (fake *FakeRoomAllocator) CreateRoomArgsForCall(i int) (context.Context, *livekit.CreateRoomRequest, bool) {
+func (fake *FakeRoomAllocator) CreateRoomArgsForCall(i int) (context.Context, *voicekit.CreateRoomRequest, bool) {
 	fake.createRoomMutex.RLock()
 	defer fake.createRoomMutex.RUnlock()
 	argsForCall := fake.createRoomArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeRoomAllocator) CreateRoomReturns(result1 *livekit.Room, result2 *livekit.RoomInternal, result3 bool, result4 error) {
+func (fake *FakeRoomAllocator) CreateRoomReturns(result1 *voicekit.Room, result2 *voicekit.RoomInternal, result3 bool, result4 error) {
 	fake.createRoomMutex.Lock()
 	defer fake.createRoomMutex.Unlock()
 	fake.CreateRoomStub = nil
 	fake.createRoomReturns = struct {
-		result1 *livekit.Room
-		result2 *livekit.RoomInternal
+		result1 *voicekit.Room
+		result2 *voicekit.RoomInternal
 		result3 bool
 		result4 error
 	}{result1, result2, result3, result4}
 }
 
-func (fake *FakeRoomAllocator) CreateRoomReturnsOnCall(i int, result1 *livekit.Room, result2 *livekit.RoomInternal, result3 bool, result4 error) {
+func (fake *FakeRoomAllocator) CreateRoomReturnsOnCall(i int, result1 *voicekit.Room, result2 *voicekit.RoomInternal, result3 bool, result4 error) {
 	fake.createRoomMutex.Lock()
 	defer fake.createRoomMutex.Unlock()
 	fake.CreateRoomStub = nil
 	if fake.createRoomReturnsOnCall == nil {
 		fake.createRoomReturnsOnCall = make(map[int]struct {
-			result1 *livekit.Room
-			result2 *livekit.RoomInternal
+			result1 *voicekit.Room
+			result2 *voicekit.RoomInternal
 			result3 bool
 			result4 error
 		})
 	}
 	fake.createRoomReturnsOnCall[i] = struct {
-		result1 *livekit.Room
-		result2 *livekit.RoomInternal
+		result1 *voicekit.Room
+		result2 *voicekit.RoomInternal
 		result3 bool
 		result4 error
 	}{result1, result2, result3, result4}
 }
 
-func (fake *FakeRoomAllocator) SelectRoomNode(arg1 context.Context, arg2 livekit.RoomName, arg3 livekit.NodeID) error {
+func (fake *FakeRoomAllocator) SelectRoomNode(arg1 context.Context, arg2 voicekit.RoomName, arg3 voicekit.NodeID) error {
 	fake.selectRoomNodeMutex.Lock()
 	ret, specificReturn := fake.selectRoomNodeReturnsOnCall[len(fake.selectRoomNodeArgsForCall)]
 	fake.selectRoomNodeArgsForCall = append(fake.selectRoomNodeArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
-		arg3 livekit.NodeID
+		arg2 voicekit.RoomName
+		arg3 voicekit.NodeID
 	}{arg1, arg2, arg3})
 	stub := fake.SelectRoomNodeStub
 	fakeReturns := fake.selectRoomNodeReturns
@@ -229,13 +229,13 @@ func (fake *FakeRoomAllocator) SelectRoomNodeCallCount() int {
 	return len(fake.selectRoomNodeArgsForCall)
 }
 
-func (fake *FakeRoomAllocator) SelectRoomNodeCalls(stub func(context.Context, livekit.RoomName, livekit.NodeID) error) {
+func (fake *FakeRoomAllocator) SelectRoomNodeCalls(stub func(context.Context, voicekit.RoomName, voicekit.NodeID) error) {
 	fake.selectRoomNodeMutex.Lock()
 	defer fake.selectRoomNodeMutex.Unlock()
 	fake.SelectRoomNodeStub = stub
 }
 
-func (fake *FakeRoomAllocator) SelectRoomNodeArgsForCall(i int) (context.Context, livekit.RoomName, livekit.NodeID) {
+func (fake *FakeRoomAllocator) SelectRoomNodeArgsForCall(i int) (context.Context, voicekit.RoomName, voicekit.NodeID) {
 	fake.selectRoomNodeMutex.RLock()
 	defer fake.selectRoomNodeMutex.RUnlock()
 	argsForCall := fake.selectRoomNodeArgsForCall[i]
@@ -265,12 +265,12 @@ func (fake *FakeRoomAllocator) SelectRoomNodeReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
-func (fake *FakeRoomAllocator) ValidateCreateRoom(arg1 context.Context, arg2 livekit.RoomName) error {
+func (fake *FakeRoomAllocator) ValidateCreateRoom(arg1 context.Context, arg2 voicekit.RoomName) error {
 	fake.validateCreateRoomMutex.Lock()
 	ret, specificReturn := fake.validateCreateRoomReturnsOnCall[len(fake.validateCreateRoomArgsForCall)]
 	fake.validateCreateRoomArgsForCall = append(fake.validateCreateRoomArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.RoomName
+		arg2 voicekit.RoomName
 	}{arg1, arg2})
 	stub := fake.ValidateCreateRoomStub
 	fakeReturns := fake.validateCreateRoomReturns
@@ -291,13 +291,13 @@ func (fake *FakeRoomAllocator) ValidateCreateRoomCallCount() int {
 	return len(fake.validateCreateRoomArgsForCall)
 }
 
-func (fake *FakeRoomAllocator) ValidateCreateRoomCalls(stub func(context.Context, livekit.RoomName) error) {
+func (fake *FakeRoomAllocator) ValidateCreateRoomCalls(stub func(context.Context, voicekit.RoomName) error) {
 	fake.validateCreateRoomMutex.Lock()
 	defer fake.validateCreateRoomMutex.Unlock()
 	fake.ValidateCreateRoomStub = stub
 }
 
-func (fake *FakeRoomAllocator) ValidateCreateRoomArgsForCall(i int) (context.Context, livekit.RoomName) {
+func (fake *FakeRoomAllocator) ValidateCreateRoomArgsForCall(i int) (context.Context, voicekit.RoomName) {
 	fake.validateCreateRoomMutex.RLock()
 	defer fake.validateCreateRoomMutex.RUnlock()
 	argsForCall := fake.validateCreateRoomArgsForCall[i]

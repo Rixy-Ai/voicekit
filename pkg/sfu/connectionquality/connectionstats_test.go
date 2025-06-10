@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/sfu/rtpstats"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/sfu/rtpstats"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 )
 
 // -----------------------------------------------
@@ -77,7 +77,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now)
 		mos, quality := cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// best conditions (no loss, jitter/rtt = 0) - quality should stay EXCELLENT
 		trp.setStreams(map[uint32]*buffer.StreamStatsWithLayers{
@@ -92,7 +92,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// introduce loss and the score should drop - 12% loss for Opus -> POOR
 		now = now.Add(duration)
@@ -117,7 +117,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(2.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_POOR, quality)
+		require.Equal(t, voicekit.ConnectionQuality_POOR, quality)
 
 		// should climb to GOOD quality in one iteration if the conditions improve.
 		// although significant loss (12%) in the previous window, lowest score is
@@ -135,7 +135,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_GOOD, quality)
+		require.Equal(t, voicekit.ConnectionQuality_GOOD, quality)
 
 		// should stay at GOOD if conditions continue to be good
 		now = now.Add(duration)
@@ -151,7 +151,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_GOOD, quality)
+		require.Equal(t, voicekit.ConnectionQuality_GOOD, quality)
 
 		// should climb up to EXCELLENT if conditions continue to be good
 		now = now.Add(duration)
@@ -167,7 +167,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// introduce loss and the score should drop - 5% loss for Opus -> GOOD
 		now = now.Add(duration)
@@ -184,7 +184,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_GOOD, quality)
+		require.Equal(t, voicekit.ConnectionQuality_GOOD, quality)
 
 		// should stay at GOOD quality for another iteration even if the conditions improve
 		now = now.Add(duration)
@@ -200,7 +200,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_GOOD, quality)
+		require.Equal(t, voicekit.ConnectionQuality_GOOD, quality)
 
 		// should climb up to EXCELLENT if conditions continue to be good
 		now = now.Add(duration)
@@ -216,7 +216,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// mute when quality is POOR should return quality to EXCELLENT
 		now = now.Add(duration)
@@ -233,13 +233,13 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(2.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_POOR, quality)
+		require.Equal(t, voicekit.ConnectionQuality_POOR, quality)
 
 		now = now.Add(duration)
 		cs.UpdateMuteAt(true, now.Add(1*time.Second))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// unmute at specific time to ensure next window does not satisfy the unmute time threshold.
 		// that means even if the next update has 0 packets, it should hold state and stay at EXCELLENT quality
@@ -257,7 +257,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// next update with no packets,
 		// but last RTCP is not set, should knock quality down to POOR
@@ -274,7 +274,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(2.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_POOR, quality)
+		require.Equal(t, voicekit.ConnectionQuality_POOR, quality)
 
 		// another dry spell, but last RTCP is not stale, should keep quality at POOR
 		now = now.Add(duration)
@@ -291,7 +291,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(2.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_POOR, quality)
+		require.Equal(t, voicekit.ConnectionQuality_POOR, quality)
 
 		// yet another dry spell, but last RTCP is stale, should knock down quality at LOST
 		now = now.Add(duration)
@@ -307,14 +307,14 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(1.3), mos)
-		require.Equal(t, livekit.ConnectionQuality_LOST, quality)
+		require.Equal(t, voicekit.ConnectionQuality_LOST, quality)
 
 		// mute when LOST should not bump up score/quality
 		now = now.Add(duration)
 		cs.UpdateMuteAt(true, now.Add(1*time.Second))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(1.3), mos)
-		require.Equal(t, livekit.ConnectionQuality_LOST, quality)
+		require.Equal(t, voicekit.ConnectionQuality_LOST, quality)
 
 		// unmute and send packets to bring quality back up
 		now = now.Add(duration)
@@ -336,7 +336,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// with lesser number of packet (simulating DTX).
 		// even higher loss (like 10%) should not knock down quality due to quadratic weighting of packet loss ratio
@@ -353,7 +353,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// mute/unmute to bring quality back up
 		now = now.Add(duration)
@@ -377,7 +377,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_GOOD, quality)
+		require.Equal(t, voicekit.ConnectionQuality_GOOD, quality)
 
 		// mute/unmute to bring quality back up
 		now = now.Add(duration)
@@ -401,7 +401,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_GOOD, quality)
+		require.Equal(t, voicekit.ConnectionQuality_GOOD, quality)
 
 		// test layer mute via UpdateLayerMute API
 		cs.AddBitrateTransitionAt(1_000_000, now)
@@ -420,13 +420,13 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_GOOD, quality)
+		require.Equal(t, voicekit.ConnectionQuality_GOOD, quality)
 
 		now = now.Add(duration)
 		cs.UpdateLayerMuteAt(true, now)
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// unmute layer
 		cs.UpdateLayerMuteAt(false, now.Add(2*time.Second))
@@ -444,14 +444,14 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 
 		// pause
 		now = now.Add(duration)
 		cs.UpdatePauseAt(true, now)
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(2.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_POOR, quality)
+		require.Equal(t, voicekit.ConnectionQuality_POOR, quality)
 
 		// resume
 		cs.UpdatePauseAt(false, now.Add(2*time.Second))
@@ -471,7 +471,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality = cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.1), mos)
-		require.Equal(t, livekit.ConnectionQuality_GOOD, quality)
+		require.Equal(t, voicekit.ConnectionQuality_GOOD, quality)
 	})
 
 	t.Run("quality scorer dependent rtt", func(t *testing.T) {
@@ -504,7 +504,7 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality := cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 	})
 
 	t.Run("quality scorer dependent jitter", func(t *testing.T) {
@@ -537,14 +537,14 @@ func TestConnectionQuality(t *testing.T) {
 		cs.updateScoreAt(now.Add(duration))
 		mos, quality := cs.GetScoreAndQuality()
 		require.Greater(t, float32(4.6), mos)
-		require.Equal(t, livekit.ConnectionQuality_EXCELLENT, quality)
+		require.Equal(t, voicekit.ConnectionQuality_EXCELLENT, quality)
 	})
 
 	t.Run("codecs - packet", func(t *testing.T) {
 		type expectedQuality struct {
 			packetLossPercentage float64
 			expectedMOS          float32
-			expectedQuality      livekit.ConnectionQuality
+			expectedQuality      voicekit.ConnectionQuality
 		}
 		testCases := []struct {
 			name              string
@@ -564,17 +564,17 @@ func TestConnectionQuality(t *testing.T) {
 					{
 						packetLossPercentage: 1.0,
 						expectedMOS:          4.6,
-						expectedQuality:      livekit.ConnectionQuality_EXCELLENT,
+						expectedQuality:      voicekit.ConnectionQuality_EXCELLENT,
 					},
 					{
 						packetLossPercentage: 4.0,
 						expectedMOS:          4.1,
-						expectedQuality:      livekit.ConnectionQuality_GOOD,
+						expectedQuality:      voicekit.ConnectionQuality_GOOD,
 					},
 					{
 						packetLossPercentage: 9.2,
 						expectedMOS:          2.1,
-						expectedQuality:      livekit.ConnectionQuality_POOR,
+						expectedQuality:      voicekit.ConnectionQuality_POOR,
 					},
 				},
 			},
@@ -588,17 +588,17 @@ func TestConnectionQuality(t *testing.T) {
 					{
 						packetLossPercentage: 3.0,
 						expectedMOS:          4.6,
-						expectedQuality:      livekit.ConnectionQuality_EXCELLENT,
+						expectedQuality:      voicekit.ConnectionQuality_EXCELLENT,
 					},
 					{
 						packetLossPercentage: 4.4,
 						expectedMOS:          4.1,
-						expectedQuality:      livekit.ConnectionQuality_GOOD,
+						expectedQuality:      voicekit.ConnectionQuality_GOOD,
 					},
 					{
 						packetLossPercentage: 15.0,
 						expectedMOS:          2.1,
-						expectedQuality:      livekit.ConnectionQuality_POOR,
+						expectedQuality:      voicekit.ConnectionQuality_POOR,
 					},
 				},
 			},
@@ -612,17 +612,17 @@ func TestConnectionQuality(t *testing.T) {
 					{
 						packetLossPercentage: 4.0,
 						expectedMOS:          4.6,
-						expectedQuality:      livekit.ConnectionQuality_EXCELLENT,
+						expectedQuality:      voicekit.ConnectionQuality_EXCELLENT,
 					},
 					{
 						packetLossPercentage: 6.0,
 						expectedMOS:          4.1,
-						expectedQuality:      livekit.ConnectionQuality_GOOD,
+						expectedQuality:      voicekit.ConnectionQuality_GOOD,
 					},
 					{
 						packetLossPercentage: 19.5,
 						expectedMOS:          2.1,
-						expectedQuality:      livekit.ConnectionQuality_POOR,
+						expectedQuality:      voicekit.ConnectionQuality_POOR,
 					},
 				},
 			},
@@ -636,17 +636,17 @@ func TestConnectionQuality(t *testing.T) {
 					{
 						packetLossPercentage: 6.0,
 						expectedMOS:          4.6,
-						expectedQuality:      livekit.ConnectionQuality_EXCELLENT,
+						expectedQuality:      voicekit.ConnectionQuality_EXCELLENT,
 					},
 					{
 						packetLossPercentage: 10.0,
 						expectedMOS:          4.1,
-						expectedQuality:      livekit.ConnectionQuality_GOOD,
+						expectedQuality:      voicekit.ConnectionQuality_GOOD,
 					},
 					{
 						packetLossPercentage: 30.0,
 						expectedMOS:          2.1,
-						expectedQuality:      livekit.ConnectionQuality_POOR,
+						expectedQuality:      voicekit.ConnectionQuality_POOR,
 					},
 				},
 			},
@@ -660,17 +660,17 @@ func TestConnectionQuality(t *testing.T) {
 					{
 						packetLossPercentage: 1.0,
 						expectedMOS:          4.6,
-						expectedQuality:      livekit.ConnectionQuality_EXCELLENT,
+						expectedQuality:      voicekit.ConnectionQuality_EXCELLENT,
 					},
 					{
 						packetLossPercentage: 3.5,
 						expectedMOS:          4.1,
-						expectedQuality:      livekit.ConnectionQuality_GOOD,
+						expectedQuality:      voicekit.ConnectionQuality_GOOD,
 					},
 					{
 						packetLossPercentage: 8.0,
 						expectedMOS:          2.1,
-						expectedQuality:      livekit.ConnectionQuality_POOR,
+						expectedQuality:      voicekit.ConnectionQuality_POOR,
 					},
 				},
 			},
@@ -721,7 +721,7 @@ func TestConnectionQuality(t *testing.T) {
 			transitions     []transition
 			bytes           uint64
 			expectedMOS     float32
-			expectedQuality livekit.ConnectionQuality
+			expectedQuality voicekit.ConnectionQuality
 		}{
 			// NOTE: Because of EWMA (Exponentially Weighted Moving Average), these cut off points are not exact
 			// 1.0 <= expectedBits / actualBits < ~2.7 = EXCELLENT
@@ -740,7 +740,7 @@ func TestConnectionQuality(t *testing.T) {
 				},
 				bytes:           6_000_000 / 8,
 				expectedMOS:     4.6,
-				expectedQuality: livekit.ConnectionQuality_EXCELLENT,
+				expectedQuality: voicekit.ConnectionQuality_EXCELLENT,
 			},
 			{
 				name: "good",
@@ -755,7 +755,7 @@ func TestConnectionQuality(t *testing.T) {
 				},
 				bytes:           uint64(math.Ceil(7_000_000.0 / 8.0 / 4.2)),
 				expectedMOS:     4.1,
-				expectedQuality: livekit.ConnectionQuality_GOOD,
+				expectedQuality: voicekit.ConnectionQuality_GOOD,
 			},
 			{
 				name: "poor",
@@ -770,7 +770,7 @@ func TestConnectionQuality(t *testing.T) {
 				},
 				bytes:           uint64(math.Ceil(8_000_000.0 / 8.0 / 75.0)),
 				expectedMOS:     2.1,
-				expectedQuality: livekit.ConnectionQuality_POOR,
+				expectedQuality: voicekit.ConnectionQuality_POOR,
 			},
 		}
 
@@ -819,7 +819,7 @@ func TestConnectionQuality(t *testing.T) {
 			name            string
 			transitions     []transition
 			expectedMOS     float32
-			expectedQuality livekit.ConnectionQuality
+			expectedQuality voicekit.ConnectionQuality
 		}{
 			// NOTE: Because of EWMA (Exponentially Weighted Moving Average), these cut off points are not exact
 			// each spatial layer missed drops o quality level
@@ -835,7 +835,7 @@ func TestConnectionQuality(t *testing.T) {
 					},
 				},
 				expectedMOS:     4.6,
-				expectedQuality: livekit.ConnectionQuality_EXCELLENT,
+				expectedQuality: voicekit.ConnectionQuality_EXCELLENT,
 			},
 			{
 				name: "good",
@@ -849,7 +849,7 @@ func TestConnectionQuality(t *testing.T) {
 					},
 				},
 				expectedMOS:     4.1,
-				expectedQuality: livekit.ConnectionQuality_GOOD,
+				expectedQuality: voicekit.ConnectionQuality_GOOD,
 			},
 			{
 				name: "poor",
@@ -863,7 +863,7 @@ func TestConnectionQuality(t *testing.T) {
 					},
 				},
 				expectedMOS:     2.1,
-				expectedQuality: livekit.ConnectionQuality_POOR,
+				expectedQuality: voicekit.ConnectionQuality_POOR,
 			},
 		}
 

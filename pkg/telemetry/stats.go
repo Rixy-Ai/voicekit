@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,20 +15,20 @@
 package telemetry
 
 import (
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type StatsKey struct {
-	streamType    livekit.StreamType
-	participantID livekit.ParticipantID
-	trackID       livekit.TrackID
-	trackSource   livekit.TrackSource
-	trackType     livekit.TrackType
+	streamType    voicekit.StreamType
+	participantID voicekit.ParticipantID
+	trackID       voicekit.TrackID
+	trackSource   voicekit.TrackSource
+	trackType     voicekit.TrackType
 	track         bool
 }
 
-func StatsKeyForTrack(streamType livekit.StreamType, participantID livekit.ParticipantID, trackID livekit.TrackID, trackSource livekit.TrackSource, trackType livekit.TrackType) StatsKey {
+func StatsKeyForTrack(streamType voicekit.StreamType, participantID voicekit.ParticipantID, trackID voicekit.TrackID, trackSource voicekit.TrackSource, trackType voicekit.TrackType) StatsKey {
 	return StatsKey{
 		streamType:    streamType,
 		participantID: participantID,
@@ -39,7 +39,7 @@ func StatsKeyForTrack(streamType livekit.StreamType, participantID livekit.Parti
 	}
 }
 
-func StatsKeyForData(streamType livekit.StreamType, participantID livekit.ParticipantID, trackID livekit.TrackID) StatsKey {
+func StatsKeyForData(streamType voicekit.StreamType, participantID voicekit.ParticipantID, trackID voicekit.TrackID) StatsKey {
 	return StatsKey{
 		streamType:    streamType,
 		participantID: participantID,
@@ -47,10 +47,10 @@ func StatsKeyForData(streamType livekit.StreamType, participantID livekit.Partic
 	}
 }
 
-func (t *telemetryService) TrackStats(key StatsKey, stat *livekit.AnalyticsStat) {
+func (t *telemetryService) TrackStats(key StatsKey, stat *voicekit.AnalyticsStat) {
 	t.enqueue(func() {
 		direction := prometheus.Incoming
-		if key.streamType == livekit.StreamType_DOWNSTREAM {
+		if key.streamType == voicekit.StreamType_DOWNSTREAM {
 			direction = prometheus.Outgoing
 		}
 
@@ -67,7 +67,7 @@ func (t *telemetryService) TrackStats(key StatsKey, stat *livekit.AnalyticsStat)
 			firs += stream.Firs
 			packets += stream.PrimaryPackets + stream.PaddingPackets
 			bytes += stream.PrimaryBytes + stream.PaddingBytes
-			if key.streamType == livekit.StreamType_DOWNSTREAM {
+			if key.streamType == voicekit.StreamType_DOWNSTREAM {
 				retransmitPackets += stream.RetransmitPackets
 				retransmitBytes += stream.RetransmitBytes
 			} else {

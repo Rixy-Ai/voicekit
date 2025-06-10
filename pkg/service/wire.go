@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,23 +27,23 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gopkg.in/yaml.v3"
 
-	"github.com/livekit/livekit-server/pkg/agent"
-	"github.com/livekit/livekit-server/pkg/clientconfiguration"
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	redisLiveKit "github.com/livekit/protocol/redis"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/webhook"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/agent"
+	"github.com/voicekit/voicekit-server/pkg/clientconfiguration"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	redisVoiceKit "github.com/voicekit/protocol/redis"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/webhook"
+	"github.com/voicekit/psrpc"
 )
 
-func InitializeServer(conf *config.Config, currentNode routing.LocalNode) (*LivekitServer, error) {
+func InitializeServer(conf *config.Config, currentNode routing.LocalNode) (*VoicekitServer, error) {
 	wire.Build(
 		getNodeID,
 		createRedisClient,
@@ -58,7 +58,7 @@ func InitializeServer(conf *config.Config, currentNode routing.LocalNode) (*Live
 		getLimitConf,
 		config.DefaultAPIConfig,
 		wire.Bind(new(routing.MessageRouter), new(routing.Router)),
-		wire.Bind(new(livekit.RoomService), new(*RoomService)),
+		wire.Bind(new(voicekit.RoomService), new(*RoomService)),
 		telemetry.NewAnalyticsService,
 		telemetry.NewTelemetryService,
 		getMessageBus,
@@ -102,9 +102,9 @@ func InitializeServer(conf *config.Config, currentNode routing.LocalNode) (*Live
 		getTURNAuthHandlerFunc,
 		newInProcessTurnServer,
 		utils.NewDefaultTimedVersionGenerator,
-		NewLivekitServer,
+		NewVoicekitServer,
 	)
-	return &LivekitServer{}, nil
+	return &VoicekitServer{}, nil
 }
 
 func InitializeRouter(conf *config.Config, currentNode routing.LocalNode) (routing.Router, error) {
@@ -126,7 +126,7 @@ func InitializeRouter(conf *config.Config, currentNode routing.LocalNode) (routi
 	return nil, nil
 }
 
-func getNodeID(currentNode routing.LocalNode) livekit.NodeID {
+func getNodeID(currentNode routing.LocalNode) voicekit.NodeID {
 	return currentNode.NodeID()
 }
 
@@ -174,7 +174,7 @@ func createRedisClient(conf *config.Config) (redis.UniversalClient, error) {
 	if !conf.Redis.IsConfigured() {
 		return nil, nil
 	}
-	return redisLiveKit.GetRedisClient(&conf.Redis)
+	return redisVoiceKit.GetRedisClient(&conf.Redis)
 }
 
 func createStore(rc redis.UniversalClient) ObjectStore {

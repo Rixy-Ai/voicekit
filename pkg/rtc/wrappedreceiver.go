@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,18 +23,18 @@ import (
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
 )
 
 // wrapper around WebRTC receiver, overriding its ID
 
 type WrappedReceiverParams struct {
 	Receivers      []*simulcastReceiver
-	TrackID        livekit.TrackID
+	TrackID        voicekit.TrackID
 	StreamId       string
 	UpstreamCodecs []webrtc.RTPCodecParameters
 	Logger         logger.Logger
@@ -84,7 +84,7 @@ func NewWrappedReceiver(params WrappedReceiverParams) *WrappedReceiver {
 	}
 }
 
-func (r *WrappedReceiver) TrackID() livekit.TrackID {
+func (r *WrappedReceiver) TrackID() voicekit.TrackID {
 	return r.params.TrackID
 }
 
@@ -146,7 +146,7 @@ func (r *WrappedReceiver) Codecs() []webrtc.RTPCodecParameters {
 	return slices.Clone(r.codecs)
 }
 
-func (r *WrappedReceiver) DeleteDownTrack(participantID livekit.ParticipantID) {
+func (r *WrappedReceiver) DeleteDownTrack(participantID voicekit.ParticipantID) {
 	r.lock.Lock()
 	trackReceiver := r.TrackReceiver
 	r.lock.Unlock()
@@ -173,13 +173,13 @@ func (r *WrappedReceiver) AddOnReady(f func()) {
 
 type DummyReceiver struct {
 	receiver         atomic.Value
-	trackID          livekit.TrackID
+	trackID          voicekit.TrackID
 	streamId         string
 	codec            webrtc.RTPCodecParameters
 	headerExtensions []webrtc.RTPHeaderExtensionParameter
 
 	downTrackLock      sync.Mutex
-	downTracks         map[livekit.ParticipantID]sfu.TrackSender
+	downTracks         map[voicekit.ParticipantID]sfu.TrackSender
 	onReadyCallbacks   []func()
 	onCodecStateChange []func(webrtc.RTPCodecParameters, sfu.ReceiverCodecState)
 
@@ -192,13 +192,13 @@ type DummyReceiver struct {
 	redReceiver, primaryReceiver *DummyRedReceiver
 }
 
-func NewDummyReceiver(trackID livekit.TrackID, streamId string, codec webrtc.RTPCodecParameters, headerExtensions []webrtc.RTPHeaderExtensionParameter) *DummyReceiver {
+func NewDummyReceiver(trackID voicekit.TrackID, streamId string, codec webrtc.RTPCodecParameters, headerExtensions []webrtc.RTPHeaderExtensionParameter) *DummyReceiver {
 	return &DummyReceiver{
 		trackID:          trackID,
 		streamId:         streamId,
 		codec:            codec,
 		headerExtensions: headerExtensions,
-		downTracks:       make(map[livekit.ParticipantID]sfu.TrackSender),
+		downTracks:       make(map[voicekit.ParticipantID]sfu.TrackSender),
 	}
 }
 
@@ -216,7 +216,7 @@ func (d *DummyReceiver) Upgrade(receiver sfu.TrackReceiver) {
 	for _, t := range d.downTracks {
 		receiver.AddDownTrack(t)
 	}
-	d.downTracks = make(map[livekit.ParticipantID]sfu.TrackSender)
+	d.downTracks = make(map[voicekit.ParticipantID]sfu.TrackSender)
 	onReadyCallbacks := d.onReadyCallbacks
 	d.onReadyCallbacks = nil
 	codecChange := d.onCodecStateChange
@@ -251,7 +251,7 @@ func (d *DummyReceiver) Upgrade(receiver sfu.TrackReceiver) {
 	d.settingsLock.Unlock()
 }
 
-func (d *DummyReceiver) TrackID() livekit.TrackID {
+func (d *DummyReceiver) TrackID() voicekit.TrackID {
 	return d.trackID
 }
 
@@ -343,7 +343,7 @@ func (d *DummyReceiver) AddDownTrack(track sfu.TrackSender) error {
 	return nil
 }
 
-func (d *DummyReceiver) DeleteDownTrack(subscriberID livekit.ParticipantID) {
+func (d *DummyReceiver) DeleteDownTrack(subscriberID voicekit.ParticipantID) {
 	d.downTrackLock.Lock()
 	defer d.downTrackLock.Unlock()
 
@@ -378,14 +378,14 @@ func (d *DummyReceiver) GetTemporalLayerFpsForSpatial(spatial int32) []float32 {
 	return nil
 }
 
-func (d *DummyReceiver) TrackInfo() *livekit.TrackInfo {
+func (d *DummyReceiver) TrackInfo() *voicekit.TrackInfo {
 	if r, ok := d.receiver.Load().(sfu.TrackReceiver); ok {
 		return r.TrackInfo()
 	}
 	return nil
 }
 
-func (d *DummyReceiver) UpdateTrackInfo(ti *livekit.TrackInfo) {
+func (d *DummyReceiver) UpdateTrackInfo(ti *voicekit.TrackInfo) {
 	if r, ok := d.receiver.Load().(sfu.TrackReceiver); ok {
 		r.UpdateTrackInfo(ti)
 	}
@@ -423,7 +423,7 @@ func (d *DummyReceiver) GetRedReceiver() sfu.TrackReceiver {
 	return d.redReceiver
 }
 
-func (d *DummyReceiver) GetTrackStats() *livekit.RTPStats {
+func (d *DummyReceiver) GetTrackStats() *voicekit.RTPStats {
 	if r, ok := d.receiver.Load().(sfu.TrackReceiver); ok {
 		return r.GetTrackStats()
 	}
@@ -479,14 +479,14 @@ type DummyRedReceiver struct {
 	isRedEncoding bool
 
 	downTrackLock sync.Mutex
-	downTracks    map[livekit.ParticipantID]sfu.TrackSender
+	downTracks    map[voicekit.ParticipantID]sfu.TrackSender
 }
 
 func NewDummyRedReceiver(d *DummyReceiver, isRedEncoding bool) *DummyRedReceiver {
 	return &DummyRedReceiver{
 		DummyReceiver: d,
 		isRedEncoding: isRedEncoding,
-		downTracks:    make(map[livekit.ParticipantID]sfu.TrackSender),
+		downTracks:    make(map[voicekit.ParticipantID]sfu.TrackSender),
 	}
 }
 
@@ -502,7 +502,7 @@ func (d *DummyRedReceiver) AddDownTrack(track sfu.TrackSender) error {
 	return nil
 }
 
-func (d *DummyRedReceiver) DeleteDownTrack(subscriberID livekit.ParticipantID) {
+func (d *DummyRedReceiver) DeleteDownTrack(subscriberID voicekit.ParticipantID) {
 	d.downTrackLock.Lock()
 	defer d.downTrackLock.Unlock()
 
@@ -543,6 +543,6 @@ func (d *DummyRedReceiver) upgrade(receiver sfu.TrackReceiver) {
 	for _, t := range d.downTracks {
 		redReceiver.AddDownTrack(t)
 	}
-	d.downTracks = make(map[livekit.ParticipantID]sfu.TrackSender)
+	d.downTracks = make(map[voicekit.ParticipantID]sfu.TrackSender)
 	d.downTrackLock.Unlock()
 }

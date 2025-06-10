@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 )
 
 const (
@@ -39,20 +39,20 @@ type DynacastQuality struct {
 	// quality level enable/disable
 	lock                     sync.RWMutex
 	initialized              bool
-	maxSubscriberQuality     map[livekit.ParticipantID]livekit.VideoQuality
-	maxSubscriberNodeQuality map[livekit.NodeID]livekit.VideoQuality
-	maxSubscribedQuality     livekit.VideoQuality
+	maxSubscriberQuality     map[voicekit.ParticipantID]voicekit.VideoQuality
+	maxSubscriberNodeQuality map[voicekit.NodeID]voicekit.VideoQuality
+	maxSubscribedQuality     voicekit.VideoQuality
 	maxQualityTimer          *time.Timer
 	regressTo                *DynacastQuality
 
-	onSubscribedMaxQualityChange func(mimeType mime.MimeType, maxSubscribedQuality livekit.VideoQuality)
+	onSubscribedMaxQualityChange func(mimeType mime.MimeType, maxSubscribedQuality voicekit.VideoQuality)
 }
 
 func NewDynacastQuality(params DynacastQualityParams) *DynacastQuality {
 	return &DynacastQuality{
 		params:                   params,
-		maxSubscriberQuality:     make(map[livekit.ParticipantID]livekit.VideoQuality),
-		maxSubscriberNodeQuality: make(map[livekit.NodeID]livekit.VideoQuality),
+		maxSubscriberQuality:     make(map[voicekit.ParticipantID]voicekit.VideoQuality),
+		maxSubscriberNodeQuality: make(map[voicekit.NodeID]voicekit.VideoQuality),
 	}
 }
 
@@ -68,13 +68,13 @@ func (d *DynacastQuality) Stop() {
 	d.stopMaxQualityTimer()
 }
 
-func (d *DynacastQuality) OnSubscribedMaxQualityChange(f func(mimeType mime.MimeType, maxSubscribedQuality livekit.VideoQuality)) {
+func (d *DynacastQuality) OnSubscribedMaxQualityChange(f func(mimeType mime.MimeType, maxSubscribedQuality voicekit.VideoQuality)) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.onSubscribedMaxQualityChange = f
 }
 
-func (d *DynacastQuality) NotifySubscriberMaxQuality(subscriberID livekit.ParticipantID, quality livekit.VideoQuality) {
+func (d *DynacastQuality) NotifySubscriberMaxQuality(subscriberID voicekit.ParticipantID, quality voicekit.VideoQuality) {
 	d.params.Logger.Debugw(
 		"setting subscriber max quality",
 		"mime", d.params.MimeType,
@@ -89,7 +89,7 @@ func (d *DynacastQuality) NotifySubscriberMaxQuality(subscriberID livekit.Partic
 		return
 	}
 
-	if quality == livekit.VideoQuality_OFF {
+	if quality == voicekit.VideoQuality_OFF {
 		delete(d.maxSubscriberQuality, subscriberID)
 	} else {
 		d.maxSubscriberQuality[subscriberID] = quality
@@ -101,12 +101,12 @@ func (d *DynacastQuality) NotifySubscriberMaxQuality(subscriberID livekit.Partic
 
 func (d *DynacastQuality) ClearSubscriberNodesMaxQuality() {
 	d.lock.Lock()
-	d.maxSubscriberNodeQuality = make(map[livekit.NodeID]livekit.VideoQuality)
+	d.maxSubscriberNodeQuality = make(map[voicekit.NodeID]voicekit.VideoQuality)
 	d.lock.Unlock()
 	d.updateQualityChange(false)
 }
 
-func (d *DynacastQuality) NotifySubscriberNodeMaxQuality(nodeID livekit.NodeID, quality livekit.VideoQuality) {
+func (d *DynacastQuality) NotifySubscriberNodeMaxQuality(nodeID voicekit.NodeID, quality voicekit.VideoQuality) {
 	d.params.Logger.Debugw(
 		"setting subscriber node max quality",
 		"mime", d.params.MimeType,
@@ -122,7 +122,7 @@ func (d *DynacastQuality) NotifySubscriberNodeMaxQuality(nodeID livekit.NodeID, 
 		return
 	}
 
-	if quality == livekit.VideoQuality_OFF {
+	if quality == voicekit.VideoQuality_OFF {
 		delete(d.maxSubscriberNodeQuality, nodeID)
 	} else {
 		d.maxSubscriberNodeQuality[nodeID] = quality
@@ -137,8 +137,8 @@ func (d *DynacastQuality) RegressTo(other *DynacastQuality) {
 	d.regressTo = other
 	maxSubscriberQuality := d.maxSubscriberQuality
 	maxSubscriberNodeQuality := d.maxSubscriberNodeQuality
-	d.maxSubscriberQuality = make(map[livekit.ParticipantID]livekit.VideoQuality)
-	d.maxSubscriberNodeQuality = make(map[livekit.NodeID]livekit.VideoQuality)
+	d.maxSubscriberQuality = make(map[voicekit.ParticipantID]voicekit.VideoQuality)
+	d.maxSubscriberNodeQuality = make(map[voicekit.NodeID]voicekit.VideoQuality)
 	d.lock.Unlock()
 
 	other.lock.Lock()
@@ -177,14 +177,14 @@ func (d *DynacastQuality) reset() {
 
 func (d *DynacastQuality) updateQualityChange(force bool) {
 	d.lock.Lock()
-	maxSubscribedQuality := livekit.VideoQuality_OFF
+	maxSubscribedQuality := voicekit.VideoQuality_OFF
 	for _, subQuality := range d.maxSubscriberQuality {
-		if maxSubscribedQuality == livekit.VideoQuality_OFF || (subQuality != livekit.VideoQuality_OFF && subQuality > maxSubscribedQuality) {
+		if maxSubscribedQuality == voicekit.VideoQuality_OFF || (subQuality != voicekit.VideoQuality_OFF && subQuality > maxSubscribedQuality) {
 			maxSubscribedQuality = subQuality
 		}
 	}
 	for _, nodeQuality := range d.maxSubscriberNodeQuality {
-		if maxSubscribedQuality == livekit.VideoQuality_OFF || (nodeQuality != livekit.VideoQuality_OFF && nodeQuality > maxSubscribedQuality) {
+		if maxSubscribedQuality == voicekit.VideoQuality_OFF || (nodeQuality != voicekit.VideoQuality_OFF && nodeQuality > maxSubscribedQuality) {
 			maxSubscribedQuality = nodeQuality
 		}
 	}

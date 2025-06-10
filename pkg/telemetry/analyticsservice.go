@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,21 +20,21 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/observability/roomobs"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/observability/roomobs"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils/guid"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
 )
 
 //counterfeiter:generate . AnalyticsService
 type AnalyticsService interface {
-	SendStats(ctx context.Context, stats []*livekit.AnalyticsStat)
-	SendEvent(ctx context.Context, events *livekit.AnalyticsEvent)
-	SendNodeRoomStates(ctx context.Context, nodeRooms *livekit.AnalyticsNodeRooms)
+	SendStats(ctx context.Context, stats []*voicekit.AnalyticsStat)
+	SendEvent(ctx context.Context, events *voicekit.AnalyticsEvent)
+	SendNodeRoomStates(ctx context.Context, nodeRooms *voicekit.AnalyticsNodeRooms)
 	RoomProjectReporter(ctx context.Context) roomobs.ProjectReporter
 }
 
@@ -55,7 +55,7 @@ func NewAnalyticsService(_ *config.Config, currentNode routing.LocalNode) Analyt
 	}
 }
 
-func (a *analyticsService) SendStats(_ context.Context, stats []*livekit.AnalyticsStat) {
+func (a *analyticsService) SendStats(_ context.Context, stats []*voicekit.AnalyticsStat) {
 	if a.stats == nil {
 		return
 	}
@@ -65,12 +65,12 @@ func (a *analyticsService) SendStats(_ context.Context, stats []*livekit.Analyti
 		stat.AnalyticsKey = a.analyticsKey
 		stat.Node = a.nodeID
 	}
-	if err := a.stats.Send(&livekit.AnalyticsStats{Stats: stats}); err != nil {
+	if err := a.stats.Send(&voicekit.AnalyticsStats{Stats: stats}); err != nil {
 		logger.Errorw("failed to send stats", err)
 	}
 }
 
-func (a *analyticsService) SendEvent(_ context.Context, event *livekit.AnalyticsEvent) {
+func (a *analyticsService) SendEvent(_ context.Context, event *voicekit.AnalyticsEvent) {
 	if a.events == nil {
 		return
 	}
@@ -78,14 +78,14 @@ func (a *analyticsService) SendEvent(_ context.Context, event *livekit.Analytics
 	event.Id = guid.New("AE_")
 	event.NodeId = a.nodeID
 	event.AnalyticsKey = a.analyticsKey
-	if err := a.events.Send(&livekit.AnalyticsEvents{
-		Events: []*livekit.AnalyticsEvent{event},
+	if err := a.events.Send(&voicekit.AnalyticsEvents{
+		Events: []*voicekit.AnalyticsEvent{event},
 	}); err != nil {
 		logger.Errorw("failed to send event", err, "eventType", event.Type.String())
 	}
 }
 
-func (a *analyticsService) SendNodeRoomStates(_ context.Context, nodeRooms *livekit.AnalyticsNodeRooms) {
+func (a *analyticsService) SendNodeRoomStates(_ context.Context, nodeRooms *voicekit.AnalyticsNodeRooms) {
 	if a.nodeRooms == nil {
 		return
 	}

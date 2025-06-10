@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@ package routing
 import (
 	"context"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/psrpc"
-	"github.com/livekit/psrpc/pkg/middleware"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/psrpc"
+	"github.com/voicekit/psrpc/pkg/middleware"
 )
 
 //counterfeiter:generate . RoomManagerClient
@@ -51,7 +51,7 @@ func NewRoomManagerClient(clientParams rpc.ClientParams, config config.RoomConfi
 	}, nil
 }
 
-func (c *roomManagerClient) CreateRoom(ctx context.Context, nodeID livekit.NodeID, req *livekit.CreateRoomRequest, opts ...psrpc.RequestOption) (*livekit.Room, error) {
+func (c *roomManagerClient) CreateRoom(ctx context.Context, nodeID voicekit.NodeID, req *voicekit.CreateRoomRequest, opts ...psrpc.RequestOption) (*voicekit.Room, error) {
 	return c.client.CreateRoom(ctx, nodeID, req, append(opts, psrpc.WithRequestInterceptors(middleware.NewRPCRetryInterceptor(middleware.RetryOptions{
 		MaxAttempts: c.config.CreateRoomAttempts,
 		Timeout:     c.config.CreateRoomTimeout,

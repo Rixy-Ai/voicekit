@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package selector
 
 import (
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 // CPULoadSelector eliminates nodes that have CPU usage higher than CPULoadLimit
@@ -25,13 +25,13 @@ type CPULoadSelector struct {
 	SortBy       string
 }
 
-func (s *CPULoadSelector) filterNodes(nodes []*livekit.Node) ([]*livekit.Node, error) {
+func (s *CPULoadSelector) filterNodes(nodes []*voicekit.Node) ([]*voicekit.Node, error) {
 	nodes = GetAvailableNodes(nodes)
 	if len(nodes) == 0 {
 		return nil, ErrNoAvailableNodes
 	}
 
-	nodesLowLoad := make([]*livekit.Node, 0)
+	nodesLowLoad := make([]*voicekit.Node, 0)
 	for _, node := range nodes {
 		stats := node.Stats
 		if stats.CpuLoad < s.CPULoadLimit {
@@ -44,7 +44,7 @@ func (s *CPULoadSelector) filterNodes(nodes []*livekit.Node) ([]*livekit.Node, e
 	return nodes, nil
 }
 
-func (s *CPULoadSelector) SelectNode(nodes []*livekit.Node) (*livekit.Node, error) {
+func (s *CPULoadSelector) SelectNode(nodes []*voicekit.Node) (*voicekit.Node, error) {
 	nodes, err := s.filterNodes(nodes)
 	if err != nil {
 		return nil, err

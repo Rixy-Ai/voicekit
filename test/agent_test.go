@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/livekit-server/pkg/testutils"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 var (
@@ -53,12 +53,12 @@ func TestAgents(t *testing.T) {
 	defer ac4.close()
 	defer ac5.close()
 	defer ac6.close()
-	ac1.Run(livekit.JobType_JT_ROOM, "default")
-	ac2.Run(livekit.JobType_JT_ROOM, "default")
-	ac3.Run(livekit.JobType_JT_PUBLISHER, "default")
-	ac4.Run(livekit.JobType_JT_PUBLISHER, "default")
-	ac5.Run(livekit.JobType_JT_PARTICIPANT, "default")
-	ac6.Run(livekit.JobType_JT_PARTICIPANT, "default")
+	ac1.Run(voicekit.JobType_JT_ROOM, "default")
+	ac2.Run(voicekit.JobType_JT_ROOM, "default")
+	ac3.Run(voicekit.JobType_JT_PUBLISHER, "default")
+	ac4.Run(voicekit.JobType_JT_PUBLISHER, "default")
+	ac5.Run(voicekit.JobType_JT_PARTICIPANT, "default")
+	ac6.Run(voicekit.JobType_JT_PARTICIPANT, "default")
 
 	testutils.WithTimeout(t, func() string {
 		if ac1.registered.Load() != 1 || ac2.registered.Load() != 1 || ac3.registered.Load() != 1 || ac4.registered.Load() != 1 || ac5.registered.Load() != 1 || ac6.registered.Load() != 1 {
@@ -131,12 +131,12 @@ func TestAgentNamespaces(t *testing.T) {
 	require.NoError(t, err)
 	defer ac1.close()
 	defer ac2.close()
-	ac1.Run(livekit.JobType_JT_ROOM, "namespace1")
-	ac2.Run(livekit.JobType_JT_ROOM, "namespace2")
+	ac1.Run(voicekit.JobType_JT_ROOM, "namespace1")
+	ac2.Run(voicekit.JobType_JT_ROOM, "namespace2")
 
-	_, err = roomClient.CreateRoom(contextWithToken(createRoomToken()), &livekit.CreateRoomRequest{
+	_, err = roomClient.CreateRoom(contextWithToken(createRoomToken()), &voicekit.CreateRoomRequest{
 		Name: testRoom,
-		Agents: []*livekit.RoomAgentDispatch{
+		Agents: []*voicekit.RoomAgentDispatch{
 			{},
 			{
 				AgentName: "ag",
@@ -190,8 +190,8 @@ func TestAgentMultiNode(t *testing.T) {
 	require.NoError(t, err)
 	defer ac1.close()
 	defer ac2.close()
-	ac1.Run(livekit.JobType_JT_ROOM, "default")
-	ac2.Run(livekit.JobType_JT_PUBLISHER, "default")
+	ac1.Run(voicekit.JobType_JT_ROOM, "default")
+	ac2.Run(voicekit.JobType_JT_PUBLISHER, "default")
 
 	testutils.WithTimeout(t, func() string {
 		if ac1.registered.Load() != 1 || ac2.registered.Load() != 1 {

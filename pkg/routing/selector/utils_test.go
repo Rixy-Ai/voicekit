@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/routing/selector"
+	"github.com/voicekit/voicekit-server/pkg/routing/selector"
 )
 
 func TestIsAvailable(t *testing.T) {
 	t.Run("still available", func(t *testing.T) {
-		n := &livekit.Node{
-			Stats: &livekit.NodeStats{
+		n := &voicekit.Node{
+			Stats: &voicekit.NodeStats{
 				UpdatedAt: time.Now().Unix() - 3,
 			},
 		}
@@ -36,8 +36,8 @@ func TestIsAvailable(t *testing.T) {
 	})
 
 	t.Run("expired", func(t *testing.T) {
-		n := &livekit.Node{
-			Stats: &livekit.NodeStats{
+		n := &voicekit.Node{
+			Stats: &voicekit.NodeStats{
 				UpdatedAt: time.Now().Unix() - 20,
 			},
 		}

@@ -4,51 +4,51 @@ package typesfakes
 import (
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type FakeLocalParticipantHelper struct {
-	GetParticipantInfoStub        func(livekit.ParticipantID) *livekit.ParticipantInfo
+	GetParticipantInfoStub        func(voicekit.ParticipantID) *voicekit.ParticipantInfo
 	getParticipantInfoMutex       sync.RWMutex
 	getParticipantInfoArgsForCall []struct {
-		arg1 livekit.ParticipantID
+		arg1 voicekit.ParticipantID
 	}
 	getParticipantInfoReturns struct {
-		result1 *livekit.ParticipantInfo
+		result1 *voicekit.ParticipantInfo
 	}
 	getParticipantInfoReturnsOnCall map[int]struct {
-		result1 *livekit.ParticipantInfo
+		result1 *voicekit.ParticipantInfo
 	}
-	GetRegionSettingsStub        func(string) *livekit.RegionSettings
+	GetRegionSettingsStub        func(string) *voicekit.RegionSettings
 	getRegionSettingsMutex       sync.RWMutex
 	getRegionSettingsArgsForCall []struct {
 		arg1 string
 	}
 	getRegionSettingsReturns struct {
-		result1 *livekit.RegionSettings
+		result1 *voicekit.RegionSettings
 	}
 	getRegionSettingsReturnsOnCall map[int]struct {
-		result1 *livekit.RegionSettings
+		result1 *voicekit.RegionSettings
 	}
-	GetSubscriberForwarderStateStub        func(types.LocalParticipant) (map[livekit.TrackID]*livekit.RTPForwarderState, error)
+	GetSubscriberForwarderStateStub        func(types.LocalParticipant) (map[voicekit.TrackID]*voicekit.RTPForwarderState, error)
 	getSubscriberForwarderStateMutex       sync.RWMutex
 	getSubscriberForwarderStateArgsForCall []struct {
 		arg1 types.LocalParticipant
 	}
 	getSubscriberForwarderStateReturns struct {
-		result1 map[livekit.TrackID]*livekit.RTPForwarderState
+		result1 map[voicekit.TrackID]*voicekit.RTPForwarderState
 		result2 error
 	}
 	getSubscriberForwarderStateReturnsOnCall map[int]struct {
-		result1 map[livekit.TrackID]*livekit.RTPForwarderState
+		result1 map[voicekit.TrackID]*voicekit.RTPForwarderState
 		result2 error
 	}
-	ResolveMediaTrackStub        func(types.LocalParticipant, livekit.TrackID) types.MediaResolverResult
+	ResolveMediaTrackStub        func(types.LocalParticipant, voicekit.TrackID) types.MediaResolverResult
 	resolveMediaTrackMutex       sync.RWMutex
 	resolveMediaTrackArgsForCall []struct {
 		arg1 types.LocalParticipant
-		arg2 livekit.TrackID
+		arg2 voicekit.TrackID
 	}
 	resolveMediaTrackReturns struct {
 		result1 types.MediaResolverResult
@@ -70,11 +70,11 @@ type FakeLocalParticipantHelper struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeLocalParticipantHelper) GetParticipantInfo(arg1 livekit.ParticipantID) *livekit.ParticipantInfo {
+func (fake *FakeLocalParticipantHelper) GetParticipantInfo(arg1 voicekit.ParticipantID) *voicekit.ParticipantInfo {
 	fake.getParticipantInfoMutex.Lock()
 	ret, specificReturn := fake.getParticipantInfoReturnsOnCall[len(fake.getParticipantInfoArgsForCall)]
 	fake.getParticipantInfoArgsForCall = append(fake.getParticipantInfoArgsForCall, struct {
-		arg1 livekit.ParticipantID
+		arg1 voicekit.ParticipantID
 	}{arg1})
 	stub := fake.GetParticipantInfoStub
 	fakeReturns := fake.getParticipantInfoReturns
@@ -95,43 +95,43 @@ func (fake *FakeLocalParticipantHelper) GetParticipantInfoCallCount() int {
 	return len(fake.getParticipantInfoArgsForCall)
 }
 
-func (fake *FakeLocalParticipantHelper) GetParticipantInfoCalls(stub func(livekit.ParticipantID) *livekit.ParticipantInfo) {
+func (fake *FakeLocalParticipantHelper) GetParticipantInfoCalls(stub func(voicekit.ParticipantID) *voicekit.ParticipantInfo) {
 	fake.getParticipantInfoMutex.Lock()
 	defer fake.getParticipantInfoMutex.Unlock()
 	fake.GetParticipantInfoStub = stub
 }
 
-func (fake *FakeLocalParticipantHelper) GetParticipantInfoArgsForCall(i int) livekit.ParticipantID {
+func (fake *FakeLocalParticipantHelper) GetParticipantInfoArgsForCall(i int) voicekit.ParticipantID {
 	fake.getParticipantInfoMutex.RLock()
 	defer fake.getParticipantInfoMutex.RUnlock()
 	argsForCall := fake.getParticipantInfoArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeLocalParticipantHelper) GetParticipantInfoReturns(result1 *livekit.ParticipantInfo) {
+func (fake *FakeLocalParticipantHelper) GetParticipantInfoReturns(result1 *voicekit.ParticipantInfo) {
 	fake.getParticipantInfoMutex.Lock()
 	defer fake.getParticipantInfoMutex.Unlock()
 	fake.GetParticipantInfoStub = nil
 	fake.getParticipantInfoReturns = struct {
-		result1 *livekit.ParticipantInfo
+		result1 *voicekit.ParticipantInfo
 	}{result1}
 }
 
-func (fake *FakeLocalParticipantHelper) GetParticipantInfoReturnsOnCall(i int, result1 *livekit.ParticipantInfo) {
+func (fake *FakeLocalParticipantHelper) GetParticipantInfoReturnsOnCall(i int, result1 *voicekit.ParticipantInfo) {
 	fake.getParticipantInfoMutex.Lock()
 	defer fake.getParticipantInfoMutex.Unlock()
 	fake.GetParticipantInfoStub = nil
 	if fake.getParticipantInfoReturnsOnCall == nil {
 		fake.getParticipantInfoReturnsOnCall = make(map[int]struct {
-			result1 *livekit.ParticipantInfo
+			result1 *voicekit.ParticipantInfo
 		})
 	}
 	fake.getParticipantInfoReturnsOnCall[i] = struct {
-		result1 *livekit.ParticipantInfo
+		result1 *voicekit.ParticipantInfo
 	}{result1}
 }
 
-func (fake *FakeLocalParticipantHelper) GetRegionSettings(arg1 string) *livekit.RegionSettings {
+func (fake *FakeLocalParticipantHelper) GetRegionSettings(arg1 string) *voicekit.RegionSettings {
 	fake.getRegionSettingsMutex.Lock()
 	ret, specificReturn := fake.getRegionSettingsReturnsOnCall[len(fake.getRegionSettingsArgsForCall)]
 	fake.getRegionSettingsArgsForCall = append(fake.getRegionSettingsArgsForCall, struct {
@@ -156,7 +156,7 @@ func (fake *FakeLocalParticipantHelper) GetRegionSettingsCallCount() int {
 	return len(fake.getRegionSettingsArgsForCall)
 }
 
-func (fake *FakeLocalParticipantHelper) GetRegionSettingsCalls(stub func(string) *livekit.RegionSettings) {
+func (fake *FakeLocalParticipantHelper) GetRegionSettingsCalls(stub func(string) *voicekit.RegionSettings) {
 	fake.getRegionSettingsMutex.Lock()
 	defer fake.getRegionSettingsMutex.Unlock()
 	fake.GetRegionSettingsStub = stub
@@ -169,30 +169,30 @@ func (fake *FakeLocalParticipantHelper) GetRegionSettingsArgsForCall(i int) stri
 	return argsForCall.arg1
 }
 
-func (fake *FakeLocalParticipantHelper) GetRegionSettingsReturns(result1 *livekit.RegionSettings) {
+func (fake *FakeLocalParticipantHelper) GetRegionSettingsReturns(result1 *voicekit.RegionSettings) {
 	fake.getRegionSettingsMutex.Lock()
 	defer fake.getRegionSettingsMutex.Unlock()
 	fake.GetRegionSettingsStub = nil
 	fake.getRegionSettingsReturns = struct {
-		result1 *livekit.RegionSettings
+		result1 *voicekit.RegionSettings
 	}{result1}
 }
 
-func (fake *FakeLocalParticipantHelper) GetRegionSettingsReturnsOnCall(i int, result1 *livekit.RegionSettings) {
+func (fake *FakeLocalParticipantHelper) GetRegionSettingsReturnsOnCall(i int, result1 *voicekit.RegionSettings) {
 	fake.getRegionSettingsMutex.Lock()
 	defer fake.getRegionSettingsMutex.Unlock()
 	fake.GetRegionSettingsStub = nil
 	if fake.getRegionSettingsReturnsOnCall == nil {
 		fake.getRegionSettingsReturnsOnCall = make(map[int]struct {
-			result1 *livekit.RegionSettings
+			result1 *voicekit.RegionSettings
 		})
 	}
 	fake.getRegionSettingsReturnsOnCall[i] = struct {
-		result1 *livekit.RegionSettings
+		result1 *voicekit.RegionSettings
 	}{result1}
 }
 
-func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderState(arg1 types.LocalParticipant) (map[livekit.TrackID]*livekit.RTPForwarderState, error) {
+func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderState(arg1 types.LocalParticipant) (map[voicekit.TrackID]*voicekit.RTPForwarderState, error) {
 	fake.getSubscriberForwarderStateMutex.Lock()
 	ret, specificReturn := fake.getSubscriberForwarderStateReturnsOnCall[len(fake.getSubscriberForwarderStateArgsForCall)]
 	fake.getSubscriberForwarderStateArgsForCall = append(fake.getSubscriberForwarderStateArgsForCall, struct {
@@ -217,7 +217,7 @@ func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderStateCallCount() i
 	return len(fake.getSubscriberForwarderStateArgsForCall)
 }
 
-func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderStateCalls(stub func(types.LocalParticipant) (map[livekit.TrackID]*livekit.RTPForwarderState, error)) {
+func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderStateCalls(stub func(types.LocalParticipant) (map[voicekit.TrackID]*voicekit.RTPForwarderState, error)) {
 	fake.getSubscriberForwarderStateMutex.Lock()
 	defer fake.getSubscriberForwarderStateMutex.Unlock()
 	fake.GetSubscriberForwarderStateStub = stub
@@ -230,38 +230,38 @@ func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderStateArgsForCall(i
 	return argsForCall.arg1
 }
 
-func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderStateReturns(result1 map[livekit.TrackID]*livekit.RTPForwarderState, result2 error) {
+func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderStateReturns(result1 map[voicekit.TrackID]*voicekit.RTPForwarderState, result2 error) {
 	fake.getSubscriberForwarderStateMutex.Lock()
 	defer fake.getSubscriberForwarderStateMutex.Unlock()
 	fake.GetSubscriberForwarderStateStub = nil
 	fake.getSubscriberForwarderStateReturns = struct {
-		result1 map[livekit.TrackID]*livekit.RTPForwarderState
+		result1 map[voicekit.TrackID]*voicekit.RTPForwarderState
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderStateReturnsOnCall(i int, result1 map[livekit.TrackID]*livekit.RTPForwarderState, result2 error) {
+func (fake *FakeLocalParticipantHelper) GetSubscriberForwarderStateReturnsOnCall(i int, result1 map[voicekit.TrackID]*voicekit.RTPForwarderState, result2 error) {
 	fake.getSubscriberForwarderStateMutex.Lock()
 	defer fake.getSubscriberForwarderStateMutex.Unlock()
 	fake.GetSubscriberForwarderStateStub = nil
 	if fake.getSubscriberForwarderStateReturnsOnCall == nil {
 		fake.getSubscriberForwarderStateReturnsOnCall = make(map[int]struct {
-			result1 map[livekit.TrackID]*livekit.RTPForwarderState
+			result1 map[voicekit.TrackID]*voicekit.RTPForwarderState
 			result2 error
 		})
 	}
 	fake.getSubscriberForwarderStateReturnsOnCall[i] = struct {
-		result1 map[livekit.TrackID]*livekit.RTPForwarderState
+		result1 map[voicekit.TrackID]*voicekit.RTPForwarderState
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeLocalParticipantHelper) ResolveMediaTrack(arg1 types.LocalParticipant, arg2 livekit.TrackID) types.MediaResolverResult {
+func (fake *FakeLocalParticipantHelper) ResolveMediaTrack(arg1 types.LocalParticipant, arg2 voicekit.TrackID) types.MediaResolverResult {
 	fake.resolveMediaTrackMutex.Lock()
 	ret, specificReturn := fake.resolveMediaTrackReturnsOnCall[len(fake.resolveMediaTrackArgsForCall)]
 	fake.resolveMediaTrackArgsForCall = append(fake.resolveMediaTrackArgsForCall, struct {
 		arg1 types.LocalParticipant
-		arg2 livekit.TrackID
+		arg2 voicekit.TrackID
 	}{arg1, arg2})
 	stub := fake.ResolveMediaTrackStub
 	fakeReturns := fake.resolveMediaTrackReturns
@@ -282,13 +282,13 @@ func (fake *FakeLocalParticipantHelper) ResolveMediaTrackCallCount() int {
 	return len(fake.resolveMediaTrackArgsForCall)
 }
 
-func (fake *FakeLocalParticipantHelper) ResolveMediaTrackCalls(stub func(types.LocalParticipant, livekit.TrackID) types.MediaResolverResult) {
+func (fake *FakeLocalParticipantHelper) ResolveMediaTrackCalls(stub func(types.LocalParticipant, voicekit.TrackID) types.MediaResolverResult) {
 	fake.resolveMediaTrackMutex.Lock()
 	defer fake.resolveMediaTrackMutex.Unlock()
 	fake.ResolveMediaTrackStub = stub
 }
 
-func (fake *FakeLocalParticipantHelper) ResolveMediaTrackArgsForCall(i int) (types.LocalParticipant, livekit.TrackID) {
+func (fake *FakeLocalParticipantHelper) ResolveMediaTrackArgsForCall(i int) (types.LocalParticipant, voicekit.TrackID) {
 	fake.resolveMediaTrackMutex.RLock()
 	defer fake.resolveMediaTrackMutex.RUnlock()
 	argsForCall := fake.resolveMediaTrackArgsForCall[i]

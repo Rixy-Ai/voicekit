@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/testutils"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
 )
 
 func TestMultiNodeRoomList(t *testing.T) {
@@ -47,12 +47,12 @@ func TestMultiNodeUpdateRoomMetadata(t *testing.T) {
 		_, _, finish := setupMultiNodeTest("TestMultiNodeUpdateRoomMetadata_empty")
 		defer finish()
 
-		_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &livekit.CreateRoomRequest{
+		_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &voicekit.CreateRoomRequest{
 			Name: "emptyRoom",
 		})
 		require.NoError(t, err)
 
-		rm, err := roomClient.UpdateRoomMetadata(contextWithToken(adminRoomToken("emptyRoom")), &livekit.UpdateRoomMetadataRequest{
+		rm, err := roomClient.UpdateRoomMetadata(contextWithToken(adminRoomToken("emptyRoom")), &voicekit.UpdateRoomMetadataRequest{
 			Room:     "emptyRoom",
 			Metadata: "updated metadata",
 		})
@@ -68,12 +68,12 @@ func TestMultiNodeUpdateRoomMetadata(t *testing.T) {
 		waitUntilConnected(t, c1)
 		defer c1.Stop()
 
-		_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &livekit.CreateRoomRequest{
+		_, err := roomClient.CreateRoom(contextWithToken(createRoomToken()), &voicekit.CreateRoomRequest{
 			Name: "emptyRoom",
 		})
 		require.NoError(t, err)
 
-		rm, err := roomClient.UpdateRoomMetadata(contextWithToken(adminRoomToken("emptyRoom")), &livekit.UpdateRoomMetadataRequest{
+		rm, err := roomClient.UpdateRoomMetadata(contextWithToken(adminRoomToken("emptyRoom")), &voicekit.UpdateRoomMetadataRequest{
 			Room:     "emptyRoom",
 			Metadata: "updated metadata",
 		})
@@ -97,14 +97,14 @@ func TestMultiNodeRemoveParticipant(t *testing.T) {
 	waitUntilConnected(t, c1)
 
 	ctx := contextWithToken(adminRoomToken(testRoom))
-	_, err := roomClient.RemoveParticipant(ctx, &livekit.RoomParticipantIdentity{
+	_, err := roomClient.RemoveParticipant(ctx, &voicekit.RoomParticipantIdentity{
 		Room:     testRoom,
 		Identity: "mn_remove_participant",
 	})
 	require.NoError(t, err)
 
 	// participant list doesn't show the participant
-	listRes, err := roomClient.ListParticipants(ctx, &livekit.ListParticipantsRequest{
+	listRes, err := roomClient.ListParticipants(ctx, &voicekit.ListParticipantsRequest{
 		Room: testRoom,
 	})
 	require.NoError(t, err)
@@ -121,7 +121,7 @@ func TestMultiNodeUpdateParticipantMetadata(t *testing.T) {
 	waitUntilConnected(t, c1)
 
 	ctx := contextWithToken(adminRoomToken(testRoom))
-	res, err := roomClient.UpdateParticipant(ctx, &livekit.UpdateParticipantRequest{
+	res, err := roomClient.UpdateParticipant(ctx, &voicekit.UpdateParticipantRequest{
 		Room:     testRoom,
 		Identity: "update_participant_metadata",
 		Metadata: "the new metadata",
@@ -149,7 +149,7 @@ func TestMultiNodeMutePublishedTrack(t *testing.T) {
 	ctx := contextWithToken(adminRoomToken(testRoom))
 	// wait for it to be published before
 	testutils.WithTimeout(t, func() string {
-		res, err := roomClient.GetParticipant(ctx, &livekit.RoomParticipantIdentity{
+		res, err := roomClient.GetParticipant(ctx, &voicekit.RoomParticipantIdentity{
 			Room:     testRoom,
 			Identity: identity,
 		})
@@ -161,7 +161,7 @@ func TestMultiNodeMutePublishedTrack(t *testing.T) {
 		}
 	})
 
-	res, err := roomClient.MutePublishedTrack(ctx, &livekit.MuteRoomTrackRequest{
+	res, err := roomClient.MutePublishedTrack(ctx, &voicekit.MuteRoomTrackRequest{
 		Room:     testRoom,
 		Identity: identity,
 		TrackSid: trackIDs[0],

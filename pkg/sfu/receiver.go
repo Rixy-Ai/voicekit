@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,18 +25,18 @@ import (
 	"github.com/pion/webrtc/v4"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/mediatransportutil/pkg/bucket"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/mediatransportutil/pkg/bucket"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 
-	"github.com/livekit/livekit-server/pkg/sfu/audio"
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/connectionquality"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	dd "github.com/livekit/livekit-server/pkg/sfu/rtpextension/dependencydescriptor"
-	"github.com/livekit/livekit-server/pkg/sfu/rtpstats"
-	"github.com/livekit/livekit-server/pkg/sfu/streamtracker"
+	"github.com/voicekit/voicekit-server/pkg/sfu/audio"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/connectionquality"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	dd "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/dependencydescriptor"
+	"github.com/voicekit/voicekit-server/pkg/sfu/rtpstats"
+	"github.com/voicekit/voicekit-server/pkg/sfu/streamtracker"
 )
 
 var (
@@ -95,7 +95,7 @@ const (
 
 // TrackReceiver defines an interface receive media from remote peer
 type TrackReceiver interface {
-	TrackID() livekit.TrackID
+	TrackID() voicekit.TrackID
 	StreamID() string
 
 	// returns the initial codec of the receiver, it is determined by the track's codec
@@ -116,13 +116,13 @@ type TrackReceiver interface {
 	SetMaxExpectedSpatialLayer(layer int32)
 
 	AddDownTrack(track TrackSender) error
-	DeleteDownTrack(participantID livekit.ParticipantID)
+	DeleteDownTrack(participantID voicekit.ParticipantID)
 	GetDownTracks() []TrackSender
 
 	DebugInfo() map[string]interface{}
 
-	TrackInfo() *livekit.TrackInfo
-	UpdateTrackInfo(ti *livekit.TrackInfo)
+	TrackInfo() *voicekit.TrackInfo
+	UpdateTrackInfo(ti *voicekit.TrackInfo)
 
 	// Get primary receiver if this receiver represents a RED codec; otherwise it will return itself
 	GetPrimaryReceiverForRed() TrackReceiver
@@ -132,7 +132,7 @@ type TrackReceiver interface {
 
 	GetTemporalLayerFpsForSpatial(layer int32) []float32
 
-	GetTrackStats() *livekit.RTPStats
+	GetTrackStats() *voicekit.RTPStats
 
 	// AddOnReady adds a function to be called when the receiver is ready, the callback
 	// could be called immediately if the receiver is ready when the callback is added
@@ -148,7 +148,7 @@ type REDTransformer interface {
 		payloadType webrtc.PayloadType,
 		isSVC bool,
 		layer int32,
-		publisherSRData *livekit.RTCPSenderReportState,
+		publisherSRData *voicekit.RTCPSenderReportState,
 	)
 	ResyncDownTracks()
 	CanClose() bool
@@ -162,7 +162,7 @@ type WebRTCReceiver struct {
 	pliThrottleConfig PLIThrottleConfig
 	audioConfig       AudioConfig
 
-	trackID            livekit.TrackID
+	trackID            voicekit.TrackID
 	streamID           string
 	kind               webrtc.RTPCodecType
 	receiver           *webrtc.RTPReceiver
@@ -176,7 +176,7 @@ type WebRTCReceiver struct {
 	closeOnce          sync.Once
 	closed             atomic.Bool
 	useTrackers        bool
-	trackInfo          atomic.Pointer[livekit.TrackInfo]
+	trackInfo          atomic.Pointer[voicekit.TrackInfo]
 
 	onRTCP func([]rtcp.Packet)
 
@@ -193,7 +193,7 @@ type WebRTCReceiver struct {
 
 	connectionStats *connectionquality.ConnectionStats
 
-	onStatsUpdate    func(w *WebRTCReceiver, stat *livekit.AnalyticsStat)
+	onStatsUpdate    func(w *WebRTCReceiver, stat *voicekit.AnalyticsStat)
 	onMaxLayerChange func(maxLayer int32)
 
 	redTransformer atomic.Value // redTransformer interface
@@ -250,7 +250,7 @@ func WithForwardStats(forwardStats *ForwardStats) ReceiverOpts {
 func NewWebRTCReceiver(
 	receiver *webrtc.RTPReceiver,
 	track TrackRemote,
-	trackInfo *livekit.TrackInfo,
+	trackInfo *voicekit.TrackInfo,
 	logger logger.Logger,
 	onRTCP func([]rtcp.Packet),
 	streamTrackerManagerConfig StreamTrackerManagerConfig,
@@ -259,7 +259,7 @@ func NewWebRTCReceiver(
 	w := &WebRTCReceiver{
 		logger:     logger,
 		receiver:   receiver,
-		trackID:    livekit.TrackID(track.ID()),
+		trackID:    voicekit.TrackID(track.ID()),
 		streamID:   track.StreamID(),
 		codec:      track.Codec(),
 		codecState: ReceiverCodecStateNormal,
@@ -283,7 +283,7 @@ func NewWebRTCReceiver(
 		ReceiverProvider: w,
 		Logger:           w.logger.WithValues("direction", "up"),
 	})
-	w.connectionStats.OnStatsUpdate(func(_cs *connectionquality.ConnectionStats, stat *livekit.AnalyticsStat) {
+	w.connectionStats.OnStatsUpdate(func(_cs *connectionquality.ConnectionStats, stat *voicekit.AnalyticsStat) {
 		if w.onStatsUpdate != nil {
 			w.onStatsUpdate(w, stat)
 		}
@@ -309,16 +309,16 @@ func NewWebRTCReceiver(
 	return w
 }
 
-func (w *WebRTCReceiver) TrackInfo() *livekit.TrackInfo {
+func (w *WebRTCReceiver) TrackInfo() *voicekit.TrackInfo {
 	return w.trackInfo.Load()
 }
 
-func (w *WebRTCReceiver) UpdateTrackInfo(ti *livekit.TrackInfo) {
+func (w *WebRTCReceiver) UpdateTrackInfo(ti *voicekit.TrackInfo) {
 	w.trackInfo.Store(utils.CloneProto(ti))
 	w.streamTrackerManager.UpdateTrackInfo(ti)
 }
 
-func (w *WebRTCReceiver) OnStatsUpdate(fn func(w *WebRTCReceiver, stat *livekit.AnalyticsStat)) {
+func (w *WebRTCReceiver) OnStatsUpdate(fn func(w *WebRTCReceiver, stat *voicekit.AnalyticsStat)) {
 	w.onStatsUpdate = fn
 }
 
@@ -335,7 +335,7 @@ func (w *WebRTCReceiver) getOnMaxLayerChange() func(maxLayer int32) {
 	return w.onMaxLayerChange
 }
 
-func (w *WebRTCReceiver) GetConnectionScoreAndQuality() (float32, livekit.ConnectionQuality) {
+func (w *WebRTCReceiver) GetConnectionScoreAndQuality() (float32, voicekit.ConnectionQuality) {
 	return w.connectionStats.GetScoreAndQuality()
 }
 
@@ -367,7 +367,7 @@ func (w *WebRTCReceiver) StreamID() string {
 	return w.streamID
 }
 
-func (w *WebRTCReceiver) TrackID() livekit.TrackID {
+func (w *WebRTCReceiver) TrackID() voicekit.TrackID {
 	return w.trackID
 }
 
@@ -506,7 +506,7 @@ func (w *WebRTCReceiver) notifyMaxExpectedLayer(layer int32) {
 		return
 	}
 
-	if w.Kind() == webrtc.RTPCodecTypeAudio || ti.Source == livekit.TrackSource_SCREEN_SHARE {
+	if w.Kind() == webrtc.RTPCodecTypeAudio || ti.Source == voicekit.TrackSource_SCREEN_SHARE {
 		// screen share tracks have highly variable bitrate, do not use bit rate based quality for those
 		return
 	}
@@ -595,7 +595,7 @@ func (w *WebRTCReceiver) OnCloseHandler(fn func()) {
 }
 
 // DeleteDownTrack removes a DownTrack from a Receiver
-func (w *WebRTCReceiver) DeleteDownTrack(subscriberID livekit.ParticipantID) {
+func (w *WebRTCReceiver) DeleteDownTrack(subscriberID voicekit.ParticipantID) {
 	if w.closed.Load() {
 		return
 	}
@@ -654,11 +654,11 @@ func (w *WebRTCReceiver) ReadRTP(buf []byte, layer uint8, esn uint64) (int, erro
 	return b.GetPacket(buf, esn)
 }
 
-func (w *WebRTCReceiver) GetTrackStats() *livekit.RTPStats {
+func (w *WebRTCReceiver) GetTrackStats() *voicekit.RTPStats {
 	w.bufferMu.RLock()
 	defer w.bufferMu.RUnlock()
 
-	stats := make([]*livekit.RTPStats, 0, len(w.buffers))
+	stats := make([]*voicekit.RTPStats, 0, len(w.buffers))
 	for _, buff := range w.buffers {
 		if buff == nil {
 			continue

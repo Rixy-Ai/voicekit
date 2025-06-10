@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	pd "github.com/livekit/livekit-server/pkg/sfu/rtpextension/playoutdelay"
-	"github.com/livekit/livekit-server/pkg/sfu/rtpstats"
-	"github.com/livekit/protocol/logger"
+	pd "github.com/voicekit/voicekit-server/pkg/sfu/rtpextension/playoutdelay"
+	"github.com/voicekit/voicekit-server/pkg/sfu/rtpstats"
+	"github.com/voicekit/protocol/logger"
 )
 
 func TestPlayoutDelay(t *testing.T) {

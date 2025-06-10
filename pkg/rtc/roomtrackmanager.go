@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 LiveKit, Inc
+ * Copyright 2025 Rixy Ai
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package rtc
 import (
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
 	"golang.org/x/exp/slices"
 )
 
@@ -30,24 +30,24 @@ type RoomTrackManager struct {
 	lock            sync.RWMutex
 	changedNotifier *utils.ChangeNotifierManager
 	removedNotifier *utils.ChangeNotifierManager
-	tracks          map[livekit.TrackID][]*TrackInfo
+	tracks          map[voicekit.TrackID][]*TrackInfo
 }
 
 type TrackInfo struct {
 	Track             types.MediaTrack
-	PublisherIdentity livekit.ParticipantIdentity
-	PublisherID       livekit.ParticipantID
+	PublisherIdentity voicekit.ParticipantIdentity
+	PublisherID       voicekit.ParticipantID
 }
 
 func NewRoomTrackManager() *RoomTrackManager {
 	return &RoomTrackManager{
-		tracks:          make(map[livekit.TrackID][]*TrackInfo),
+		tracks:          make(map[voicekit.TrackID][]*TrackInfo),
 		changedNotifier: utils.NewChangeNotifierManager(),
 		removedNotifier: utils.NewChangeNotifierManager(),
 	}
 }
 
-func (r *RoomTrackManager) AddTrack(track types.MediaTrack, publisherIdentity livekit.ParticipantIdentity, publisherID livekit.ParticipantID) {
+func (r *RoomTrackManager) AddTrack(track types.MediaTrack, publisherIdentity voicekit.ParticipantIdentity, publisherID voicekit.ParticipantID) {
 	trackID := track.ID()
 	r.lock.Lock()
 	r.tracks[trackID] = append(r.tracks[trackID], &TrackInfo{
@@ -96,7 +96,7 @@ func (r *RoomTrackManager) RemoveTrack(track types.MediaTrack) {
 	r.removedNotifier.RemoveNotifier(string(trackID), true)
 }
 
-func (r *RoomTrackManager) GetTrackInfo(trackID livekit.TrackID) *TrackInfo {
+func (r *RoomTrackManager) GetTrackInfo(trackID voicekit.TrackID) *TrackInfo {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
@@ -115,7 +115,7 @@ func (r *RoomTrackManager) GetTrackInfo(trackID livekit.TrackID) *TrackInfo {
 	return info
 }
 
-func (r *RoomTrackManager) NotifyTrackChanged(trackID livekit.TrackID) {
+func (r *RoomTrackManager) NotifyTrackChanged(trackID voicekit.TrackID) {
 	n := r.changedNotifier.GetNotifier(string(trackID))
 	if n != nil {
 		n.NotifyChanged()
@@ -138,10 +138,10 @@ func (r *RoomTrackManager) HasObservers(track types.MediaTrack) bool {
 	return true
 }
 
-func (r *RoomTrackManager) GetOrCreateTrackChangeNotifier(trackID livekit.TrackID) *utils.ChangeNotifier {
+func (r *RoomTrackManager) GetOrCreateTrackChangeNotifier(trackID voicekit.TrackID) *utils.ChangeNotifier {
 	return r.changedNotifier.GetOrCreateNotifier(string(trackID))
 }
 
-func (r *RoomTrackManager) GetOrCreateTrackRemoveNotifier(trackID livekit.TrackID) *utils.ChangeNotifier {
+func (r *RoomTrackManager) GetOrCreateTrackRemoveNotifier(trackID voicekit.TrackID) *utils.ChangeNotifier {
 	return r.removedNotifier.GetOrCreateNotifier(string(trackID))
 }

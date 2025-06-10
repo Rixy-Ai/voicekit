@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ import (
 
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/psrpc"
 
-	"github.com/livekit/livekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
 )
 
 type IOInfoService struct {
@@ -85,7 +85,7 @@ func (s *IOInfoService) Stop() {
 	}
 }
 
-func (s *IOInfoService) CreateEgress(ctx context.Context, info *livekit.EgressInfo) (*emptypb.Empty, error) {
+func (s *IOInfoService) CreateEgress(ctx context.Context, info *voicekit.EgressInfo) (*emptypb.Empty, error) {
 	// check if egress already exists to avoid duplicate EgressStarted event
 	if _, err := s.es.LoadEgress(ctx, info.EgressId); err == nil {
 		return &emptypb.Empty{}, nil
@@ -102,18 +102,18 @@ func (s *IOInfoService) CreateEgress(ctx context.Context, info *livekit.EgressIn
 	return &emptypb.Empty{}, nil
 }
 
-func (s *IOInfoService) UpdateEgress(ctx context.Context, info *livekit.EgressInfo) (*emptypb.Empty, error) {
+func (s *IOInfoService) UpdateEgress(ctx context.Context, info *voicekit.EgressInfo) (*emptypb.Empty, error) {
 	err := s.es.UpdateEgress(ctx, info)
 
 	switch info.Status {
-	case livekit.EgressStatus_EGRESS_ACTIVE,
-		livekit.EgressStatus_EGRESS_ENDING:
+	case voicekit.EgressStatus_EGRESS_ACTIVE,
+		voicekit.EgressStatus_EGRESS_ENDING:
 		s.telemetry.EgressUpdated(ctx, info)
 
-	case livekit.EgressStatus_EGRESS_COMPLETE,
-		livekit.EgressStatus_EGRESS_FAILED,
-		livekit.EgressStatus_EGRESS_ABORTED,
-		livekit.EgressStatus_EGRESS_LIMIT_REACHED:
+	case voicekit.EgressStatus_EGRESS_COMPLETE,
+		voicekit.EgressStatus_EGRESS_FAILED,
+		voicekit.EgressStatus_EGRESS_ABORTED,
+		voicekit.EgressStatus_EGRESS_LIMIT_REACHED:
 		s.telemetry.EgressEnded(ctx, info)
 	}
 
@@ -125,7 +125,7 @@ func (s *IOInfoService) UpdateEgress(ctx context.Context, info *livekit.EgressIn
 	return &emptypb.Empty{}, nil
 }
 
-func (s *IOInfoService) GetEgress(ctx context.Context, req *rpc.GetEgressRequest) (*livekit.EgressInfo, error) {
+func (s *IOInfoService) GetEgress(ctx context.Context, req *rpc.GetEgressRequest) (*voicekit.EgressInfo, error) {
 	info, err := s.es.LoadEgress(ctx, req.EgressId)
 	if err != nil {
 		logger.Errorw("failed to load egress", err)
@@ -135,7 +135,7 @@ func (s *IOInfoService) GetEgress(ctx context.Context, req *rpc.GetEgressRequest
 	return info, nil
 }
 
-func (s *IOInfoService) ListEgress(ctx context.Context, req *livekit.ListEgressRequest) (*livekit.ListEgressResponse, error) {
+func (s *IOInfoService) ListEgress(ctx context.Context, req *voicekit.ListEgressRequest) (*voicekit.ListEgressResponse, error) {
 	if req.EgressId != "" {
 		info, err := s.es.LoadEgress(ctx, req.EgressId)
 		if err != nil {
@@ -143,16 +143,16 @@ func (s *IOInfoService) ListEgress(ctx context.Context, req *livekit.ListEgressR
 			return nil, err
 		}
 
-		return &livekit.ListEgressResponse{Items: []*livekit.EgressInfo{info}}, nil
+		return &voicekit.ListEgressResponse{Items: []*voicekit.EgressInfo{info}}, nil
 	}
 
-	items, err := s.es.ListEgress(ctx, livekit.RoomName(req.RoomName), req.Active)
+	items, err := s.es.ListEgress(ctx, voicekit.RoomName(req.RoomName), req.Active)
 	if err != nil {
 		logger.Errorw("failed to list egress", err)
 		return nil, err
 	}
 
-	return &livekit.ListEgressResponse{Items: items}, nil
+	return &voicekit.ListEgressResponse{Items: items}, nil
 }
 
 func (s *IOInfoService) UpdateMetrics(ctx context.Context, req *rpc.UpdateMetricsRequest) (*emptypb.Empty, error) {

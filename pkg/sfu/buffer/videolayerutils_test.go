@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func TestRidConversion(t *testing.T) {
@@ -29,7 +29,7 @@ func TestRidConversion(t *testing.T) {
 	}
 	tests := []struct {
 		name       string
-		trackInfo  *livekit.TrackInfo
+		trackInfo  *voicekit.TrackInfo
 		ridToLayer map[string]RidAndLayer
 	}{
 		{
@@ -44,7 +44,7 @@ func TestRidConversion(t *testing.T) {
 		},
 		{
 			"no layers",
-			&livekit.TrackInfo{},
+			&voicekit.TrackInfo{},
 			map[string]RidAndLayer{
 				"":                {rid: QuarterResolution, layer: 0},
 				QuarterResolution: {rid: QuarterResolution, layer: 0},
@@ -54,9 +54,9 @@ func TestRidConversion(t *testing.T) {
 		},
 		{
 			"single layer, low",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
 				},
 			},
 			map[string]RidAndLayer{
@@ -68,9 +68,9 @@ func TestRidConversion(t *testing.T) {
 		},
 		{
 			"single layer, medium",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_MEDIUM},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_MEDIUM},
 				},
 			},
 			map[string]RidAndLayer{
@@ -82,9 +82,9 @@ func TestRidConversion(t *testing.T) {
 		},
 		{
 			"single layer, high",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
 			map[string]RidAndLayer{
@@ -96,10 +96,10 @@ func TestRidConversion(t *testing.T) {
 		},
 		{
 			"two layers, low and medium",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
-					{Quality: livekit.VideoQuality_MEDIUM},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
+					{Quality: voicekit.VideoQuality_MEDIUM},
 				},
 			},
 			map[string]RidAndLayer{
@@ -111,10 +111,10 @@ func TestRidConversion(t *testing.T) {
 		},
 		{
 			"two layers, low and high",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
 			map[string]RidAndLayer{
@@ -126,10 +126,10 @@ func TestRidConversion(t *testing.T) {
 		},
 		{
 			"two layers, medium and high",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_MEDIUM},
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_MEDIUM},
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
 			map[string]RidAndLayer{
@@ -141,11 +141,11 @@ func TestRidConversion(t *testing.T) {
 		},
 		{
 			"three layers",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
-					{Quality: livekit.VideoQuality_MEDIUM},
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
+					{Quality: voicekit.VideoQuality_MEDIUM},
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
 			map[string]RidAndLayer{
@@ -172,126 +172,126 @@ func TestRidConversion(t *testing.T) {
 
 func TestQualityConversion(t *testing.T) {
 	type QualityAndLayer struct {
-		quality livekit.VideoQuality
+		quality voicekit.VideoQuality
 		layer   int32
 	}
 	tests := []struct {
 		name           string
-		trackInfo      *livekit.TrackInfo
-		qualityToLayer map[livekit.VideoQuality]QualityAndLayer
+		trackInfo      *voicekit.TrackInfo
+		qualityToLayer map[voicekit.VideoQuality]QualityAndLayer
 	}{
 		{
 			"no track info",
 			nil,
-			map[livekit.VideoQuality]QualityAndLayer{
-				livekit.VideoQuality_LOW:    {quality: livekit.VideoQuality_LOW, layer: 0},
-				livekit.VideoQuality_MEDIUM: {quality: livekit.VideoQuality_MEDIUM, layer: 1},
-				livekit.VideoQuality_HIGH:   {quality: livekit.VideoQuality_HIGH, layer: 2},
+			map[voicekit.VideoQuality]QualityAndLayer{
+				voicekit.VideoQuality_LOW:    {quality: voicekit.VideoQuality_LOW, layer: 0},
+				voicekit.VideoQuality_MEDIUM: {quality: voicekit.VideoQuality_MEDIUM, layer: 1},
+				voicekit.VideoQuality_HIGH:   {quality: voicekit.VideoQuality_HIGH, layer: 2},
 			},
 		},
 		{
 			"no layers",
-			&livekit.TrackInfo{},
-			map[livekit.VideoQuality]QualityAndLayer{
-				livekit.VideoQuality_LOW:    {quality: livekit.VideoQuality_LOW, layer: 0},
-				livekit.VideoQuality_MEDIUM: {quality: livekit.VideoQuality_MEDIUM, layer: 1},
-				livekit.VideoQuality_HIGH:   {quality: livekit.VideoQuality_HIGH, layer: 2},
+			&voicekit.TrackInfo{},
+			map[voicekit.VideoQuality]QualityAndLayer{
+				voicekit.VideoQuality_LOW:    {quality: voicekit.VideoQuality_LOW, layer: 0},
+				voicekit.VideoQuality_MEDIUM: {quality: voicekit.VideoQuality_MEDIUM, layer: 1},
+				voicekit.VideoQuality_HIGH:   {quality: voicekit.VideoQuality_HIGH, layer: 2},
 			},
 		},
 		{
 			"single layer, low",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
 				},
 			},
-			map[livekit.VideoQuality]QualityAndLayer{
-				livekit.VideoQuality_LOW:    {quality: livekit.VideoQuality_LOW, layer: 0},
-				livekit.VideoQuality_MEDIUM: {quality: livekit.VideoQuality_LOW, layer: 0},
-				livekit.VideoQuality_HIGH:   {quality: livekit.VideoQuality_LOW, layer: 0},
+			map[voicekit.VideoQuality]QualityAndLayer{
+				voicekit.VideoQuality_LOW:    {quality: voicekit.VideoQuality_LOW, layer: 0},
+				voicekit.VideoQuality_MEDIUM: {quality: voicekit.VideoQuality_LOW, layer: 0},
+				voicekit.VideoQuality_HIGH:   {quality: voicekit.VideoQuality_LOW, layer: 0},
 			},
 		},
 		{
 			"single layer, medium",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_MEDIUM},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_MEDIUM},
 				},
 			},
-			map[livekit.VideoQuality]QualityAndLayer{
-				livekit.VideoQuality_LOW:    {quality: livekit.VideoQuality_MEDIUM, layer: 0},
-				livekit.VideoQuality_MEDIUM: {quality: livekit.VideoQuality_MEDIUM, layer: 0},
-				livekit.VideoQuality_HIGH:   {quality: livekit.VideoQuality_MEDIUM, layer: 0},
+			map[voicekit.VideoQuality]QualityAndLayer{
+				voicekit.VideoQuality_LOW:    {quality: voicekit.VideoQuality_MEDIUM, layer: 0},
+				voicekit.VideoQuality_MEDIUM: {quality: voicekit.VideoQuality_MEDIUM, layer: 0},
+				voicekit.VideoQuality_HIGH:   {quality: voicekit.VideoQuality_MEDIUM, layer: 0},
 			},
 		},
 		{
 			"single layer, high",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
-			map[livekit.VideoQuality]QualityAndLayer{
-				livekit.VideoQuality_LOW:    {quality: livekit.VideoQuality_HIGH, layer: 0},
-				livekit.VideoQuality_MEDIUM: {quality: livekit.VideoQuality_HIGH, layer: 0},
-				livekit.VideoQuality_HIGH:   {quality: livekit.VideoQuality_HIGH, layer: 0},
+			map[voicekit.VideoQuality]QualityAndLayer{
+				voicekit.VideoQuality_LOW:    {quality: voicekit.VideoQuality_HIGH, layer: 0},
+				voicekit.VideoQuality_MEDIUM: {quality: voicekit.VideoQuality_HIGH, layer: 0},
+				voicekit.VideoQuality_HIGH:   {quality: voicekit.VideoQuality_HIGH, layer: 0},
 			},
 		},
 		{
 			"two layers, low and medium",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
-					{Quality: livekit.VideoQuality_MEDIUM},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
+					{Quality: voicekit.VideoQuality_MEDIUM},
 				},
 			},
-			map[livekit.VideoQuality]QualityAndLayer{
-				livekit.VideoQuality_LOW:    {quality: livekit.VideoQuality_LOW, layer: 0},
-				livekit.VideoQuality_MEDIUM: {quality: livekit.VideoQuality_MEDIUM, layer: 1},
-				livekit.VideoQuality_HIGH:   {quality: livekit.VideoQuality_MEDIUM, layer: 1},
+			map[voicekit.VideoQuality]QualityAndLayer{
+				voicekit.VideoQuality_LOW:    {quality: voicekit.VideoQuality_LOW, layer: 0},
+				voicekit.VideoQuality_MEDIUM: {quality: voicekit.VideoQuality_MEDIUM, layer: 1},
+				voicekit.VideoQuality_HIGH:   {quality: voicekit.VideoQuality_MEDIUM, layer: 1},
 			},
 		},
 		{
 			"two layers, low and high",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
-			map[livekit.VideoQuality]QualityAndLayer{
-				livekit.VideoQuality_LOW:    {quality: livekit.VideoQuality_LOW, layer: 0},
-				livekit.VideoQuality_MEDIUM: {quality: livekit.VideoQuality_HIGH, layer: 1},
-				livekit.VideoQuality_HIGH:   {quality: livekit.VideoQuality_HIGH, layer: 1},
+			map[voicekit.VideoQuality]QualityAndLayer{
+				voicekit.VideoQuality_LOW:    {quality: voicekit.VideoQuality_LOW, layer: 0},
+				voicekit.VideoQuality_MEDIUM: {quality: voicekit.VideoQuality_HIGH, layer: 1},
+				voicekit.VideoQuality_HIGH:   {quality: voicekit.VideoQuality_HIGH, layer: 1},
 			},
 		},
 		{
 			"two layers, medium and high",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_MEDIUM},
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_MEDIUM},
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
-			map[livekit.VideoQuality]QualityAndLayer{
-				livekit.VideoQuality_LOW:    {quality: livekit.VideoQuality_MEDIUM, layer: 0},
-				livekit.VideoQuality_MEDIUM: {quality: livekit.VideoQuality_MEDIUM, layer: 0},
-				livekit.VideoQuality_HIGH:   {quality: livekit.VideoQuality_HIGH, layer: 1},
+			map[voicekit.VideoQuality]QualityAndLayer{
+				voicekit.VideoQuality_LOW:    {quality: voicekit.VideoQuality_MEDIUM, layer: 0},
+				voicekit.VideoQuality_MEDIUM: {quality: voicekit.VideoQuality_MEDIUM, layer: 0},
+				voicekit.VideoQuality_HIGH:   {quality: voicekit.VideoQuality_HIGH, layer: 1},
 			},
 		},
 		{
 			"three layers",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
-					{Quality: livekit.VideoQuality_MEDIUM},
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
+					{Quality: voicekit.VideoQuality_MEDIUM},
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
-			map[livekit.VideoQuality]QualityAndLayer{
-				livekit.VideoQuality_LOW:    {quality: livekit.VideoQuality_LOW, layer: 0},
-				livekit.VideoQuality_MEDIUM: {quality: livekit.VideoQuality_MEDIUM, layer: 1},
-				livekit.VideoQuality_HIGH:   {quality: livekit.VideoQuality_HIGH, layer: 2},
+			map[voicekit.VideoQuality]QualityAndLayer{
+				voicekit.VideoQuality_LOW:    {quality: voicekit.VideoQuality_LOW, layer: 0},
+				voicekit.VideoQuality_MEDIUM: {quality: voicekit.VideoQuality_MEDIUM, layer: 1},
+				voicekit.VideoQuality_HIGH:   {quality: voicekit.VideoQuality_HIGH, layer: 2},
 			},
 		},
 	}
@@ -312,121 +312,121 @@ func TestQualityConversion(t *testing.T) {
 func TestVideoQualityToRidConversion(t *testing.T) {
 	tests := []struct {
 		name         string
-		trackInfo    *livekit.TrackInfo
-		qualityToRid map[livekit.VideoQuality]string
+		trackInfo    *voicekit.TrackInfo
+		qualityToRid map[voicekit.VideoQuality]string
 	}{
 		{
 			"no track info",
 			nil,
-			map[livekit.VideoQuality]string{
-				livekit.VideoQuality_LOW:    QuarterResolution,
-				livekit.VideoQuality_MEDIUM: HalfResolution,
-				livekit.VideoQuality_HIGH:   FullResolution,
+			map[voicekit.VideoQuality]string{
+				voicekit.VideoQuality_LOW:    QuarterResolution,
+				voicekit.VideoQuality_MEDIUM: HalfResolution,
+				voicekit.VideoQuality_HIGH:   FullResolution,
 			},
 		},
 		{
 			"no layers",
-			&livekit.TrackInfo{},
-			map[livekit.VideoQuality]string{
-				livekit.VideoQuality_LOW:    QuarterResolution,
-				livekit.VideoQuality_MEDIUM: HalfResolution,
-				livekit.VideoQuality_HIGH:   FullResolution,
+			&voicekit.TrackInfo{},
+			map[voicekit.VideoQuality]string{
+				voicekit.VideoQuality_LOW:    QuarterResolution,
+				voicekit.VideoQuality_MEDIUM: HalfResolution,
+				voicekit.VideoQuality_HIGH:   FullResolution,
 			},
 		},
 		{
 			"single layer, low",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
 				},
 			},
-			map[livekit.VideoQuality]string{
-				livekit.VideoQuality_LOW:    QuarterResolution,
-				livekit.VideoQuality_MEDIUM: QuarterResolution,
-				livekit.VideoQuality_HIGH:   QuarterResolution,
+			map[voicekit.VideoQuality]string{
+				voicekit.VideoQuality_LOW:    QuarterResolution,
+				voicekit.VideoQuality_MEDIUM: QuarterResolution,
+				voicekit.VideoQuality_HIGH:   QuarterResolution,
 			},
 		},
 		{
 			"single layer, medium",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_MEDIUM},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_MEDIUM},
 				},
 			},
-			map[livekit.VideoQuality]string{
-				livekit.VideoQuality_LOW:    QuarterResolution,
-				livekit.VideoQuality_MEDIUM: QuarterResolution,
-				livekit.VideoQuality_HIGH:   QuarterResolution,
+			map[voicekit.VideoQuality]string{
+				voicekit.VideoQuality_LOW:    QuarterResolution,
+				voicekit.VideoQuality_MEDIUM: QuarterResolution,
+				voicekit.VideoQuality_HIGH:   QuarterResolution,
 			},
 		},
 		{
 			"single layer, high",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
-			map[livekit.VideoQuality]string{
-				livekit.VideoQuality_LOW:    QuarterResolution,
-				livekit.VideoQuality_MEDIUM: QuarterResolution,
-				livekit.VideoQuality_HIGH:   QuarterResolution,
+			map[voicekit.VideoQuality]string{
+				voicekit.VideoQuality_LOW:    QuarterResolution,
+				voicekit.VideoQuality_MEDIUM: QuarterResolution,
+				voicekit.VideoQuality_HIGH:   QuarterResolution,
 			},
 		},
 		{
 			"two layers, low and medium",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
-					{Quality: livekit.VideoQuality_MEDIUM},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
+					{Quality: voicekit.VideoQuality_MEDIUM},
 				},
 			},
-			map[livekit.VideoQuality]string{
-				livekit.VideoQuality_LOW:    QuarterResolution,
-				livekit.VideoQuality_MEDIUM: HalfResolution,
-				livekit.VideoQuality_HIGH:   HalfResolution,
+			map[voicekit.VideoQuality]string{
+				voicekit.VideoQuality_LOW:    QuarterResolution,
+				voicekit.VideoQuality_MEDIUM: HalfResolution,
+				voicekit.VideoQuality_HIGH:   HalfResolution,
 			},
 		},
 		{
 			"two layers, low and high",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
-			map[livekit.VideoQuality]string{
-				livekit.VideoQuality_LOW:    QuarterResolution,
-				livekit.VideoQuality_MEDIUM: HalfResolution,
-				livekit.VideoQuality_HIGH:   HalfResolution,
+			map[voicekit.VideoQuality]string{
+				voicekit.VideoQuality_LOW:    QuarterResolution,
+				voicekit.VideoQuality_MEDIUM: HalfResolution,
+				voicekit.VideoQuality_HIGH:   HalfResolution,
 			},
 		},
 		{
 			"two layers, medium and high",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_MEDIUM},
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_MEDIUM},
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
-			map[livekit.VideoQuality]string{
-				livekit.VideoQuality_LOW:    QuarterResolution,
-				livekit.VideoQuality_MEDIUM: QuarterResolution,
-				livekit.VideoQuality_HIGH:   HalfResolution,
+			map[voicekit.VideoQuality]string{
+				voicekit.VideoQuality_LOW:    QuarterResolution,
+				voicekit.VideoQuality_MEDIUM: QuarterResolution,
+				voicekit.VideoQuality_HIGH:   HalfResolution,
 			},
 		},
 		{
 			"three layers",
-			&livekit.TrackInfo{
-				Layers: []*livekit.VideoLayer{
-					{Quality: livekit.VideoQuality_LOW},
-					{Quality: livekit.VideoQuality_MEDIUM},
-					{Quality: livekit.VideoQuality_HIGH},
+			&voicekit.TrackInfo{
+				Layers: []*voicekit.VideoLayer{
+					{Quality: voicekit.VideoQuality_LOW},
+					{Quality: voicekit.VideoQuality_MEDIUM},
+					{Quality: voicekit.VideoQuality_HIGH},
 				},
 			},
-			map[livekit.VideoQuality]string{
-				livekit.VideoQuality_LOW:    QuarterResolution,
-				livekit.VideoQuality_MEDIUM: HalfResolution,
-				livekit.VideoQuality_HIGH:   FullResolution,
+			map[voicekit.VideoQuality]string{
+				voicekit.VideoQuality_LOW:    QuarterResolution,
+				voicekit.VideoQuality_MEDIUM: HalfResolution,
+				voicekit.VideoQuality_HIGH:   FullResolution,
 			},
 		},
 	}

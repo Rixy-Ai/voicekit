@@ -13,17 +13,17 @@ import (
 	"github.com/gammazero/deque"
 	"golang.org/x/exp/maps"
 
-	"github.com/livekit/livekit-server/pkg/agent"
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/utils/events"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/protocol/utils/must"
-	"github.com/livekit/protocol/utils/options"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/agent"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/utils/events"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/protocol/utils/must"
+	"github.com/voicekit/protocol/utils/options"
+	"github.com/voicekit/psrpc"
 )
 
 type AgentService interface {
@@ -57,7 +57,7 @@ type SimulatedWorkerOptions struct {
 	JobLoadThreshold   float32
 	DefaultWorkerLoad  float32
 	HandleAvailability func(AgentJobRequest)
-	HandleAssignment   func(*livekit.Job) JobLoad
+	HandleAssignment   func(*voicekit.Job) JobLoad
 }
 
 type SimulatedWorkerOption func(*SimulatedWorkerOptions)
@@ -80,14 +80,14 @@ func WithJobAvailabilityHandler(h func(AgentJobRequest)) SimulatedWorkerOption {
 	}
 }
 
-func WithJobAssignmentHandler(h func(*livekit.Job) JobLoad) SimulatedWorkerOption {
+func WithJobAssignmentHandler(h func(*voicekit.Job) JobLoad) SimulatedWorkerOption {
 	return func(o *SimulatedWorkerOptions) {
 		o.HandleAssignment = h
 	}
 }
 
 func WithJobLoad(l JobLoad) SimulatedWorkerOption {
-	return WithJobAssignmentHandler(func(j *livekit.Job) JobLoad { return l })
+	return WithJobAssignmentHandler(func(j *voicekit.Job) JobLoad { return l })
 }
 
 func WithDefaultWorkerLoad(load float32) SimulatedWorkerOption {
@@ -104,20 +104,20 @@ func (h *TestServer) SimulateAgentWorker(opts ...SimulatedWorkerOption) *AgentWo
 		JobLoadThreshold:   0.8,
 		DefaultWorkerLoad:  0.0,
 		HandleAvailability: func(r AgentJobRequest) { r.Accept() },
-		HandleAssignment:   func(j *livekit.Job) JobLoad { return nil },
+		HandleAssignment:   func(j *voicekit.Job) JobLoad { return nil },
 	}
 	options.Apply(o, opts)
 
 	w := &AgentWorker{
-		workerMessages:         make(chan *livekit.WorkerMessage, 1),
+		workerMessages:         make(chan *voicekit.WorkerMessage, 1),
 		jobs:                   map[string]*AgentJob{},
 		SimulatedWorkerOptions: o,
 
-		RegisterWorkerResponses: events.NewObserverList[*livekit.RegisterWorkerResponse](),
-		AvailabilityRequests:    events.NewObserverList[*livekit.AvailabilityRequest](),
-		JobAssignments:          events.NewObserverList[*livekit.JobAssignment](),
-		JobTerminations:         events.NewObserverList[*livekit.JobTermination](),
-		WorkerPongs:             events.NewObserverList[*livekit.WorkerPong](),
+		RegisterWorkerResponses: events.NewObserverList[*voicekit.RegisterWorkerResponse](),
+		AvailabilityRequests:    events.NewObserverList[*voicekit.AvailabilityRequest](),
+		JobAssignments:          events.NewObserverList[*voicekit.JobAssignment](),
+		JobTerminations:         events.NewObserverList[*voicekit.JobTermination](),
+		WorkerPongs:             events.NewObserverList[*voicekit.WorkerPong](),
 	}
 	w.ctx, w.cancel = context.WithCancel(context.Background())
 
@@ -142,18 +142,18 @@ type JobLoad interface {
 }
 
 type AgentJob struct {
-	*livekit.Job
+	*voicekit.Job
 	JobLoad
 }
 
 type AgentJobRequest struct {
 	w *AgentWorker
-	*livekit.AvailabilityRequest
+	*voicekit.AvailabilityRequest
 }
 
 func (r AgentJobRequest) Accept() {
 	identity := guid.New("PI_")
-	r.w.SendAvailability(&livekit.AvailabilityResponse{
+	r.w.SendAvailability(&voicekit.AvailabilityResponse{
 		JobId:               r.Job.Id,
 		Available:           true,
 		SupportsResume:      r.w.SupportResume,
@@ -163,7 +163,7 @@ func (r AgentJobRequest) Accept() {
 }
 
 func (r AgentJobRequest) Reject() {
-	r.w.SendAvailability(&livekit.AvailabilityResponse{
+	r.w.SendAvailability(&voicekit.AvailabilityResponse{
 		JobId:     r.Job.Id,
 		Available: false,
 	})
@@ -176,15 +176,15 @@ type AgentWorker struct {
 	mu             sync.Mutex
 	ctx            context.Context
 	cancel         context.CancelFunc
-	workerMessages chan *livekit.WorkerMessage
-	serverMessages deque.Deque[*livekit.ServerMessage]
+	workerMessages chan *voicekit.WorkerMessage
+	serverMessages deque.Deque[*voicekit.ServerMessage]
 	jobs           map[string]*AgentJob
 
-	RegisterWorkerResponses *events.ObserverList[*livekit.RegisterWorkerResponse]
-	AvailabilityRequests    *events.ObserverList[*livekit.AvailabilityRequest]
-	JobAssignments          *events.ObserverList[*livekit.JobAssignment]
-	JobTerminations         *events.ObserverList[*livekit.JobTermination]
-	WorkerPongs             *events.ObserverList[*livekit.WorkerPong]
+	RegisterWorkerResponses *events.ObserverList[*voicekit.RegisterWorkerResponse]
+	AvailabilityRequests    *events.ObserverList[*voicekit.AvailabilityRequest]
+	JobAssignments          *events.ObserverList[*voicekit.JobAssignment]
+	JobTerminations         *events.ObserverList[*voicekit.JobTermination]
+	WorkerPongs             *events.ObserverList[*voicekit.WorkerPong]
 }
 
 func (w *AgentWorker) statusWorker() {
@@ -219,7 +219,7 @@ func (w *AgentWorker) SetReadDeadline(t time.Time) error {
 	return nil
 }
 
-func (w *AgentWorker) ReadWorkerMessage() (*livekit.WorkerMessage, int, error) {
+func (w *AgentWorker) ReadWorkerMessage() (*voicekit.WorkerMessage, int, error) {
 	for {
 		w.mu.Lock()
 		ctx := w.ctx
@@ -238,7 +238,7 @@ func (w *AgentWorker) ReadWorkerMessage() (*livekit.WorkerMessage, int, error) {
 	}
 }
 
-func (w *AgentWorker) WriteServerMessage(m *livekit.ServerMessage) (int, error) {
+func (w *AgentWorker) WriteServerMessage(m *voicekit.ServerMessage) (int, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.serverMessages.PushBack(m)
@@ -255,15 +255,15 @@ func (w *AgentWorker) handleServerMessages() {
 		w.mu.Unlock()
 
 		switch m := m.Message.(type) {
-		case *livekit.ServerMessage_Register:
+		case *voicekit.ServerMessage_Register:
 			w.handleRegister(m.Register)
-		case *livekit.ServerMessage_Availability:
+		case *voicekit.ServerMessage_Availability:
 			w.handleAvailability(m.Availability)
-		case *livekit.ServerMessage_Assignment:
+		case *voicekit.ServerMessage_Assignment:
 			w.handleAssignment(m.Assignment)
-		case *livekit.ServerMessage_Termination:
+		case *voicekit.ServerMessage_Termination:
 			w.handleTermination(m.Termination)
-		case *livekit.ServerMessage_Pong:
+		case *voicekit.ServerMessage_Pong:
 			w.handlePong(m.Pong)
 		}
 
@@ -273,11 +273,11 @@ func (w *AgentWorker) handleServerMessages() {
 	w.mu.Unlock()
 }
 
-func (w *AgentWorker) handleRegister(m *livekit.RegisterWorkerResponse) {
+func (w *AgentWorker) handleRegister(m *voicekit.RegisterWorkerResponse) {
 	w.RegisterWorkerResponses.Emit(m)
 }
 
-func (w *AgentWorker) handleAvailability(m *livekit.AvailabilityRequest) {
+func (w *AgentWorker) handleAvailability(m *voicekit.AvailabilityRequest) {
 	w.AvailabilityRequests.Emit(m)
 	if w.HandleAvailability != nil {
 		w.HandleAvailability(AgentJobRequest{w, m})
@@ -286,7 +286,7 @@ func (w *AgentWorker) handleAvailability(m *livekit.AvailabilityRequest) {
 	}
 }
 
-func (w *AgentWorker) handleAssignment(m *livekit.JobAssignment) {
+func (w *AgentWorker) handleAssignment(m *voicekit.JobAssignment) {
 	w.JobAssignments.Emit(m)
 
 	var load JobLoad
@@ -303,7 +303,7 @@ func (w *AgentWorker) handleAssignment(m *livekit.JobAssignment) {
 	w.jobs[m.Job.Id] = &AgentJob{m.Job, load}
 }
 
-func (w *AgentWorker) handleTermination(m *livekit.JobTermination) {
+func (w *AgentWorker) handleTermination(m *voicekit.JobTermination) {
 	w.JobTerminations.Emit(m)
 
 	w.mu.Lock()
@@ -311,55 +311,55 @@ func (w *AgentWorker) handleTermination(m *livekit.JobTermination) {
 	delete(w.jobs, m.JobId)
 }
 
-func (w *AgentWorker) handlePong(m *livekit.WorkerPong) {
+func (w *AgentWorker) handlePong(m *voicekit.WorkerPong) {
 	w.WorkerPongs.Emit(m)
 }
 
-func (w *AgentWorker) sendMessage(m *livekit.WorkerMessage) {
+func (w *AgentWorker) sendMessage(m *voicekit.WorkerMessage) {
 	select {
 	case <-w.fuse.Watch():
 	case w.workerMessages <- m:
 	}
 }
 
-func (w *AgentWorker) SendRegister(m *livekit.RegisterWorkerRequest) {
-	w.sendMessage(&livekit.WorkerMessage{Message: &livekit.WorkerMessage_Register{
+func (w *AgentWorker) SendRegister(m *voicekit.RegisterWorkerRequest) {
+	w.sendMessage(&voicekit.WorkerMessage{Message: &voicekit.WorkerMessage_Register{
 		Register: m,
 	}})
 }
 
-func (w *AgentWorker) SendAvailability(m *livekit.AvailabilityResponse) {
-	w.sendMessage(&livekit.WorkerMessage{Message: &livekit.WorkerMessage_Availability{
+func (w *AgentWorker) SendAvailability(m *voicekit.AvailabilityResponse) {
+	w.sendMessage(&voicekit.WorkerMessage{Message: &voicekit.WorkerMessage_Availability{
 		Availability: m,
 	}})
 }
 
-func (w *AgentWorker) SendUpdateWorker(m *livekit.UpdateWorkerStatus) {
-	w.sendMessage(&livekit.WorkerMessage{Message: &livekit.WorkerMessage_UpdateWorker{
+func (w *AgentWorker) SendUpdateWorker(m *voicekit.UpdateWorkerStatus) {
+	w.sendMessage(&voicekit.WorkerMessage{Message: &voicekit.WorkerMessage_UpdateWorker{
 		UpdateWorker: m,
 	}})
 }
 
-func (w *AgentWorker) SendUpdateJob(m *livekit.UpdateJobStatus) {
-	w.sendMessage(&livekit.WorkerMessage{Message: &livekit.WorkerMessage_UpdateJob{
+func (w *AgentWorker) SendUpdateJob(m *voicekit.UpdateJobStatus) {
+	w.sendMessage(&voicekit.WorkerMessage{Message: &voicekit.WorkerMessage_UpdateJob{
 		UpdateJob: m,
 	}})
 }
 
-func (w *AgentWorker) SendPing(m *livekit.WorkerPing) {
-	w.sendMessage(&livekit.WorkerMessage{Message: &livekit.WorkerMessage_Ping{
+func (w *AgentWorker) SendPing(m *voicekit.WorkerPing) {
+	w.sendMessage(&voicekit.WorkerMessage{Message: &voicekit.WorkerMessage_Ping{
 		Ping: m,
 	}})
 }
 
-func (w *AgentWorker) SendSimulateJob(m *livekit.SimulateJobRequest) {
-	w.sendMessage(&livekit.WorkerMessage{Message: &livekit.WorkerMessage_SimulateJob{
+func (w *AgentWorker) SendSimulateJob(m *voicekit.SimulateJobRequest) {
+	w.sendMessage(&voicekit.WorkerMessage{Message: &voicekit.WorkerMessage_SimulateJob{
 		SimulateJob: m,
 	}})
 }
 
-func (w *AgentWorker) SendMigrateJob(m *livekit.MigrateJobRequest) {
-	w.sendMessage(&livekit.WorkerMessage{Message: &livekit.WorkerMessage_MigrateJob{
+func (w *AgentWorker) SendMigrateJob(m *voicekit.MigrateJobRequest) {
+	w.sendMessage(&voicekit.WorkerMessage{Message: &voicekit.WorkerMessage_MigrateJob{
 		MigrateJob: m,
 	}})
 }
@@ -378,20 +378,20 @@ func (w *AgentWorker) sendStatus() {
 	}
 	w.mu.Unlock()
 
-	status := livekit.WorkerStatus_WS_AVAILABLE
+	status := voicekit.WorkerStatus_WS_AVAILABLE
 	if load > w.JobLoadThreshold {
-		status = livekit.WorkerStatus_WS_FULL
+		status = voicekit.WorkerStatus_WS_FULL
 	}
 
-	w.SendUpdateWorker(&livekit.UpdateWorkerStatus{
+	w.SendUpdateWorker(&voicekit.UpdateWorkerStatus{
 		Status:   &status,
 		Load:     load,
 		JobCount: uint32(jobCount),
 	})
 }
 
-func (w *AgentWorker) Register(agentName string, jobType livekit.JobType) {
-	w.SendRegister(&livekit.RegisterWorkerRequest{
+func (w *AgentWorker) Register(agentName string, jobType voicekit.JobType) {
+	w.SendRegister(&voicekit.RegisterWorkerRequest{
 		Type:      jobType,
 		AgentName: agentName,
 	})
@@ -399,9 +399,9 @@ func (w *AgentWorker) Register(agentName string, jobType livekit.JobType) {
 }
 
 func (w *AgentWorker) SimulateRoomJob(roomName string) {
-	w.SendSimulateJob(&livekit.SimulateJobRequest{
-		Type: livekit.JobType_JT_ROOM,
-		Room: &livekit.Room{
+	w.SendSimulateJob(&voicekit.SimulateJobRequest{
+		Type: voicekit.JobType_JT_ROOM,
+		Room: &voicekit.Room{
 			Sid:  guid.New(guid.RoomPrefix),
 			Name: roomName,
 		},

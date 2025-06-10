@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
 
-	"github.com/livekit/livekit-server/pkg/routing/selector"
+	"github.com/voicekit/voicekit-server/pkg/routing/selector"
 )
 
 const (
@@ -98,7 +98,7 @@ func (r *RedisRouter) RemoveDeadNodes() error {
 }
 
 // GetNodeForRoom finds the node where the room is hosted at
-func (r *RedisRouter) GetNodeForRoom(_ context.Context, roomName livekit.RoomName) (*livekit.Node, error) {
+func (r *RedisRouter) GetNodeForRoom(_ context.Context, roomName voicekit.RoomName) (*voicekit.Node, error) {
 	nodeID, err := r.rc.HGet(r.ctx, NodeRoomKey, string(roomName)).Result()
 	if err == redis.Nil {
 		return nil, ErrNotFound
@@ -106,42 +106,42 @@ func (r *RedisRouter) GetNodeForRoom(_ context.Context, roomName livekit.RoomNam
 		return nil, errors.Wrap(err, "could not get node for room")
 	}
 
-	return r.GetNode(livekit.NodeID(nodeID))
+	return r.GetNode(voicekit.NodeID(nodeID))
 }
 
-func (r *RedisRouter) SetNodeForRoom(_ context.Context, roomName livekit.RoomName, nodeID livekit.NodeID) error {
+func (r *RedisRouter) SetNodeForRoom(_ context.Context, roomName voicekit.RoomName, nodeID voicekit.NodeID) error {
 	return r.rc.HSet(r.ctx, NodeRoomKey, string(roomName), string(nodeID)).Err()
 }
 
-func (r *RedisRouter) ClearRoomState(_ context.Context, roomName livekit.RoomName) error {
+func (r *RedisRouter) ClearRoomState(_ context.Context, roomName voicekit.RoomName) error {
 	if err := r.rc.HDel(context.Background(), NodeRoomKey, string(roomName)).Err(); err != nil {
 		return errors.Wrap(err, "could not clear room state")
 	}
 	return nil
 }
 
-func (r *RedisRouter) GetNode(nodeID livekit.NodeID) (*livekit.Node, error) {
+func (r *RedisRouter) GetNode(nodeID voicekit.NodeID) (*voicekit.Node, error) {
 	data, err := r.rc.HGet(r.ctx, NodesKey, string(nodeID)).Result()
 	if err == redis.Nil {
 		return nil, ErrNotFound
 	} else if err != nil {
 		return nil, err
 	}
-	n := livekit.Node{}
+	n := voicekit.Node{}
 	if err = proto.Unmarshal([]byte(data), &n); err != nil {
 		return nil, err
 	}
 	return &n, nil
 }
 
-func (r *RedisRouter) ListNodes() ([]*livekit.Node, error) {
+func (r *RedisRouter) ListNodes() ([]*voicekit.Node, error) {
 	items, err := r.rc.HVals(r.ctx, NodesKey).Result()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not list nodes")
 	}
-	nodes := make([]*livekit.Node, 0, len(items))
+	nodes := make([]*voicekit.Node, 0, len(items))
 	for _, item := range items {
-		n := livekit.Node{}
+		n := voicekit.Node{}
 		if err := proto.Unmarshal([]byte(item), &n); err != nil {
 			return nil, err
 		}
@@ -150,23 +150,23 @@ func (r *RedisRouter) ListNodes() ([]*livekit.Node, error) {
 	return nodes, nil
 }
 
-func (r *RedisRouter) CreateRoom(ctx context.Context, req *livekit.CreateRoomRequest) (res *livekit.Room, err error) {
-	rtcNode, err := r.GetNodeForRoom(ctx, livekit.RoomName(req.Name))
+func (r *RedisRouter) CreateRoom(ctx context.Context, req *voicekit.CreateRoomRequest) (res *voicekit.Room, err error) {
+	rtcNode, err := r.GetNodeForRoom(ctx, voicekit.RoomName(req.Name))
 	if err != nil {
 		return
 	}
 
-	return r.CreateRoomWithNodeID(ctx, req, livekit.NodeID(rtcNode.Id))
+	return r.CreateRoomWithNodeID(ctx, req, voicekit.NodeID(rtcNode.Id))
 }
 
 // StartParticipantSignal signal connection sets up paths to the RTC node, and starts to route messages to that message queue
-func (r *RedisRouter) StartParticipantSignal(ctx context.Context, roomName livekit.RoomName, pi ParticipantInit) (res StartParticipantSignalResults, err error) {
+func (r *RedisRouter) StartParticipantSignal(ctx context.Context, roomName voicekit.RoomName, pi ParticipantInit) (res StartParticipantSignalResults, err error) {
 	rtcNode, err := r.GetNodeForRoom(ctx, roomName)
 	if err != nil {
 		return
 	}
 
-	return r.StartParticipantSignalWithNodeID(ctx, roomName, pi, livekit.NodeID(rtcNode.Id))
+	return r.StartParticipantSignalWithNodeID(ctx, roomName, pi, voicekit.NodeID(rtcNode.Id))
 }
 
 func (r *RedisRouter) Start() error {
@@ -183,7 +183,7 @@ func (r *RedisRouter) Start() error {
 }
 
 func (r *RedisRouter) Drain() {
-	r.currentNode.SetState(livekit.NodeState_SHUTTING_DOWN)
+	r.currentNode.SetState(voicekit.NodeState_SHUTTING_DOWN)
 	if err := r.RegisterNode(); err != nil {
 		logger.Errorw("failed to mark as draining", err, "nodeID", r.currentNode.NodeID())
 	}

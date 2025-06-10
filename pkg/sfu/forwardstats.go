@@ -7,9 +7,9 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 )
 
 type ForwardStats struct {

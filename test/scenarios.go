@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/testutils"
-	testclient "github.com/livekit/livekit-server/test/client"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
+	testclient "github.com/voicekit/voicekit-server/test/client"
 )
 
 // a scenario with lots of clients connecting, publishing, and leaving at random periods
@@ -148,12 +148,12 @@ func scenarioDataPublish(t *testing.T) {
 
 	received := atomic.NewBool(false)
 	c2.OnDataReceived = func(data []byte, sid string) {
-		if string(data) == payload && livekit.ParticipantID(sid) == c1.ID() {
+		if string(data) == payload && voicekit.ParticipantID(sid) == c1.ID() {
 			received.Store(true)
 		}
 	}
 
-	require.NoError(t, c1.PublishData([]byte(payload), livekit.DataPacket_RELIABLE))
+	require.NoError(t, c1.PublishData([]byte(payload), voicekit.DataPacket_RELIABLE))
 
 	testutils.WithTimeout(t, func() string {
 		if received.Load() {
@@ -195,7 +195,7 @@ func scenarioJoinClosedRoom(t *testing.T) {
 	waitUntilConnected(t, c1)
 
 	// close room with room client
-	_, err := roomClient.DeleteRoom(contextWithToken(createRoomToken()), &livekit.DeleteRoomRequest{
+	_, err := roomClient.DeleteRoom(contextWithToken(createRoomToken()), &voicekit.DeleteRoomRequest{
 		Room: testRoom,
 	})
 	require.NoError(t, err)
@@ -209,12 +209,12 @@ func scenarioJoinClosedRoom(t *testing.T) {
 // close a room that has been created, but no participant has joined
 func closeNonRTCRoom(t *testing.T) {
 	createCtx := contextWithToken(createRoomToken())
-	_, err := roomClient.CreateRoom(createCtx, &livekit.CreateRoomRequest{
+	_, err := roomClient.CreateRoom(createCtx, &voicekit.CreateRoomRequest{
 		Name: testRoom,
 	})
 	require.NoError(t, err)
 
-	_, err = roomClient.DeleteRoom(createCtx, &livekit.DeleteRoomRequest{
+	_, err = roomClient.DeleteRoom(createCtx, &voicekit.DeleteRoomRequest{
 		Room: testRoom,
 	})
 	require.NoError(t, err)
@@ -242,22 +242,22 @@ func roomServiceListRoom(t *testing.T) {
 	createCtx := contextWithToken(createRoomToken())
 	listCtx := contextWithToken(listRoomToken())
 	// create rooms
-	_, err := roomClient.CreateRoom(createCtx, &livekit.CreateRoomRequest{
+	_, err := roomClient.CreateRoom(createCtx, &voicekit.CreateRoomRequest{
 		Name: testRoom,
 	})
 	require.NoError(t, err)
-	_, err = roomClient.CreateRoom(contextWithToken(createRoomToken()), &livekit.CreateRoomRequest{
+	_, err = roomClient.CreateRoom(contextWithToken(createRoomToken()), &voicekit.CreateRoomRequest{
 		Name: "yourroom",
 	})
 	require.NoError(t, err)
 
 	t.Run("list all rooms", func(t *testing.T) {
-		res, err := roomClient.ListRooms(listCtx, &livekit.ListRoomsRequest{})
+		res, err := roomClient.ListRooms(listCtx, &voicekit.ListRoomsRequest{})
 		require.NoError(t, err)
 		require.Len(t, res.Rooms, 2)
 	})
 	t.Run("list specific rooms", func(t *testing.T) {
-		res, err := roomClient.ListRooms(listCtx, &livekit.ListRoomsRequest{
+		res, err := roomClient.ListRooms(listCtx, &voicekit.ListRoomsRequest{
 			Names: []string{"yourroom"},
 		})
 		require.NoError(t, err)

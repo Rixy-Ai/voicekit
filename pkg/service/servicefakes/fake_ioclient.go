@@ -5,18 +5,18 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/rpc"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/rpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type FakeIOClient struct {
-	CreateEgressStub        func(context.Context, *livekit.EgressInfo) (*emptypb.Empty, error)
+	CreateEgressStub        func(context.Context, *voicekit.EgressInfo) (*emptypb.Empty, error)
 	createEgressMutex       sync.RWMutex
 	createEgressArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}
 	createEgressReturns struct {
 		result1 *emptypb.Empty
@@ -26,11 +26,11 @@ type FakeIOClient struct {
 		result1 *emptypb.Empty
 		result2 error
 	}
-	CreateIngressStub        func(context.Context, *livekit.IngressInfo) (*emptypb.Empty, error)
+	CreateIngressStub        func(context.Context, *voicekit.IngressInfo) (*emptypb.Empty, error)
 	createIngressMutex       sync.RWMutex
 	createIngressArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}
 	createIngressReturns struct {
 		result1 *emptypb.Empty
@@ -40,32 +40,32 @@ type FakeIOClient struct {
 		result1 *emptypb.Empty
 		result2 error
 	}
-	GetEgressStub        func(context.Context, *rpc.GetEgressRequest) (*livekit.EgressInfo, error)
+	GetEgressStub        func(context.Context, *rpc.GetEgressRequest) (*voicekit.EgressInfo, error)
 	getEgressMutex       sync.RWMutex
 	getEgressArgsForCall []struct {
 		arg1 context.Context
 		arg2 *rpc.GetEgressRequest
 	}
 	getEgressReturns struct {
-		result1 *livekit.EgressInfo
+		result1 *voicekit.EgressInfo
 		result2 error
 	}
 	getEgressReturnsOnCall map[int]struct {
-		result1 *livekit.EgressInfo
+		result1 *voicekit.EgressInfo
 		result2 error
 	}
-	ListEgressStub        func(context.Context, *livekit.ListEgressRequest) (*livekit.ListEgressResponse, error)
+	ListEgressStub        func(context.Context, *voicekit.ListEgressRequest) (*voicekit.ListEgressResponse, error)
 	listEgressMutex       sync.RWMutex
 	listEgressArgsForCall []struct {
 		arg1 context.Context
-		arg2 *livekit.ListEgressRequest
+		arg2 *voicekit.ListEgressRequest
 	}
 	listEgressReturns struct {
-		result1 *livekit.ListEgressResponse
+		result1 *voicekit.ListEgressResponse
 		result2 error
 	}
 	listEgressReturnsOnCall map[int]struct {
-		result1 *livekit.ListEgressResponse
+		result1 *voicekit.ListEgressResponse
 		result2 error
 	}
 	UpdateIngressStateStub        func(context.Context, *rpc.UpdateIngressStateRequest) (*emptypb.Empty, error)
@@ -86,12 +86,12 @@ type FakeIOClient struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeIOClient) CreateEgress(arg1 context.Context, arg2 *livekit.EgressInfo) (*emptypb.Empty, error) {
+func (fake *FakeIOClient) CreateEgress(arg1 context.Context, arg2 *voicekit.EgressInfo) (*emptypb.Empty, error) {
 	fake.createEgressMutex.Lock()
 	ret, specificReturn := fake.createEgressReturnsOnCall[len(fake.createEgressArgsForCall)]
 	fake.createEgressArgsForCall = append(fake.createEgressArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.EgressInfo
+		arg2 *voicekit.EgressInfo
 	}{arg1, arg2})
 	stub := fake.CreateEgressStub
 	fakeReturns := fake.createEgressReturns
@@ -112,13 +112,13 @@ func (fake *FakeIOClient) CreateEgressCallCount() int {
 	return len(fake.createEgressArgsForCall)
 }
 
-func (fake *FakeIOClient) CreateEgressCalls(stub func(context.Context, *livekit.EgressInfo) (*emptypb.Empty, error)) {
+func (fake *FakeIOClient) CreateEgressCalls(stub func(context.Context, *voicekit.EgressInfo) (*emptypb.Empty, error)) {
 	fake.createEgressMutex.Lock()
 	defer fake.createEgressMutex.Unlock()
 	fake.CreateEgressStub = stub
 }
 
-func (fake *FakeIOClient) CreateEgressArgsForCall(i int) (context.Context, *livekit.EgressInfo) {
+func (fake *FakeIOClient) CreateEgressArgsForCall(i int) (context.Context, *voicekit.EgressInfo) {
 	fake.createEgressMutex.RLock()
 	defer fake.createEgressMutex.RUnlock()
 	argsForCall := fake.createEgressArgsForCall[i]
@@ -151,12 +151,12 @@ func (fake *FakeIOClient) CreateEgressReturnsOnCall(i int, result1 *emptypb.Empt
 	}{result1, result2}
 }
 
-func (fake *FakeIOClient) CreateIngress(arg1 context.Context, arg2 *livekit.IngressInfo) (*emptypb.Empty, error) {
+func (fake *FakeIOClient) CreateIngress(arg1 context.Context, arg2 *voicekit.IngressInfo) (*emptypb.Empty, error) {
 	fake.createIngressMutex.Lock()
 	ret, specificReturn := fake.createIngressReturnsOnCall[len(fake.createIngressArgsForCall)]
 	fake.createIngressArgsForCall = append(fake.createIngressArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.IngressInfo
+		arg2 *voicekit.IngressInfo
 	}{arg1, arg2})
 	stub := fake.CreateIngressStub
 	fakeReturns := fake.createIngressReturns
@@ -177,13 +177,13 @@ func (fake *FakeIOClient) CreateIngressCallCount() int {
 	return len(fake.createIngressArgsForCall)
 }
 
-func (fake *FakeIOClient) CreateIngressCalls(stub func(context.Context, *livekit.IngressInfo) (*emptypb.Empty, error)) {
+func (fake *FakeIOClient) CreateIngressCalls(stub func(context.Context, *voicekit.IngressInfo) (*emptypb.Empty, error)) {
 	fake.createIngressMutex.Lock()
 	defer fake.createIngressMutex.Unlock()
 	fake.CreateIngressStub = stub
 }
 
-func (fake *FakeIOClient) CreateIngressArgsForCall(i int) (context.Context, *livekit.IngressInfo) {
+func (fake *FakeIOClient) CreateIngressArgsForCall(i int) (context.Context, *voicekit.IngressInfo) {
 	fake.createIngressMutex.RLock()
 	defer fake.createIngressMutex.RUnlock()
 	argsForCall := fake.createIngressArgsForCall[i]
@@ -216,7 +216,7 @@ func (fake *FakeIOClient) CreateIngressReturnsOnCall(i int, result1 *emptypb.Emp
 	}{result1, result2}
 }
 
-func (fake *FakeIOClient) GetEgress(arg1 context.Context, arg2 *rpc.GetEgressRequest) (*livekit.EgressInfo, error) {
+func (fake *FakeIOClient) GetEgress(arg1 context.Context, arg2 *rpc.GetEgressRequest) (*voicekit.EgressInfo, error) {
 	fake.getEgressMutex.Lock()
 	ret, specificReturn := fake.getEgressReturnsOnCall[len(fake.getEgressArgsForCall)]
 	fake.getEgressArgsForCall = append(fake.getEgressArgsForCall, struct {
@@ -242,7 +242,7 @@ func (fake *FakeIOClient) GetEgressCallCount() int {
 	return len(fake.getEgressArgsForCall)
 }
 
-func (fake *FakeIOClient) GetEgressCalls(stub func(context.Context, *rpc.GetEgressRequest) (*livekit.EgressInfo, error)) {
+func (fake *FakeIOClient) GetEgressCalls(stub func(context.Context, *rpc.GetEgressRequest) (*voicekit.EgressInfo, error)) {
 	fake.getEgressMutex.Lock()
 	defer fake.getEgressMutex.Unlock()
 	fake.GetEgressStub = stub
@@ -255,38 +255,38 @@ func (fake *FakeIOClient) GetEgressArgsForCall(i int) (context.Context, *rpc.Get
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIOClient) GetEgressReturns(result1 *livekit.EgressInfo, result2 error) {
+func (fake *FakeIOClient) GetEgressReturns(result1 *voicekit.EgressInfo, result2 error) {
 	fake.getEgressMutex.Lock()
 	defer fake.getEgressMutex.Unlock()
 	fake.GetEgressStub = nil
 	fake.getEgressReturns = struct {
-		result1 *livekit.EgressInfo
+		result1 *voicekit.EgressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIOClient) GetEgressReturnsOnCall(i int, result1 *livekit.EgressInfo, result2 error) {
+func (fake *FakeIOClient) GetEgressReturnsOnCall(i int, result1 *voicekit.EgressInfo, result2 error) {
 	fake.getEgressMutex.Lock()
 	defer fake.getEgressMutex.Unlock()
 	fake.GetEgressStub = nil
 	if fake.getEgressReturnsOnCall == nil {
 		fake.getEgressReturnsOnCall = make(map[int]struct {
-			result1 *livekit.EgressInfo
+			result1 *voicekit.EgressInfo
 			result2 error
 		})
 	}
 	fake.getEgressReturnsOnCall[i] = struct {
-		result1 *livekit.EgressInfo
+		result1 *voicekit.EgressInfo
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIOClient) ListEgress(arg1 context.Context, arg2 *livekit.ListEgressRequest) (*livekit.ListEgressResponse, error) {
+func (fake *FakeIOClient) ListEgress(arg1 context.Context, arg2 *voicekit.ListEgressRequest) (*voicekit.ListEgressResponse, error) {
 	fake.listEgressMutex.Lock()
 	ret, specificReturn := fake.listEgressReturnsOnCall[len(fake.listEgressArgsForCall)]
 	fake.listEgressArgsForCall = append(fake.listEgressArgsForCall, struct {
 		arg1 context.Context
-		arg2 *livekit.ListEgressRequest
+		arg2 *voicekit.ListEgressRequest
 	}{arg1, arg2})
 	stub := fake.ListEgressStub
 	fakeReturns := fake.listEgressReturns
@@ -307,41 +307,41 @@ func (fake *FakeIOClient) ListEgressCallCount() int {
 	return len(fake.listEgressArgsForCall)
 }
 
-func (fake *FakeIOClient) ListEgressCalls(stub func(context.Context, *livekit.ListEgressRequest) (*livekit.ListEgressResponse, error)) {
+func (fake *FakeIOClient) ListEgressCalls(stub func(context.Context, *voicekit.ListEgressRequest) (*voicekit.ListEgressResponse, error)) {
 	fake.listEgressMutex.Lock()
 	defer fake.listEgressMutex.Unlock()
 	fake.ListEgressStub = stub
 }
 
-func (fake *FakeIOClient) ListEgressArgsForCall(i int) (context.Context, *livekit.ListEgressRequest) {
+func (fake *FakeIOClient) ListEgressArgsForCall(i int) (context.Context, *voicekit.ListEgressRequest) {
 	fake.listEgressMutex.RLock()
 	defer fake.listEgressMutex.RUnlock()
 	argsForCall := fake.listEgressArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeIOClient) ListEgressReturns(result1 *livekit.ListEgressResponse, result2 error) {
+func (fake *FakeIOClient) ListEgressReturns(result1 *voicekit.ListEgressResponse, result2 error) {
 	fake.listEgressMutex.Lock()
 	defer fake.listEgressMutex.Unlock()
 	fake.ListEgressStub = nil
 	fake.listEgressReturns = struct {
-		result1 *livekit.ListEgressResponse
+		result1 *voicekit.ListEgressResponse
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeIOClient) ListEgressReturnsOnCall(i int, result1 *livekit.ListEgressResponse, result2 error) {
+func (fake *FakeIOClient) ListEgressReturnsOnCall(i int, result1 *voicekit.ListEgressResponse, result2 error) {
 	fake.listEgressMutex.Lock()
 	defer fake.listEgressMutex.Unlock()
 	fake.ListEgressStub = nil
 	if fake.listEgressReturnsOnCall == nil {
 		fake.listEgressReturnsOnCall = make(map[int]struct {
-			result1 *livekit.ListEgressResponse
+			result1 *voicekit.ListEgressResponse
 			result2 error
 		})
 	}
 	fake.listEgressReturnsOnCall[i] = struct {
-		result1 *livekit.ListEgressResponse
+		result1 *voicekit.ListEgressResponse
 		result2 error
 	}{result1, result2}
 }

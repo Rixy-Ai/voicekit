@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 	"golang.org/x/exp/maps"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/protocol/utils"
 )
 
 var (
@@ -46,10 +46,10 @@ type UpTrackManager struct {
 	closed bool
 
 	// publishedTracks that participant is publishing
-	publishedTracks        map[livekit.TrackID]types.MediaTrack
-	subscriptionPermission *livekit.SubscriptionPermission
+	publishedTracks        map[voicekit.TrackID]types.MediaTrack
+	subscriptionPermission *voicekit.SubscriptionPermission
 	// subscriber permission for published tracks
-	subscriberPermissions map[livekit.ParticipantIdentity]*livekit.TrackPermission // subscriberIdentity => *livekit.TrackPermission
+	subscriberPermissions map[voicekit.ParticipantIdentity]*voicekit.TrackPermission // subscriberIdentity => *voicekit.TrackPermission
 
 	lock sync.RWMutex
 
@@ -61,7 +61,7 @@ type UpTrackManager struct {
 func NewUpTrackManager(params UpTrackManagerParams) *UpTrackManager {
 	return &UpTrackManager{
 		params:          params,
-		publishedTracks: make(map[livekit.TrackID]types.MediaTrack),
+		publishedTracks: make(map[voicekit.TrackID]types.MediaTrack),
 	}
 }
 
@@ -75,7 +75,7 @@ func (u *UpTrackManager) Close(isExpectedToResume bool) {
 	u.closed = true
 
 	publishedTracks := u.publishedTracks
-	u.publishedTracks = make(map[livekit.TrackID]types.MediaTrack)
+	u.publishedTracks = make(map[voicekit.TrackID]types.MediaTrack)
 	u.lock.Unlock()
 
 	for _, t := range publishedTracks {
@@ -100,11 +100,11 @@ func (u *UpTrackManager) getOnUpTrackManagerClose() func() {
 	return u.onClose
 }
 
-func (u *UpTrackManager) ToProto() []*livekit.TrackInfo {
+func (u *UpTrackManager) ToProto() []*voicekit.TrackInfo {
 	u.lock.RLock()
 	defer u.lock.RUnlock()
 
-	var trackInfos []*livekit.TrackInfo
+	var trackInfos []*voicekit.TrackInfo
 	for _, t := range u.publishedTracks {
 		trackInfos = append(trackInfos, t.ToProto())
 	}
@@ -116,7 +116,7 @@ func (u *UpTrackManager) OnPublishedTrackUpdated(f func(track types.MediaTrack))
 	u.onTrackUpdated = f
 }
 
-func (u *UpTrackManager) SetPublishedTrackMuted(trackID livekit.TrackID, muted bool) (types.MediaTrack, bool) {
+func (u *UpTrackManager) SetPublishedTrackMuted(trackID voicekit.TrackID, muted bool) (types.MediaTrack, bool) {
 	changed := false
 	track := u.GetPublishedTrack(trackID)
 	if track != nil {
@@ -135,7 +135,7 @@ func (u *UpTrackManager) SetPublishedTrackMuted(trackID livekit.TrackID, muted b
 	return track, changed
 }
 
-func (u *UpTrackManager) GetPublishedTrack(trackID livekit.TrackID) types.MediaTrack {
+func (u *UpTrackManager) GetPublishedTrack(trackID voicekit.TrackID) types.MediaTrack {
 	u.lock.RLock()
 	defer u.lock.RUnlock()
 
@@ -150,9 +150,9 @@ func (u *UpTrackManager) GetPublishedTracks() []types.MediaTrack {
 }
 
 func (u *UpTrackManager) UpdateSubscriptionPermission(
-	subscriptionPermission *livekit.SubscriptionPermission,
+	subscriptionPermission *voicekit.SubscriptionPermission,
 	timedVersion utils.TimedVersion,
-	resolverBySid func(participantID livekit.ParticipantID) types.LocalParticipant,
+	resolverBySid func(participantID voicekit.ParticipantID) types.LocalParticipant,
 ) error {
 	u.lock.Lock()
 	if !timedVersion.IsZero() {
@@ -195,7 +195,7 @@ func (u *UpTrackManager) UpdateSubscriptionPermission(
 		"permissions", logger.Proto(u.subscriptionPermission),
 		"version", u.subscriptionPermissionVersion,
 	)
-	if err := u.parseSubscriptionPermissionsLocked(subscriptionPermission, func(pID livekit.ParticipantID) types.LocalParticipant {
+	if err := u.parseSubscriptionPermissionsLocked(subscriptionPermission, func(pID voicekit.ParticipantID) types.LocalParticipant {
 		u.lock.Unlock()
 		var p types.LocalParticipant
 		if resolverBySid != nil {
@@ -216,7 +216,7 @@ func (u *UpTrackManager) UpdateSubscriptionPermission(
 	return nil
 }
 
-func (u *UpTrackManager) SubscriptionPermission() (*livekit.SubscriptionPermission, utils.TimedVersion) {
+func (u *UpTrackManager) SubscriptionPermission() (*voicekit.SubscriptionPermission, utils.TimedVersion) {
 	u.lock.RLock()
 	defer u.lock.RUnlock()
 
@@ -227,15 +227,15 @@ func (u *UpTrackManager) SubscriptionPermission() (*livekit.SubscriptionPermissi
 	return u.subscriptionPermission, u.subscriptionPermissionVersion.Load()
 }
 
-func (u *UpTrackManager) HasPermission(trackID livekit.TrackID, subIdentity livekit.ParticipantIdentity) bool {
+func (u *UpTrackManager) HasPermission(trackID voicekit.TrackID, subIdentity voicekit.ParticipantIdentity) bool {
 	u.lock.RLock()
 	defer u.lock.RUnlock()
 
 	return u.hasPermissionLocked(trackID, subIdentity)
 }
 
-func (u *UpTrackManager) UpdatePublishedAudioTrack(update *livekit.UpdateLocalAudioTrack) types.MediaTrack {
-	track := u.GetPublishedTrack(livekit.TrackID(update.TrackSid))
+func (u *UpTrackManager) UpdatePublishedAudioTrack(update *voicekit.UpdateLocalAudioTrack) types.MediaTrack {
+	track := u.GetPublishedTrack(voicekit.TrackID(update.TrackSid))
 	if track != nil {
 		track.UpdateAudioTrack(update)
 		if u.onTrackUpdated != nil {
@@ -246,8 +246,8 @@ func (u *UpTrackManager) UpdatePublishedAudioTrack(update *livekit.UpdateLocalAu
 	return track
 }
 
-func (u *UpTrackManager) UpdatePublishedVideoTrack(update *livekit.UpdateLocalVideoTrack) types.MediaTrack {
-	track := u.GetPublishedTrack(livekit.TrackID(update.TrackSid))
+func (u *UpTrackManager) UpdatePublishedVideoTrack(update *voicekit.UpdateLocalVideoTrack) types.MediaTrack {
+	track := u.GetPublishedTrack(voicekit.TrackID(update.TrackSid))
 	if track != nil {
 		track.UpdateVideoTrack(update)
 		if u.onTrackUpdated != nil {
@@ -285,13 +285,13 @@ func (u *UpTrackManager) RemovePublishedTrack(track types.MediaTrack, isExpected
 	u.lock.Unlock()
 }
 
-func (u *UpTrackManager) getPublishedTrackLocked(trackID livekit.TrackID) types.MediaTrack {
+func (u *UpTrackManager) getPublishedTrackLocked(trackID voicekit.TrackID) types.MediaTrack {
 	return u.publishedTracks[trackID]
 }
 
 func (u *UpTrackManager) parseSubscriptionPermissionsLocked(
-	subscriptionPermission *livekit.SubscriptionPermission,
-	resolver func(participantID livekit.ParticipantID) types.LocalParticipant,
+	subscriptionPermission *voicekit.SubscriptionPermission,
+	resolver func(participantID voicekit.ParticipantID) types.LocalParticipant,
 ) error {
 	// every update overrides the existing
 
@@ -303,15 +303,15 @@ func (u *UpTrackManager) parseSubscriptionPermissionsLocked(
 	}
 
 	// per participant permissions
-	subscriberPermissions := make(map[livekit.ParticipantIdentity]*livekit.TrackPermission)
+	subscriberPermissions := make(map[voicekit.ParticipantIdentity]*voicekit.TrackPermission)
 	for _, trackPerms := range subscriptionPermission.TrackPermissions {
-		subscriberIdentity := livekit.ParticipantIdentity(trackPerms.ParticipantIdentity)
+		subscriberIdentity := voicekit.ParticipantIdentity(trackPerms.ParticipantIdentity)
 		if subscriberIdentity == "" {
 			if trackPerms.ParticipantSid == "" {
 				return ErrSubscriptionPermissionNeedsId
 			}
 
-			sub := resolver(livekit.ParticipantID(trackPerms.ParticipantSid))
+			sub := resolver(voicekit.ParticipantID(trackPerms.ParticipantSid))
 			if sub == nil {
 				u.params.Logger.Warnw("could not find subscriber for permissions update", nil, "subscriberID", trackPerms.ParticipantSid)
 				continue
@@ -320,7 +320,7 @@ func (u *UpTrackManager) parseSubscriptionPermissionsLocked(
 			subscriberIdentity = sub.Identity()
 		} else {
 			if trackPerms.ParticipantSid != "" {
-				sub := resolver(livekit.ParticipantID(trackPerms.ParticipantSid))
+				sub := resolver(voicekit.ParticipantID(trackPerms.ParticipantSid))
 				if sub != nil && sub.Identity() != subscriberIdentity {
 					u.params.Logger.Errorw("participant identity mismatch", nil, "expected", subscriberIdentity, "got", sub.Identity())
 				}
@@ -338,7 +338,7 @@ func (u *UpTrackManager) parseSubscriptionPermissionsLocked(
 	return nil
 }
 
-func (u *UpTrackManager) hasPermissionLocked(trackID livekit.TrackID, subscriberIdentity livekit.ParticipantIdentity) bool {
+func (u *UpTrackManager) hasPermissionLocked(trackID voicekit.TrackID, subscriberIdentity voicekit.ParticipantIdentity) bool {
 	if u.subscriberPermissions == nil {
 		return true
 	}
@@ -353,7 +353,7 @@ func (u *UpTrackManager) hasPermissionLocked(trackID livekit.TrackID, subscriber
 	}
 
 	for _, sid := range perms.TrackSids {
-		if livekit.TrackID(sid) == trackID {
+		if voicekit.TrackID(sid) == trackID {
 			return true
 		}
 	}
@@ -363,12 +363,12 @@ func (u *UpTrackManager) hasPermissionLocked(trackID livekit.TrackID, subscriber
 
 // returns a list of participants that are allowed to subscribe to the track. if nil is returned, it means everyone is
 // allowed to subscribe to this track
-func (u *UpTrackManager) getAllowedSubscribersLocked(trackID livekit.TrackID) []livekit.ParticipantIdentity {
+func (u *UpTrackManager) getAllowedSubscribersLocked(trackID voicekit.TrackID) []voicekit.ParticipantIdentity {
 	if u.subscriberPermissions == nil {
 		return nil
 	}
 
-	allowed := make([]livekit.ParticipantIdentity, 0)
+	allowed := make([]voicekit.ParticipantIdentity, 0)
 	for subscriberIdentity, perms := range u.subscriberPermissions {
 		if perms.AllTracks {
 			allowed = append(allowed, subscriberIdentity)
@@ -376,7 +376,7 @@ func (u *UpTrackManager) getAllowedSubscribersLocked(trackID livekit.TrackID) []
 		}
 
 		for _, sid := range perms.TrackSids {
-			if livekit.TrackID(sid) == trackID {
+			if voicekit.TrackID(sid) == trackID {
 				allowed = append(allowed, subscriberIdentity)
 				break
 			}
@@ -403,7 +403,7 @@ func (u *UpTrackManager) maybeRevokeSubscriptions() {
 
 func (u *UpTrackManager) DebugInfo() map[string]interface{} {
 	info := map[string]interface{}{}
-	publishedTrackInfo := make(map[livekit.TrackID]interface{})
+	publishedTrackInfo := make(map[voicekit.TrackID]interface{})
 
 	u.lock.RLock()
 	for trackID, track := range u.publishedTracks {
@@ -427,7 +427,7 @@ func (u *UpTrackManager) DebugInfo() map[string]interface{} {
 func (u *UpTrackManager) GetAudioLevel() (level float64, active bool) {
 	level = 0
 	for _, pt := range u.GetPublishedTracks() {
-		if pt.Source() == livekit.TrackSource_MICROPHONE {
+		if pt.Source() == voicekit.TrackSource_MICROPHONE {
 			tl, ta := pt.GetAudioLevel()
 			if ta {
 				active = true

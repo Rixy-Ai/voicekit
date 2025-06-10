@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LiveKit, Inc
+ * Copyright 2024 VoiceKit, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/livekit-server/pkg/testutils"
-	"github.com/livekit/livekit-server/pkg/utils"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
+	"github.com/voicekit/voicekit-server/pkg/utils"
 )
 
 func TestForEach(t *testing.T) {

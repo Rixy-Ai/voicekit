@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/livekit-server/version"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/voicekit-server/version"
 )
 
 var baseFlags = []cli.Flag{
@@ -44,12 +44,12 @@ var baseFlags = []cli.Flag{
 	},
 	&cli.StringFlag{
 		Name:  "config",
-		Usage: "path to LiveKit config file",
+		Usage: "path to VoiceKit config file",
 	},
 	&cli.StringFlag{
 		Name:    "config-body",
-		Usage:   "LiveKit config in YAML, typically passed in as an environment var in a container",
-		EnvVars: []string{"LIVEKIT_CONFIG"},
+		Usage:   "VoiceKit config in YAML, typically passed in as an environment var in a container",
+		EnvVars: []string{"VOICEKIT_CONFIG"},
 	},
 	&cli.StringFlag{
 		Name:  "key-file",
@@ -58,12 +58,12 @@ var baseFlags = []cli.Flag{
 	&cli.StringFlag{
 		Name:    "keys",
 		Usage:   "api keys (key: secret\\n)",
-		EnvVars: []string{"LIVEKIT_KEYS"},
+		EnvVars: []string{"VOICEKIT_KEYS"},
 	},
 	&cli.StringFlag{
 		Name:    "region",
 		Usage:   "region of the current node. Used by regionaware node selector",
-		EnvVars: []string{"LIVEKIT_REGION"},
+		EnvVars: []string{"VOICEKIT_REGION"},
 	},
 	&cli.StringFlag{
 		Name:    "node-ip",
@@ -88,12 +88,12 @@ var baseFlags = []cli.Flag{
 	&cli.StringFlag{
 		Name:    "turn-cert",
 		Usage:   "tls cert file for TURN server",
-		EnvVars: []string{"LIVEKIT_TURN_CERT"},
+		EnvVars: []string{"VOICEKIT_TURN_CERT"},
 	},
 	&cli.StringFlag{
 		Name:    "turn-key",
 		Usage:   "tls key file for TURN server",
-		EnvVars: []string{"LIVEKIT_TURN_KEY"},
+		EnvVars: []string{"VOICEKIT_TURN_KEY"},
 	},
 	// debugging flags
 	&cli.StringFlag{
@@ -128,7 +128,7 @@ func main() {
 	}
 
 	app := &cli.App{
-		Name:        "livekit-server",
+		Name:        "voicekit-server",
 		Usage:       "High performance WebRTC server",
 		Description: "run without subcommands to start the server",
 		Flags:       append(baseFlags, generatedFlags...),

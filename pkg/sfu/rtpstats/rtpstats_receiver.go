@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import (
 	"github.com/pion/rtcp"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/livekit/livekit-server/pkg/sfu/utils"
-	"github.com/livekit/mediatransportutil"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	protoutils "github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/voicekit-server/pkg/sfu/utils"
+	"github.com/voicekit/mediatransportutil"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	protoutils "github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/mono"
 )
 
 const (
@@ -358,7 +358,7 @@ func (r *RTPStatsReceiver) Update(
 	return
 }
 
-func (r *RTPStatsReceiver) getExtendedSenderReport(srData *livekit.RTCPSenderReportState) *livekit.RTCPSenderReportState {
+func (r *RTPStatsReceiver) getExtendedSenderReport(srData *voicekit.RTCPSenderReportState) *voicekit.RTCPSenderReportState {
 	tsCycles := uint64(0)
 	if r.srNewest != nil {
 		// use time since last sender report to ensure long gaps where the time stamp might
@@ -402,7 +402,7 @@ func (r *RTPStatsReceiver) getExtendedSenderReport(srData *livekit.RTCPSenderRep
 	return srDataExt
 }
 
-func (r *RTPStatsReceiver) checkOutOfOrderSenderReport(srData *livekit.RTCPSenderReportState) bool {
+func (r *RTPStatsReceiver) checkOutOfOrderSenderReport(srData *voicekit.RTCPSenderReportState) bool {
 	if r.srNewest != nil && srData.RtpTimestampExt < r.srNewest.RtpTimestampExt {
 		// This can happen when a track is replaced with a null and then restored -
 		// i. e. muting replacing with null and unmute restoring the original track.
@@ -423,7 +423,7 @@ func (r *RTPStatsReceiver) checkOutOfOrderSenderReport(srData *livekit.RTCPSende
 	return false
 }
 
-func (r *RTPStatsReceiver) checkRTPClockSkewForSenderReport(srData *livekit.RTCPSenderReportState) {
+func (r *RTPStatsReceiver) checkRTPClockSkewForSenderReport(srData *voicekit.RTCPSenderReportState) {
 	if r.srNewest == nil {
 		return
 	}
@@ -456,7 +456,7 @@ func (r *RTPStatsReceiver) checkRTPClockSkewForSenderReport(srData *livekit.RTCP
 	}
 }
 
-func (r *RTPStatsReceiver) checkRTPClockSkewAgainstMediaPathForSenderReport(srData *livekit.RTCPSenderReportState) {
+func (r *RTPStatsReceiver) checkRTPClockSkewAgainstMediaPathForSenderReport(srData *voicekit.RTCPSenderReportState) {
 	if r.highestTime == 0 {
 		return
 	}
@@ -495,7 +495,7 @@ func (r *RTPStatsReceiver) checkRTPClockSkewAgainstMediaPathForSenderReport(srDa
 	}
 }
 
-func (r *RTPStatsReceiver) updatePropagationDelayAndRecordSenderReport(srData *livekit.RTCPSenderReportState) {
+func (r *RTPStatsReceiver) updatePropagationDelayAndRecordSenderReport(srData *voicekit.RTCPSenderReportState) {
 	senderClockTime := mediatransportutil.NtpTime(srData.NtpTimestamp).Time().UnixNano()
 	estimatedPropagationDelay, stepChange := r.propagationDelayEstimator.Update(senderClockTime, srData.At)
 	if stepChange {
@@ -514,7 +514,7 @@ func (r *RTPStatsReceiver) updatePropagationDelayAndRecordSenderReport(srData *l
 	r.srNewest = srData
 }
 
-func (r *RTPStatsReceiver) SetRtcpSenderReportData(srData *livekit.RTCPSenderReportState) bool {
+func (r *RTPStatsReceiver) SetRtcpSenderReportData(srData *voicekit.RTCPSenderReportState) bool {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
@@ -548,7 +548,7 @@ func (r *RTPStatsReceiver) SetRtcpSenderReportData(srData *livekit.RTCPSenderRep
 	return true
 }
 
-func (r *RTPStatsReceiver) GetRtcpSenderReportData() *livekit.RTCPSenderReportState {
+func (r *RTPStatsReceiver) GetRtcpSenderReportData() *voicekit.RTCPSenderReportState {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
@@ -652,7 +652,7 @@ func (r *RTPStatsReceiver) MarshalLogObject(e zapcore.ObjectEncoder) error {
 	return lockedRTPStatsReceiverLogEncoder{r}.MarshalLogObject(e)
 }
 
-func (r *RTPStatsReceiver) ToProto() *livekit.RTPStats {
+func (r *RTPStatsReceiver) ToProto() *voicekit.RTPStats {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 

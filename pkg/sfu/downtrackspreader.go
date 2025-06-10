@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package sfu
 import (
 	"sync"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 )
 
 type DownTrackSpreaderParams struct {
@@ -31,14 +31,14 @@ type DownTrackSpreader struct {
 	params DownTrackSpreaderParams
 
 	downTrackMu      sync.RWMutex
-	downTracks       map[livekit.ParticipantID]TrackSender
+	downTracks       map[voicekit.ParticipantID]TrackSender
 	downTracksShadow []TrackSender
 }
 
 func NewDownTrackSpreader(params DownTrackSpreaderParams) *DownTrackSpreader {
 	d := &DownTrackSpreader{
 		params:     params,
-		downTracks: make(map[livekit.ParticipantID]TrackSender),
+		downTracks: make(map[voicekit.ParticipantID]TrackSender),
 	}
 
 	return d
@@ -56,7 +56,7 @@ func (d *DownTrackSpreader) ResetAndGetDownTracks() []TrackSender {
 
 	downTracks := d.downTracksShadow
 
-	d.downTracks = make(map[livekit.ParticipantID]TrackSender)
+	d.downTracks = make(map[voicekit.ParticipantID]TrackSender)
 	d.downTracksShadow = nil
 
 	return downTracks
@@ -70,7 +70,7 @@ func (d *DownTrackSpreader) Store(ts TrackSender) {
 	d.shadowDownTracks()
 }
 
-func (d *DownTrackSpreader) Free(subscriberID livekit.ParticipantID) {
+func (d *DownTrackSpreader) Free(subscriberID voicekit.ParticipantID) {
 	d.downTrackMu.Lock()
 	defer d.downTrackMu.Unlock()
 
@@ -78,7 +78,7 @@ func (d *DownTrackSpreader) Free(subscriberID livekit.ParticipantID) {
 	d.shadowDownTracks()
 }
 
-func (d *DownTrackSpreader) HasDownTrack(subscriberID livekit.ParticipantID) bool {
+func (d *DownTrackSpreader) HasDownTrack(subscriberID voicekit.ParticipantID) bool {
 	d.downTrackMu.RLock()
 	defer d.downTrackMu.RUnlock()
 

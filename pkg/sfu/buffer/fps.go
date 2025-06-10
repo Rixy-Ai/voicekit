@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import (
 
 	"github.com/pion/rtp/codecs"
 
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/logger"
 )
 
 var minFramesForCalculation = [...]int{8, 15, 40, 60}
@@ -231,7 +231,7 @@ type FrameRateCalculatorVP9 struct {
 	completed bool
 
 	// VP9-TODO - this is assuming three spatial layers. As `completed` marker relies on all layers being finished, have to assume this. FIX.
-	//            Maybe look at number of layers in livekit.TrackInfo and declare completed once advertised layers are measured
+	//            Maybe look at number of layers in voicekit.TrackInfo and declare completed once advertised layers are measured
 	frameRateCalculatorsVPx [DefaultMaxLayerSpatial + 1]*frameRateCalculatorVPx
 }
 

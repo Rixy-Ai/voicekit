@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/livekit-server/pkg/rtc/transport"
-	"github.com/livekit/livekit-server/pkg/rtc/transport/transportfakes"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/testutils"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/rtc/transport"
+	"github.com/voicekit/voicekit-server/pkg/rtc/transport/transportfakes"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func TestMissingAnswerDuringICERestart(t *testing.T) {
@@ -377,7 +377,7 @@ func TestNegotiationFailed(t *testing.T) {
 func TestFilteringCandidates(t *testing.T) {
 	params := TransportParams{
 		Config: &WebRTCConfig{},
-		EnabledCodecs: []*livekit.Codec{
+		EnabledCodecs: []*voicekit.Codec{
 			{Mime: mime.MimeTypeOpus.String()},
 			{Mime: mime.MimeTypeVP8.String()},
 			{Mime: mime.MimeTypeH264.String()},
@@ -494,7 +494,7 @@ func TestFilteringCandidates(t *testing.T) {
 }
 
 func handleICEExchange(t *testing.T, a, b *PCTransport, ah, bh *transportfakes.FakeHandler) {
-	ah.OnICECandidateCalls(func(candidate *webrtc.ICECandidate, target livekit.SignalTarget) error {
+	ah.OnICECandidateCalls(func(candidate *webrtc.ICECandidate, target voicekit.SignalTarget) error {
 		if candidate == nil {
 			return nil
 		}
@@ -502,7 +502,7 @@ func handleICEExchange(t *testing.T, a, b *PCTransport, ah, bh *transportfakes.F
 		b.AddICECandidate(candidate.ToJSON())
 		return nil
 	})
-	bh.OnICECandidateCalls(func(candidate *webrtc.ICECandidate, target livekit.SignalTarget) error {
+	bh.OnICECandidateCalls(func(candidate *webrtc.ICECandidate, target voicekit.SignalTarget) error {
 		if candidate == nil {
 			return nil
 		}
@@ -587,7 +587,7 @@ func TestConfigureAudioTransceiver(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("nack=%v,stereo=%v", testcase.nack, testcase.stereo), func(t *testing.T) {
 			var me webrtc.MediaEngine
-			registerCodecs(&me, []*livekit.Codec{{Mime: mime.MimeTypeOpus.String()}}, RTCPFeedbackConfig{Audio: []webrtc.RTCPFeedback{{Type: webrtc.TypeRTCPFBNACK}}}, false)
+			registerCodecs(&me, []*voicekit.Codec{{Mime: mime.MimeTypeOpus.String()}}, RTCPFeedbackConfig{Audio: []webrtc.RTCPFeedback{{Type: webrtc.TypeRTCPFBNACK}}}, false)
 			pc, err := webrtc.NewAPI(webrtc.WithMediaEngine(&me)).NewPeerConnection(webrtc.Configuration{})
 			require.NoError(t, err)
 			defer pc.Close()

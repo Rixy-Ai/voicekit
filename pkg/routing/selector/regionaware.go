@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package selector
 import (
 	"math"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/config"
 )
 
 // RegionAwareSelector prefers available nodes that are closest to the region of the current instance
@@ -65,14 +65,14 @@ func NewRegionAwareSelector(currentRegion string, regions []config.RegionConfig,
 	return s, nil
 }
 
-func (s *RegionAwareSelector) SelectNode(nodes []*livekit.Node) (*livekit.Node, error) {
+func (s *RegionAwareSelector) SelectNode(nodes []*voicekit.Node) (*voicekit.Node, error) {
 	nodes, err := s.SystemLoadSelector.filterNodes(nodes)
 	if err != nil {
 		return nil, err
 	}
 
 	// find nodes nearest to current region
-	var nearestNodes []*livekit.Node
+	var nearestNodes []*voicekit.Node
 	nearestRegion := ""
 	minDist := math.MaxFloat64
 	for _, node := range nodes {

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
 )
 
 const (
@@ -60,14 +60,14 @@ func (c *WSSignalConnection) SetReadDeadline(deadline time.Time) error {
 	return c.conn.SetReadDeadline(deadline)
 }
 
-func (c *WSSignalConnection) ReadRequest() (*livekit.SignalRequest, int, error) {
+func (c *WSSignalConnection) ReadRequest() (*voicekit.SignalRequest, int, error) {
 	// handle special messages and pass on the rest
 	messageType, payload, err := c.conn.ReadMessage()
 	if err != nil {
 		return nil, 0, err
 	}
 
-	msg := &livekit.SignalRequest{}
+	msg := &voicekit.SignalRequest{}
 	switch messageType {
 	case websocket.BinaryMessage:
 		if c.useJSON {
@@ -92,14 +92,14 @@ func (c *WSSignalConnection) ReadRequest() (*livekit.SignalRequest, int, error) 
 	}
 }
 
-func (c *WSSignalConnection) ReadWorkerMessage() (*livekit.WorkerMessage, int, error) {
+func (c *WSSignalConnection) ReadWorkerMessage() (*voicekit.WorkerMessage, int, error) {
 	// handle special messages and pass on the rest
 	messageType, payload, err := c.conn.ReadMessage()
 	if err != nil {
 		return nil, 0, err
 	}
 
-	msg := &livekit.WorkerMessage{}
+	msg := &voicekit.WorkerMessage{}
 	switch messageType {
 	case websocket.BinaryMessage:
 		if c.useJSON {
@@ -124,7 +124,7 @@ func (c *WSSignalConnection) ReadWorkerMessage() (*livekit.WorkerMessage, int, e
 	}
 }
 
-func (c *WSSignalConnection) WriteResponse(msg *livekit.SignalResponse) (int, error) {
+func (c *WSSignalConnection) WriteResponse(msg *voicekit.SignalResponse) (int, error) {
 	var msgType int
 	var payload []byte
 	var err error
@@ -146,7 +146,7 @@ func (c *WSSignalConnection) WriteResponse(msg *livekit.SignalResponse) (int, er
 	return len(payload), c.conn.WriteMessage(msgType, payload)
 }
 
-func (c *WSSignalConnection) WriteServerMessage(msg *livekit.ServerMessage) (int, error) {
+func (c *WSSignalConnection) WriteServerMessage(msg *voicekit.ServerMessage) (int, error) {
 	var msgType int
 	var payload []byte
 	var err error

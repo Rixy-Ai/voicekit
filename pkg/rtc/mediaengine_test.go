@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,20 +20,20 @@ import (
 	"github.com/pion/webrtc/v4"
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 func TestIsCodecEnabled(t *testing.T) {
 	t.Run("empty fmtp requirement should match all", func(t *testing.T) {
-		enabledCodecs := []*livekit.Codec{{Mime: "video/h264"}}
+		enabledCodecs := []*voicekit.Codec{{Mime: "video/h264"}}
 		require.True(t, IsCodecEnabled(enabledCodecs, webrtc.RTPCodecCapability{MimeType: mime.MimeTypeH264.String(), SDPFmtpLine: "special"}))
 		require.True(t, IsCodecEnabled(enabledCodecs, webrtc.RTPCodecCapability{MimeType: mime.MimeTypeH264.String()}))
 		require.False(t, IsCodecEnabled(enabledCodecs, webrtc.RTPCodecCapability{MimeType: mime.MimeTypeVP8.String()}))
 	})
 
 	t.Run("when fmtp is provided, require match", func(t *testing.T) {
-		enabledCodecs := []*livekit.Codec{{Mime: "video/h264", FmtpLine: "special"}}
+		enabledCodecs := []*voicekit.Codec{{Mime: "video/h264", FmtpLine: "special"}}
 		require.True(t, IsCodecEnabled(enabledCodecs, webrtc.RTPCodecCapability{MimeType: mime.MimeTypeH264.String(), SDPFmtpLine: "special"}))
 		require.False(t, IsCodecEnabled(enabledCodecs, webrtc.RTPCodecCapability{MimeType: mime.MimeTypeH264.String()}))
 		require.False(t, IsCodecEnabled(enabledCodecs, webrtc.RTPCodecCapability{MimeType: mime.MimeTypeVP8.String()}))

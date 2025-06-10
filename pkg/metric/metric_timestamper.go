@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/livekit/livekit-server/pkg/sfu/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/voicekit-server/pkg/sfu/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/mono"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -62,7 +62,7 @@ func NewMetricTimestamper(params MetricTimestamperParams) *MetricTimestamper {
 	}
 }
 
-func (m *MetricTimestamper) Process(batch *livekit.MetricsBatch) {
+func (m *MetricTimestamper) Process(batch *voicekit.MetricsBatch) {
 	if m == nil {
 		return
 	}
@@ -95,7 +95,7 @@ func (m *MetricTimestamper) Process(batch *livekit.MetricsBatch) {
 	m.params.Logger.Debugw("timestamped metrics batch", "batch", logger.Proto(batch))
 }
 
-func (m *MetricTimestamper) maybeRunOWDEstimator(batch *livekit.MetricsBatch) int64 {
+func (m *MetricTimestamper) maybeRunOWDEstimator(batch *voicekit.MetricsBatch) int64 {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 

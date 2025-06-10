@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 var (
@@ -31,16 +31,16 @@ var (
 	promDataPacketStreamSize      *prometheus.HistogramVec
 )
 
-func initDataPacketStats(nodeID string, nodeType livekit.NodeType) {
+func initDataPacketStats(nodeID string, nodeType voicekit.NodeType) {
 	promDataPacketStreamDestCount = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "datapacket_stream",
 		Name:        "dest_count",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
 		Buckets:     []float64{1, 2, 3, 4, 5, 10, 15, 25, 50},
 	}, promDataPacketStreamLabels)
 	promDataPacketStreamSize = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   livekitNamespace,
+		Namespace:   voicekitNamespace,
 		Subsystem:   "datapacket_stream",
 		Name:        "bytes",
 		ConstLabels: prometheus.Labels{"node_id": nodeID, "node_type": nodeType.String()},
@@ -51,12 +51,12 @@ func initDataPacketStats(nodeID string, nodeType livekit.NodeType) {
 	prometheus.MustRegister(promDataPacketStreamSize)
 }
 
-func RecordDataPacketStream(h *livekit.DataStream_Header, destCount int) {
+func RecordDataPacketStream(h *voicekit.DataStream_Header, destCount int) {
 	streamType := "unknown"
 	switch h.ContentHeader.(type) {
-	case *livekit.DataStream_Header_TextHeader:
+	case *voicekit.DataStream_Header_TextHeader:
 		streamType = "text"
-	case *livekit.DataStream_Header_ByteHeader:
+	case *voicekit.DataStream_Header_ByteHeader:
 		streamType = "bytes"
 	}
 

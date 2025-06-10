@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,18 +29,18 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/mediatransportutil/pkg/twcc"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/mediatransportutil/pkg/twcc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/rtc/transport"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu"
-	"github.com/livekit/livekit-server/pkg/sfu/datachannel"
-	"github.com/livekit/livekit-server/pkg/sfu/pacer"
-	"github.com/livekit/livekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/rtc/transport"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu"
+	"github.com/voicekit/voicekit-server/pkg/sfu/datachannel"
+	"github.com/voicekit/voicekit-server/pkg/sfu/pacer"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
 )
 
 const (
@@ -88,8 +88,8 @@ type TransportManagerParams struct {
 	Twcc                         *twcc.Responder
 	ProtocolVersion              types.ProtocolVersion
 	CongestionControlConfig      config.CongestionControlConfig
-	EnabledSubscribeCodecs       []*livekit.Codec
-	EnabledPublishCodecs         []*livekit.Codec
+	EnabledSubscribeCodecs       []*voicekit.Codec
+	EnabledPublishCodecs         []*voicekit.Codec
 	SimTracks                    map[uint32]SimulcastTrackInfo
 	ClientInfo                   ClientInfo
 	Migration                    bool
@@ -122,16 +122,16 @@ type TransportManager struct {
 	signalSourceValid       atomic.Bool
 
 	pendingOfferPublisher        *webrtc.SessionDescription
-	pendingDataChannelsPublisher []*livekit.DataChannelInfo
+	pendingDataChannelsPublisher []*voicekit.DataChannelInfo
 	lastPublisherAnswer          atomic.Value
 	lastPublisherOffer           atomic.Value
-	iceConfig                    *livekit.ICEConfig
+	iceConfig                    *voicekit.ICEConfig
 
 	mediaLossProxy       *MediaLossProxy
 	udpLossUnstableCount uint32
 	signalingRTT, udpRTT uint32
 
-	onICEConfigChanged func(iceConfig *livekit.ICEConfig)
+	onICEConfigChanged func(iceConfig *voicekit.ICEConfig)
 
 	droppedBySlowReaderCount atomic.Uint32
 }
@@ -143,11 +143,11 @@ func NewTransportManager(params TransportManagerParams) (*TransportManager, erro
 	t := &TransportManager{
 		params:         params,
 		mediaLossProxy: NewMediaLossProxy(MediaLossProxyParams{Logger: params.Logger}),
-		iceConfig:      &livekit.ICEConfig{},
+		iceConfig:      &voicekit.ICEConfig{},
 	}
 	t.mediaLossProxy.OnMediaLossUpdate(t.onMediaLossUpdate)
 
-	lgr := LoggerWithPCTarget(params.Logger, livekit.SignalTarget_PUBLISHER)
+	lgr := LoggerWithPCTarget(params.Logger, voicekit.SignalTarget_PUBLISHER)
 	publisher, err := NewPCTransport(TransportParams{
 		ProtocolVersion:              params.ProtocolVersion,
 		Config:                       params.Config,
@@ -158,7 +158,7 @@ func NewTransportManager(params TransportManagerParams) (*TransportManager, erro
 		Logger:                       lgr,
 		SimTracks:                    params.SimTracks,
 		ClientInfo:                   params.ClientInfo,
-		Transport:                    livekit.SignalTarget_PUBLISHER,
+		Transport:                    voicekit.SignalTarget_PUBLISHER,
 		Handler:                      TransportManagerPublisherTransportHandler{TransportManagerTransportHandler{params.PublisherHandler, t, lgr}},
 		UseOneShotSignallingMode:     params.UseOneShotSignallingMode,
 		DataChannelMaxBufferedAmount: params.DataChannelMaxBufferedAmount,
@@ -170,7 +170,7 @@ func NewTransportManager(params TransportManagerParams) (*TransportManager, erro
 	}
 	t.publisher = publisher
 
-	lgr = LoggerWithPCTarget(params.Logger, livekit.SignalTarget_SUBSCRIBER)
+	lgr = LoggerWithPCTarget(params.Logger, voicekit.SignalTarget_SUBSCRIBER)
 	subscriber, err := NewPCTransport(TransportParams{
 		ProtocolVersion:          params.ProtocolVersion,
 		Config:                   params.Config,
@@ -183,7 +183,7 @@ func NewTransportManager(params TransportManagerParams) (*TransportManager, erro
 		IsSendSide:               true,
 		AllowPlayoutDelay:        params.AllowPlayoutDelay,
 		DatachannelSlowThreshold: params.DatachannelSlowThreshold,
-		Transport:                livekit.SignalTarget_SUBSCRIBER,
+		Transport:                voicekit.SignalTarget_SUBSCRIBER,
 		Handler:                  TransportManagerTransportHandler{params.SubscriberHandler, t, lgr},
 	})
 	if err != nil {
@@ -291,12 +291,12 @@ func (t *TransportManager) RemoveSubscribedTrack(subTrack types.SubscribedTrack)
 	t.subscriber.RemoveTrackFromStreamAllocator(subTrack)
 }
 
-func (t *TransportManager) SendDataMessage(kind livekit.DataPacket_Kind, data []byte) error {
+func (t *TransportManager) SendDataMessage(kind voicekit.DataPacket_Kind, data []byte) error {
 	// downstream data is sent via primary peer connection
 	return t.handleSendDataResult(t.getTransport(true).SendDataMessage(kind, data), kind.String(), len(data))
 }
 
-func (t *TransportManager) SendDataMessageUnlabeled(data []byte, useRaw bool, sender livekit.ParticipantIdentity) error {
+func (t *TransportManager) SendDataMessageUnlabeled(data []byte, useRaw bool, sender voicekit.ParticipantIdentity) error {
 	// downstream data is sent via primary peer connection
 	return t.handleSendDataResult(
 		t.getTransport(true).SendDataMessageUnlabeled(data, useRaw, sender),
@@ -343,7 +343,7 @@ func (t *TransportManager) handleSendDataResult(err error, kind string, size int
 	return err
 }
 
-func (t *TransportManager) createDataChannelsForSubscriber(pendingDataChannels []*livekit.DataChannelInfo) error {
+func (t *TransportManager) createDataChannelsForSubscriber(pendingDataChannels []*voicekit.DataChannelInfo) error {
 	var (
 		reliableID, lossyID       uint16
 		reliableIDPtr, lossyIDPtr *uint16
@@ -489,11 +489,11 @@ func (t *TransportManager) HandleAnswer(answer webrtc.SessionDescription) {
 }
 
 // AddICECandidate adds candidates for remote peer
-func (t *TransportManager) AddICECandidate(candidate webrtc.ICECandidateInit, target livekit.SignalTarget) {
+func (t *TransportManager) AddICECandidate(candidate webrtc.ICECandidateInit, target voicekit.SignalTarget) {
 	switch target {
-	case livekit.SignalTarget_PUBLISHER:
+	case voicekit.SignalTarget_PUBLISHER:
 		t.publisher.AddICECandidate(candidate)
-	case livekit.SignalTarget_SUBSCRIBER:
+	case voicekit.SignalTarget_SUBSCRIBER:
 		t.subscriber.AddICECandidate(candidate)
 	default:
 		err := errors.New("unknown signal target")
@@ -505,18 +505,18 @@ func (t *TransportManager) NegotiateSubscriber(force bool) {
 	t.subscriber.Negotiate(force)
 }
 
-func (t *TransportManager) HandleClientReconnect(reason livekit.ReconnectReason) {
+func (t *TransportManager) HandleClientReconnect(reason voicekit.ReconnectReason) {
 	var (
 		isShort              bool
 		duration             time.Duration
 		resetShortConnection bool
 	)
 	switch reason {
-	case livekit.ReconnectReason_RR_PUBLISHER_FAILED:
+	case voicekit.ReconnectReason_RR_PUBLISHER_FAILED:
 		resetShortConnection = true
 		isShort, duration = t.publisher.IsShortConnection(time.Now())
 
-	case livekit.ReconnectReason_RR_SUBSCRIBER_FAILED:
+	case voicekit.ReconnectReason_RR_SUBSCRIBER_FAILED:
 		resetShortConnection = true
 		isShort, duration = t.subscriber.IsShortConnection(time.Now())
 	}
@@ -535,25 +535,25 @@ func (t *TransportManager) HandleClientReconnect(reason livekit.ReconnectReason)
 	}
 }
 
-func (t *TransportManager) ICERestart(iceConfig *livekit.ICEConfig) error {
+func (t *TransportManager) ICERestart(iceConfig *voicekit.ICEConfig) error {
 	t.SetICEConfig(iceConfig)
 
 	return t.subscriber.ICERestart()
 }
 
-func (t *TransportManager) OnICEConfigChanged(f func(iceConfig *livekit.ICEConfig)) {
+func (t *TransportManager) OnICEConfigChanged(f func(iceConfig *voicekit.ICEConfig)) {
 	t.lock.Lock()
 	t.onICEConfigChanged = f
 	t.lock.Unlock()
 }
 
-func (t *TransportManager) SetICEConfig(iceConfig *livekit.ICEConfig) {
+func (t *TransportManager) SetICEConfig(iceConfig *voicekit.ICEConfig) {
 	if iceConfig != nil {
 		t.configureICE(iceConfig, true)
 	}
 }
 
-func (t *TransportManager) GetICEConfig() *livekit.ICEConfig {
+func (t *TransportManager) GetICEConfig() *voicekit.ICEConfig {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 	if t.iceConfig == nil {
@@ -569,7 +569,7 @@ func (t *TransportManager) resetTransportConfigureLocked(reconfigured bool) {
 	t.lastFailure = time.Time{}
 }
 
-func (t *TransportManager) configureICE(iceConfig *livekit.ICEConfig, reset bool) {
+func (t *TransportManager) configureICE(iceConfig *voicekit.ICEConfig, reset bool) {
 	t.lock.Lock()
 	isEqual := proto.Equal(t.iceConfig, iceConfig)
 	if reset || !isEqual {
@@ -586,12 +586,12 @@ func (t *TransportManager) configureICE(iceConfig *livekit.ICEConfig, reset bool
 	t.iceConfig = iceConfig
 	t.lock.Unlock()
 
-	if iceConfig.PreferenceSubscriber != livekit.ICECandidateType_ICT_NONE {
+	if iceConfig.PreferenceSubscriber != voicekit.ICECandidateType_ICT_NONE {
 		t.mediaLossProxy.OnMediaLossUpdate(nil)
 	}
 
-	t.publisher.SetPreferTCP(iceConfig.PreferencePublisher == livekit.ICECandidateType_ICT_TCP)
-	t.subscriber.SetPreferTCP(iceConfig.PreferenceSubscriber == livekit.ICECandidateType_ICT_TCP)
+	t.publisher.SetPreferTCP(iceConfig.PreferencePublisher == voicekit.ICECandidateType_ICT_TCP)
+	t.subscriber.SetPreferTCP(iceConfig.PreferenceSubscriber == voicekit.ICECandidateType_ICT_TCP)
 
 	if onICEConfigChanged != nil {
 		onICEConfigChanged(iceConfig)
@@ -665,16 +665,16 @@ func (t *TransportManager) handleConnectionFailed(isShortLived bool) {
 	//
 	// As both transports are switched to the same type on any failure, checking just subscriber should be fine.
 	//
-	getNext := func(ic *livekit.ICEConfig) livekit.ICECandidateType {
+	getNext := func(ic *voicekit.ICEConfig) voicekit.ICECandidateType {
 		switch lowestPriorityConnectionType {
 		case types.ICEConnectionTypeUDP:
 			// try ICE/TCP if ICE/UDP failed
-			if ic.PreferenceSubscriber == livekit.ICECandidateType_ICT_NONE {
+			if ic.PreferenceSubscriber == voicekit.ICECandidateType_ICT_NONE {
 				if t.params.ClientInfo.SupportsICETCP() && t.canUseICETCP() {
-					return livekit.ICECandidateType_ICT_TCP
+					return voicekit.ICECandidateType_ICT_TCP
 				} else if t.params.TURNSEnabled {
 					// fallback to TURN/TLS if TCP is not supported
-					return livekit.ICECandidateType_ICT_TLS
+					return voicekit.ICECandidateType_ICT_TLS
 				}
 			}
 
@@ -683,7 +683,7 @@ func (t *TransportManager) handleConnectionFailed(isShortLived bool) {
 			// the configuration could have been ICT_NONE or ICT_TCP,
 			// in either case, fallback to TURN/TLS
 			if t.params.TURNSEnabled {
-				return livekit.ICECandidateType_ICT_TLS
+				return voicekit.ICECandidateType_ICT_TLS
 			} else {
 				// keep the current config
 				return ic.PreferenceSubscriber
@@ -695,10 +695,10 @@ func (t *TransportManager) handleConnectionFailed(isShortLived bool) {
 			// keep the current config
 			return ic.PreferenceSubscriber
 		}
-		return livekit.ICECandidateType_ICT_NONE
+		return voicekit.ICECandidateType_ICT_NONE
 	}
 
-	var preferNext livekit.ICECandidateType
+	var preferNext voicekit.ICECandidateType
 	if isShortLived {
 		preferNext = getNext(t.iceConfig)
 	} else {
@@ -722,30 +722,30 @@ func (t *TransportManager) handleConnectionFailed(isShortLived bool) {
 	t.lock.Unlock()
 
 	switch preferNext {
-	case livekit.ICECandidateType_ICT_TCP:
+	case voicekit.ICECandidateType_ICT_TCP:
 		t.params.Logger.Debugw("prefer TCP transport on both peer connections")
 
-	case livekit.ICECandidateType_ICT_TLS:
+	case voicekit.ICECandidateType_ICT_TLS:
 		t.params.Logger.Debugw("prefer TLS transport both peer connections")
 
-	case livekit.ICECandidateType_ICT_NONE:
+	case voicekit.ICECandidateType_ICT_NONE:
 		t.params.Logger.Debugw("allowing all transports on both peer connections")
 	}
 
 	// irrespective of which one fails, force prefer candidate on both as the other one might
 	// fail at a different time and cause another disruption
-	t.configureICE(&livekit.ICEConfig{
+	t.configureICE(&voicekit.ICEConfig{
 		PreferenceSubscriber: preferNext,
 		PreferencePublisher:  preferNext,
 	}, false)
 }
 
-func (t *TransportManager) SetMigrateInfo(previousOffer, previousAnswer *webrtc.SessionDescription, dataChannels []*livekit.DataChannelInfo) {
+func (t *TransportManager) SetMigrateInfo(previousOffer, previousAnswer *webrtc.SessionDescription, dataChannels []*voicekit.DataChannelInfo) {
 	t.lock.Lock()
-	t.pendingDataChannelsPublisher = make([]*livekit.DataChannelInfo, 0, len(dataChannels))
-	pendingDataChannelsSubscriber := make([]*livekit.DataChannelInfo, 0, len(dataChannels))
+	t.pendingDataChannelsPublisher = make([]*voicekit.DataChannelInfo, 0, len(dataChannels))
+	pendingDataChannelsSubscriber := make([]*voicekit.DataChannelInfo, 0, len(dataChannels))
 	for _, dci := range dataChannels {
-		if dci.Target == livekit.SignalTarget_SUBSCRIBER {
+		if dci.Target == voicekit.SignalTarget_SUBSCRIBER {
 			pendingDataChannelsSubscriber = append(pendingDataChannelsSubscriber, dci)
 		} else {
 			t.pendingDataChannelsPublisher = append(t.pendingDataChannelsPublisher, dci)

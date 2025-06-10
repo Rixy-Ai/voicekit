@@ -5,19 +5,19 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 )
 
 type FakeSessionHandler struct {
-	HandleSessionStub        func(context.Context, routing.ParticipantInit, livekit.ConnectionID, routing.MessageSource, routing.MessageSink) error
+	HandleSessionStub        func(context.Context, routing.ParticipantInit, voicekit.ConnectionID, routing.MessageSource, routing.MessageSink) error
 	handleSessionMutex       sync.RWMutex
 	handleSessionArgsForCall []struct {
 		arg1 context.Context
 		arg2 routing.ParticipantInit
-		arg3 livekit.ConnectionID
+		arg3 voicekit.ConnectionID
 		arg4 routing.MessageSource
 		arg5 routing.MessageSink
 	}
@@ -42,13 +42,13 @@ type FakeSessionHandler struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSessionHandler) HandleSession(arg1 context.Context, arg2 routing.ParticipantInit, arg3 livekit.ConnectionID, arg4 routing.MessageSource, arg5 routing.MessageSink) error {
+func (fake *FakeSessionHandler) HandleSession(arg1 context.Context, arg2 routing.ParticipantInit, arg3 voicekit.ConnectionID, arg4 routing.MessageSource, arg5 routing.MessageSink) error {
 	fake.handleSessionMutex.Lock()
 	ret, specificReturn := fake.handleSessionReturnsOnCall[len(fake.handleSessionArgsForCall)]
 	fake.handleSessionArgsForCall = append(fake.handleSessionArgsForCall, struct {
 		arg1 context.Context
 		arg2 routing.ParticipantInit
-		arg3 livekit.ConnectionID
+		arg3 voicekit.ConnectionID
 		arg4 routing.MessageSource
 		arg5 routing.MessageSink
 	}{arg1, arg2, arg3, arg4, arg5})
@@ -71,13 +71,13 @@ func (fake *FakeSessionHandler) HandleSessionCallCount() int {
 	return len(fake.handleSessionArgsForCall)
 }
 
-func (fake *FakeSessionHandler) HandleSessionCalls(stub func(context.Context, routing.ParticipantInit, livekit.ConnectionID, routing.MessageSource, routing.MessageSink) error) {
+func (fake *FakeSessionHandler) HandleSessionCalls(stub func(context.Context, routing.ParticipantInit, voicekit.ConnectionID, routing.MessageSource, routing.MessageSink) error) {
 	fake.handleSessionMutex.Lock()
 	defer fake.handleSessionMutex.Unlock()
 	fake.HandleSessionStub = stub
 }
 
-func (fake *FakeSessionHandler) HandleSessionArgsForCall(i int) (context.Context, routing.ParticipantInit, livekit.ConnectionID, routing.MessageSource, routing.MessageSink) {
+func (fake *FakeSessionHandler) HandleSessionArgsForCall(i int) (context.Context, routing.ParticipantInit, voicekit.ConnectionID, routing.MessageSource, routing.MessageSink) {
 	fake.handleSessionMutex.RLock()
 	defer fake.handleSessionMutex.RUnlock()
 	argsForCall := fake.handleSessionArgsForCall[i]

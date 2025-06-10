@@ -113,7 +113,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(livekit_room_total)",
+          "expr": "sum(voicekit_room_total)",
           "interval": "",
           "legendFormat": "Rooms",
           "refId": "A"
@@ -195,7 +195,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(livekit_participant_total)",
+          "expr": "sum(voicekit_participant_total)",
           "interval": "",
           "legendFormat": "Participants",
           "refId": "A"
@@ -276,14 +276,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(irate(livekit_node_messages{type=\"signal\"}[5m]))",
+          "expr": "sum(irate(voicekit_node_messages{type=\"signal\"}[5m]))",
           "interval": "",
           "legendFormat": "Signal",
           "refId": "Signal"
         },
         {
           "exemplar": true,
-          "expr": "sum(irate(livekit_node_messages{type=\"rtc\"}[5m]))",
+          "expr": "sum(irate(voicekit_node_messages{type=\"rtc\"}[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "RTC",
@@ -291,7 +291,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(irate(livekit_node_messages{status=\"failure\"}[5m]))",
+          "expr": "sum(irate(voicekit_node_messages{status=\"failure\"}[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "Failure",
@@ -299,7 +299,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(irate(livekit_messagebus_messages{type=\"out\"}[5m]))",
+          "expr": "sum(irate(voicekit_messagebus_messages{type=\"out\"}[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "Out",
@@ -307,7 +307,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(irate(livekit_messagebus_messages{type=\"out\", status=\"failure\"}[5m]))",
+          "expr": "sum(irate(voicekit_messagebus_messages{type=\"out\", status=\"failure\"}[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "Out Failure",
@@ -397,7 +397,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(livekit_track_published_total)",
+          "expr": "sum(voicekit_track_published_total)",
           "interval": "",
           "legendFormat": "Tracks",
           "refId": "A"
@@ -478,14 +478,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(irate(livekit_packet_total[5m]))",
+          "expr": "sum(irate(voicekit_packet_total[5m]))",
           "interval": "",
           "legendFormat": "Packets",
           "refId": "Packets"
         },
         {
           "exemplar": true,
-          "expr": "sum(irate(livekit_nack_total[5m]))",
+          "expr": "sum(irate(voicekit_nack_total[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "NACK",
@@ -493,7 +493,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(irate(livekit_pli_total[5m]))",
+          "expr": "sum(irate(voicekit_pli_total[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "PLI",
@@ -501,7 +501,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(irate(livekit_fir_total[5m]))",
+          "expr": "sum(irate(voicekit_fir_total[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "FIR",
@@ -525,7 +525,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "LiveKit Server Overview",
+  "title": "VoiceKit Server Overview",
   "uid": "z_GO3t5nz",
   "version": 2
 }

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,35 +20,35 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/webhook"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/webhook"
 )
 
 type EgressLauncher interface {
-	StartEgress(context.Context, *rpc.StartEgressRequest) (*livekit.EgressInfo, error)
+	StartEgress(context.Context, *rpc.StartEgressRequest) (*voicekit.EgressInfo, error)
 }
 
 func StartParticipantEgress(
 	ctx context.Context,
 	launcher EgressLauncher,
 	ts telemetry.TelemetryService,
-	opts *livekit.AutoParticipantEgress,
-	identity livekit.ParticipantIdentity,
-	roomName livekit.RoomName,
-	roomID livekit.RoomID,
+	opts *voicekit.AutoParticipantEgress,
+	identity voicekit.ParticipantIdentity,
+	roomName voicekit.RoomName,
+	roomID voicekit.RoomID,
 ) error {
 	if req, err := startParticipantEgress(ctx, launcher, opts, identity, roomName, roomID); err != nil {
 		// send egress failed webhook
 
-		info := &livekit.EgressInfo{
+		info := &voicekit.EgressInfo{
 			RoomId:   string(roomID),
 			RoomName: string(roomName),
-			Status:   livekit.EgressStatus_EGRESS_FAILED,
+			Status:   voicekit.EgressStatus_EGRESS_FAILED,
 			Error:    err.Error(),
-			Request:  &livekit.EgressInfo_Participant{Participant: req},
+			Request:  &voicekit.EgressInfo_Participant{Participant: req},
 		}
 
 		ts.NotifyEgressEvent(ctx, webhook.EventEgressEnded, info)
@@ -61,12 +61,12 @@ func StartParticipantEgress(
 func startParticipantEgress(
 	ctx context.Context,
 	launcher EgressLauncher,
-	opts *livekit.AutoParticipantEgress,
-	identity livekit.ParticipantIdentity,
-	roomName livekit.RoomName,
-	roomID livekit.RoomID,
-) (*livekit.ParticipantEgressRequest, error) {
-	req := &livekit.ParticipantEgressRequest{
+	opts *voicekit.AutoParticipantEgress,
+	identity voicekit.ParticipantIdentity,
+	roomName voicekit.RoomName,
+	roomID voicekit.RoomID,
+) (*voicekit.ParticipantEgressRequest, error) {
+	req := &voicekit.ParticipantEgressRequest{
 		RoomName:       string(roomName),
 		Identity:       string(identity),
 		FileOutputs:    opts.FileOutputs,
@@ -74,10 +74,10 @@ func startParticipantEgress(
 	}
 
 	switch o := opts.Options.(type) {
-	case *livekit.AutoParticipantEgress_Preset:
-		req.Options = &livekit.ParticipantEgressRequest_Preset{Preset: o.Preset}
-	case *livekit.AutoParticipantEgress_Advanced:
-		req.Options = &livekit.ParticipantEgressRequest_Advanced{Advanced: o.Advanced}
+	case *voicekit.AutoParticipantEgress_Preset:
+		req.Options = &voicekit.ParticipantEgressRequest_Preset{Preset: o.Preset}
+	case *voicekit.AutoParticipantEgress_Advanced:
+		req.Options = &voicekit.ParticipantEgressRequest_Advanced{Advanced: o.Advanced}
 	}
 
 	if launcher == nil {
@@ -97,20 +97,20 @@ func StartTrackEgress(
 	ctx context.Context,
 	launcher EgressLauncher,
 	ts telemetry.TelemetryService,
-	opts *livekit.AutoTrackEgress,
+	opts *voicekit.AutoTrackEgress,
 	track types.MediaTrack,
-	roomName livekit.RoomName,
-	roomID livekit.RoomID,
+	roomName voicekit.RoomName,
+	roomID voicekit.RoomID,
 ) error {
 	if req, err := startTrackEgress(ctx, launcher, opts, track, roomName, roomID); err != nil {
 		// send egress failed webhook
 
-		info := &livekit.EgressInfo{
+		info := &voicekit.EgressInfo{
 			RoomId:   string(roomID),
 			RoomName: string(roomName),
-			Status:   livekit.EgressStatus_EGRESS_FAILED,
+			Status:   voicekit.EgressStatus_EGRESS_FAILED,
 			Error:    err.Error(),
-			Request:  &livekit.EgressInfo_Track{Track: req},
+			Request:  &voicekit.EgressInfo_Track{Track: req},
 		}
 		ts.NotifyEgressEvent(ctx, webhook.EventEgressEnded, info)
 
@@ -122,28 +122,28 @@ func StartTrackEgress(
 func startTrackEgress(
 	ctx context.Context,
 	launcher EgressLauncher,
-	opts *livekit.AutoTrackEgress,
+	opts *voicekit.AutoTrackEgress,
 	track types.MediaTrack,
-	roomName livekit.RoomName,
-	roomID livekit.RoomID,
-) (*livekit.TrackEgressRequest, error) {
-	output := &livekit.DirectFileOutput{
+	roomName voicekit.RoomName,
+	roomID voicekit.RoomID,
+) (*voicekit.TrackEgressRequest, error) {
+	output := &voicekit.DirectFileOutput{
 		Filepath: getFilePath(opts.Filepath),
 	}
 
 	switch out := opts.Output.(type) {
-	case *livekit.AutoTrackEgress_Azure:
-		output.Output = &livekit.DirectFileOutput_Azure{Azure: out.Azure}
-	case *livekit.AutoTrackEgress_Gcp:
-		output.Output = &livekit.DirectFileOutput_Gcp{Gcp: out.Gcp}
-	case *livekit.AutoTrackEgress_S3:
-		output.Output = &livekit.DirectFileOutput_S3{S3: out.S3}
+	case *voicekit.AutoTrackEgress_Azure:
+		output.Output = &voicekit.DirectFileOutput_Azure{Azure: out.Azure}
+	case *voicekit.AutoTrackEgress_Gcp:
+		output.Output = &voicekit.DirectFileOutput_Gcp{Gcp: out.Gcp}
+	case *voicekit.AutoTrackEgress_S3:
+		output.Output = &voicekit.DirectFileOutput_S3{S3: out.S3}
 	}
 
-	req := &livekit.TrackEgressRequest{
+	req := &voicekit.TrackEgressRequest{
 		RoomName: string(roomName),
 		TrackId:  string(track.ID()),
-		Output: &livekit.TrackEgressRequest_File{
+		Output: &voicekit.TrackEgressRequest_File{
 			File: output,
 		},
 	}

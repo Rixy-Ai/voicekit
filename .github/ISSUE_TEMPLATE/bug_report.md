@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: File a bug report and help us improve LiveKit
+about: File a bug report and help us improve VoiceKit
 title: ''
 labels: ''
 assignees: ''

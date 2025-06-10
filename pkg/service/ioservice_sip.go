@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,22 +22,22 @@ import (
 	"github.com/dennwc/iters"
 	"github.com/twitchtv/twirp"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/sip"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/sip"
 )
 
 // matchSIPTrunk finds a SIP Trunk definition matching the request.
 // Returns nil if no rules matched or an error if there are conflicting definitions.
-func (s *IOInfoService) matchSIPTrunk(ctx context.Context, trunkID string, call *rpc.SIPCall) (*livekit.SIPInboundTrunkInfo, error) {
+func (s *IOInfoService) matchSIPTrunk(ctx context.Context, trunkID string, call *rpc.SIPCall) (*voicekit.SIPInboundTrunkInfo, error) {
 	if s.ss == nil {
 		return nil, ErrSIPNotConnected
 	}
 	if trunkID != "" {
 		// This is a best-effort optimization. Fallthrough to listing trunks if it doesn't work.
 		if tr, err := s.ss.LoadSIPInboundTrunk(ctx, trunkID); err == nil {
-			tr, err = sip.MatchTrunkIter(iters.Slice([]*livekit.SIPInboundTrunkInfo{tr}), call)
+			tr, err = sip.MatchTrunkIter(iters.Slice([]*voicekit.SIPInboundTrunkInfo{tr}), call)
 			if err == nil {
 				return tr, nil
 			}
@@ -47,8 +47,8 @@ func (s *IOInfoService) matchSIPTrunk(ctx context.Context, trunkID string, call 
 	return sip.MatchTrunkIter(it, call)
 }
 
-func (s *IOInfoService) SelectSIPInboundTrunk(ctx context.Context, called string) iters.Iter[*livekit.SIPInboundTrunkInfo] {
-	it := livekit.ListPageIter(s.ss.ListSIPInboundTrunk, &livekit.ListSIPInboundTrunkRequest{
+func (s *IOInfoService) SelectSIPInboundTrunk(ctx context.Context, called string) iters.Iter[*voicekit.SIPInboundTrunkInfo] {
+	it := voicekit.ListPageIter(s.ss.ListSIPInboundTrunk, &voicekit.ListSIPInboundTrunkRequest{
 		Numbers: []string{called},
 	})
 	return iters.PagesAsIter(ctx, it)
@@ -56,7 +56,7 @@ func (s *IOInfoService) SelectSIPInboundTrunk(ctx context.Context, called string
 
 // matchSIPDispatchRule finds the best dispatch rule matching the request parameters. Returns an error if no rule matched.
 // Trunk parameter can be nil, in which case only wildcard dispatch rules will be effective (ones without Trunk IDs).
-func (s *IOInfoService) matchSIPDispatchRule(ctx context.Context, trunk *livekit.SIPInboundTrunkInfo, req *rpc.EvaluateSIPDispatchRulesRequest) (*livekit.SIPDispatchRuleInfo, error) {
+func (s *IOInfoService) matchSIPDispatchRule(ctx context.Context, trunk *voicekit.SIPInboundTrunkInfo, req *rpc.EvaluateSIPDispatchRulesRequest) (*voicekit.SIPDispatchRuleInfo, error) {
 	if s.ss == nil {
 		return nil, ErrSIPNotConnected
 	}
@@ -70,12 +70,12 @@ func (s *IOInfoService) matchSIPDispatchRule(ctx context.Context, trunk *livekit
 	return sip.MatchDispatchRuleIter(trunk, it, req)
 }
 
-func (s *IOInfoService) SelectSIPDispatchRule(ctx context.Context, trunkID string) iters.Iter[*livekit.SIPDispatchRuleInfo] {
+func (s *IOInfoService) SelectSIPDispatchRule(ctx context.Context, trunkID string) iters.Iter[*voicekit.SIPDispatchRuleInfo] {
 	var trunkIDs []string
 	if trunkID != "" {
 		trunkIDs = []string{trunkID}
 	}
-	it := livekit.ListPageIter(s.ss.ListSIPDispatchRule, &livekit.ListSIPDispatchRuleRequest{
+	it := voicekit.ListPageIter(s.ss.ListSIPDispatchRule, &voicekit.ListSIPDispatchRuleRequest{
 		TrunkIds: trunkIDs,
 	})
 	return iters.PagesAsIter(ctx, it)

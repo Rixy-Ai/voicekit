@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,22 +15,22 @@
 package clientconfiguration
 
 import (
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 // StaticConfigurations list specific device-side limitations that should be disabled at a global level
 var StaticConfigurations = []ConfigurationItem{
 	// {
 	// 	Match:         &ScriptMatch{Expr: `c.protocol <= 5 || c.browser == "firefox"`},
-	// 	Configuration: &livekit.ClientConfiguration{ResumeConnection: livekit.ClientConfigSetting_DISABLED},
+	// 	Configuration: &voicekit.ClientConfiguration{ResumeConnection: voicekit.ClientConfigSetting_DISABLED},
 	// 	Merge:         false,
 	// },
 	{
 		Match: &ScriptMatch{Expr: `c.browser == "safari"`},
-		Configuration: &livekit.ClientConfiguration{
-			DisabledCodecs: &livekit.DisabledCodecs{
-				Codecs: []*livekit.Codec{
+		Configuration: &voicekit.ClientConfiguration{
+			DisabledCodecs: &voicekit.DisabledCodecs{
+				Codecs: []*voicekit.Codec{
 					{Mime: mime.MimeTypeAV1.String()},
 				},
 			},
@@ -39,9 +39,9 @@ var StaticConfigurations = []ConfigurationItem{
 	},
 	{
 		Match: &ScriptMatch{Expr: `c.browser == "safari" && c.browser_version > "18.3"`},
-		Configuration: &livekit.ClientConfiguration{
-			DisabledCodecs: &livekit.DisabledCodecs{
-				Publish: []*livekit.Codec{
+		Configuration: &voicekit.ClientConfiguration{
+			DisabledCodecs: &voicekit.DisabledCodecs{
+				Publish: []*voicekit.Codec{
 					{Mime: mime.MimeTypeVP9.String()},
 				},
 			},
@@ -51,9 +51,9 @@ var StaticConfigurations = []ConfigurationItem{
 	{
 		Match: &ScriptMatch{Expr: `(c.device_model == "xiaomi 2201117ti" && c.os == "android") ||
 		  ((c.browser == "firefox" || c.browser == "firefox mobile") && (c.os == "linux" || c.os == "android"))`},
-		Configuration: &livekit.ClientConfiguration{
-			DisabledCodecs: &livekit.DisabledCodecs{
-				Publish: []*livekit.Codec{
+		Configuration: &voicekit.ClientConfiguration{
+			DisabledCodecs: &voicekit.DisabledCodecs{
+				Publish: []*voicekit.Codec{
 					{Mime: mime.MimeTypeH264.String()},
 				},
 			},

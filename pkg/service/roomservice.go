@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import (
 
 	"github.com/twitchtv/twirp"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/protocol/egress"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/protocol/egress"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils"
 )
 
 type RoomService struct {
@@ -68,7 +68,7 @@ func NewRoomService(
 	return
 }
 
-func (s *RoomService) CreateRoom(ctx context.Context, req *livekit.CreateRoomRequest) (*livekit.Room, error) {
+func (s *RoomService) CreateRoom(ctx context.Context, req *voicekit.CreateRoomRequest) (*voicekit.Room, error) {
 	redactedReq := redactCreateRoomRequest(req)
 	RecordRequest(ctx, redactedReq)
 
@@ -83,7 +83,7 @@ func (s *RoomService) CreateRoom(ctx context.Context, req *livekit.CreateRoomReq
 		return nil, fmt.Errorf("%w: max length %d", ErrRoomNameExceedsLimits, s.limitConf.MaxRoomNameLength)
 	}
 
-	err := s.roomAllocator.SelectRoomNode(ctx, livekit.RoomName(req.Name), livekit.NodeID(req.NodeId))
+	err := s.roomAllocator.SelectRoomNode(ctx, voicekit.RoomName(req.Name), voicekit.NodeID(req.NodeId))
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (s *RoomService) CreateRoom(ctx context.Context, req *livekit.CreateRoomReq
 	return room, err
 }
 
-func (s *RoomService) ListRooms(ctx context.Context, req *livekit.ListRoomsRequest) (*livekit.ListRoomsResponse, error) {
+func (s *RoomService) ListRooms(ctx context.Context, req *voicekit.ListRoomsRequest) (*voicekit.ListRoomsResponse, error) {
 	RecordRequest(ctx, req)
 
 	AppendLogFields(ctx, "room", req.Names)
@@ -102,9 +102,9 @@ func (s *RoomService) ListRooms(ctx context.Context, req *livekit.ListRoomsReque
 		return nil, twirpAuthError(err)
 	}
 
-	var names []livekit.RoomName
+	var names []voicekit.RoomName
 	if len(req.Names) > 0 {
-		names = livekit.StringsAsIDs[livekit.RoomName](req.Names)
+		names = voicekit.StringsAsIDs[voicekit.RoomName](req.Names)
 	}
 	rooms, err := s.roomStore.ListRooms(ctx, names)
 	if err != nil {
@@ -112,14 +112,14 @@ func (s *RoomService) ListRooms(ctx context.Context, req *livekit.ListRoomsReque
 		return nil, err
 	}
 
-	res := &livekit.ListRoomsResponse{
+	res := &voicekit.ListRoomsResponse{
 		Rooms: rooms,
 	}
 	RecordResponse(ctx, res)
 	return res, nil
 }
 
-func (s *RoomService) DeleteRoom(ctx context.Context, req *livekit.DeleteRoomRequest) (*livekit.DeleteRoomResponse, error) {
+func (s *RoomService) DeleteRoom(ctx context.Context, req *voicekit.DeleteRoomRequest) (*voicekit.DeleteRoomResponse, error) {
 	RecordRequest(ctx, req)
 
 	AppendLogFields(ctx, "room", req.Room)
@@ -127,57 +127,57 @@ func (s *RoomService) DeleteRoom(ctx context.Context, req *livekit.DeleteRoomReq
 		return nil, twirpAuthError(err)
 	}
 
-	_, _, err := s.roomStore.LoadRoom(ctx, livekit.RoomName(req.Room), false)
+	_, _, err := s.roomStore.LoadRoom(ctx, voicekit.RoomName(req.Room), false)
 	if err != nil {
 		return nil, err
 	}
 
 	// ensure at least one node is available to handle the request
-	room, err := s.router.CreateRoom(ctx, &livekit.CreateRoomRequest{Name: req.Room})
+	room, err := s.router.CreateRoom(ctx, &voicekit.CreateRoomRequest{Name: req.Room})
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = s.roomClient.DeleteRoom(ctx, s.topicFormatter.RoomTopic(ctx, livekit.RoomName(req.Room)), req)
+	_, err = s.roomClient.DeleteRoom(ctx, s.topicFormatter.RoomTopic(ctx, voicekit.RoomName(req.Room)), req)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.roomStore.DeleteRoom(ctx, livekit.RoomName(req.Room))
-	res := &livekit.DeleteRoomResponse{}
+	err = s.roomStore.DeleteRoom(ctx, voicekit.RoomName(req.Room))
+	res := &voicekit.DeleteRoomResponse{}
 	RecordResponse(ctx, room)
 	return res, err
 }
 
-func (s *RoomService) ListParticipants(ctx context.Context, req *livekit.ListParticipantsRequest) (*livekit.ListParticipantsResponse, error) {
+func (s *RoomService) ListParticipants(ctx context.Context, req *voicekit.ListParticipantsRequest) (*voicekit.ListParticipantsResponse, error) {
 	RecordRequest(ctx, req)
 
 	AppendLogFields(ctx, "room", req.Room)
-	if err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room)); err != nil {
+	if err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 
-	participants, err := s.roomStore.ListParticipants(ctx, livekit.RoomName(req.Room))
+	participants, err := s.roomStore.ListParticipants(ctx, voicekit.RoomName(req.Room))
 	if err != nil {
 		return nil, err
 	}
 
-	res := &livekit.ListParticipantsResponse{
+	res := &voicekit.ListParticipantsResponse{
 		Participants: participants,
 	}
 	RecordResponse(ctx, res)
 	return res, nil
 }
 
-func (s *RoomService) GetParticipant(ctx context.Context, req *livekit.RoomParticipantIdentity) (*livekit.ParticipantInfo, error) {
+func (s *RoomService) GetParticipant(ctx context.Context, req *voicekit.RoomParticipantIdentity) (*voicekit.ParticipantInfo, error) {
 	RecordRequest(ctx, req)
 
 	AppendLogFields(ctx, "room", req.Room, "participant", req.Identity)
-	if err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room)); err != nil {
+	if err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 
-	participant, err := s.roomStore.LoadParticipant(ctx, livekit.RoomName(req.Room), livekit.ParticipantIdentity(req.Identity))
+	participant, err := s.roomStore.LoadParticipant(ctx, voicekit.RoomName(req.Room), voicekit.ParticipantIdentity(req.Identity))
 	if err != nil {
 		return nil, err
 	}
@@ -186,38 +186,38 @@ func (s *RoomService) GetParticipant(ctx context.Context, req *livekit.RoomParti
 	return participant, nil
 }
 
-func (s *RoomService) RemoveParticipant(ctx context.Context, req *livekit.RoomParticipantIdentity) (*livekit.RemoveParticipantResponse, error) {
+func (s *RoomService) RemoveParticipant(ctx context.Context, req *voicekit.RoomParticipantIdentity) (*voicekit.RemoveParticipantResponse, error) {
 	RecordRequest(ctx, req)
 
 	AppendLogFields(ctx, "room", req.Room, "participant", req.Identity)
 
-	if err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room)); err != nil {
+	if err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 
-	if _, err := s.roomStore.LoadParticipant(ctx, livekit.RoomName(req.Room), livekit.ParticipantIdentity(req.Identity)); err == ErrParticipantNotFound {
+	if _, err := s.roomStore.LoadParticipant(ctx, voicekit.RoomName(req.Room), voicekit.ParticipantIdentity(req.Identity)); err == ErrParticipantNotFound {
 		return nil, twirp.NotFoundError("participant not found")
 	}
 
-	res, err := s.participantClient.RemoveParticipant(ctx, s.topicFormatter.ParticipantTopic(ctx, livekit.RoomName(req.Room), livekit.ParticipantIdentity(req.Identity)), req)
+	res, err := s.participantClient.RemoveParticipant(ctx, s.topicFormatter.ParticipantTopic(ctx, voicekit.RoomName(req.Room), voicekit.ParticipantIdentity(req.Identity)), req)
 	RecordResponse(ctx, res)
 	return res, err
 }
 
-func (s *RoomService) MutePublishedTrack(ctx context.Context, req *livekit.MuteRoomTrackRequest) (*livekit.MuteRoomTrackResponse, error) {
+func (s *RoomService) MutePublishedTrack(ctx context.Context, req *voicekit.MuteRoomTrackRequest) (*voicekit.MuteRoomTrackResponse, error) {
 	RecordRequest(ctx, req)
 
 	AppendLogFields(ctx, "room", req.Room, "participant", req.Identity, "trackID", req.TrackSid, "muted", req.Muted)
-	if err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room)); err != nil {
+	if err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 
-	res, err := s.participantClient.MutePublishedTrack(ctx, s.topicFormatter.ParticipantTopic(ctx, livekit.RoomName(req.Room), livekit.ParticipantIdentity(req.Identity)), req)
+	res, err := s.participantClient.MutePublishedTrack(ctx, s.topicFormatter.ParticipantTopic(ctx, voicekit.RoomName(req.Room), voicekit.ParticipantIdentity(req.Identity)), req)
 	RecordResponse(ctx, res)
 	return res, err
 }
 
-func (s *RoomService) UpdateParticipant(ctx context.Context, req *livekit.UpdateParticipantRequest) (*livekit.ParticipantInfo, error) {
+func (s *RoomService) UpdateParticipant(ctx context.Context, req *voicekit.UpdateParticipantRequest) (*voicekit.ParticipantInfo, error) {
 	RecordRequest(ctx, redactUpdateParticipantRequest(req))
 
 	AppendLogFields(ctx, "room", req.Room, "participant", req.Identity)
@@ -234,12 +234,12 @@ func (s *RoomService) UpdateParticipant(ctx context.Context, req *livekit.Update
 		return nil, twirp.InvalidArgumentError(ErrAttributeExceedsLimits.Error(), strconv.Itoa(int(s.limitConf.MaxAttributesSize)))
 	}
 
-	if err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room)); err != nil {
+	if err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 
 	if os, ok := s.roomStore.(OSSServiceStore); ok {
-		found, err := os.HasParticipant(ctx, livekit.RoomName(req.Room), livekit.ParticipantIdentity(req.Identity))
+		found, err := os.HasParticipant(ctx, voicekit.RoomName(req.Room), voicekit.ParticipantIdentity(req.Identity))
 		if err != nil {
 			return nil, err
 		} else if !found {
@@ -247,12 +247,12 @@ func (s *RoomService) UpdateParticipant(ctx context.Context, req *livekit.Update
 		}
 	}
 
-	res, err := s.participantClient.UpdateParticipant(ctx, s.topicFormatter.ParticipantTopic(ctx, livekit.RoomName(req.Room), livekit.ParticipantIdentity(req.Identity)), req)
+	res, err := s.participantClient.UpdateParticipant(ctx, s.topicFormatter.ParticipantTopic(ctx, voicekit.RoomName(req.Room), voicekit.ParticipantIdentity(req.Identity)), req)
 	RecordResponse(ctx, res)
 	return res, err
 }
 
-func (s *RoomService) UpdateSubscriptions(ctx context.Context, req *livekit.UpdateSubscriptionsRequest) (*livekit.UpdateSubscriptionsResponse, error) {
+func (s *RoomService) UpdateSubscriptions(ctx context.Context, req *voicekit.UpdateSubscriptionsRequest) (*voicekit.UpdateSubscriptionsResponse, error) {
 	RecordRequest(ctx, req)
 
 	trackSIDs := append(make([]string, 0), req.TrackSids...)
@@ -261,19 +261,19 @@ func (s *RoomService) UpdateSubscriptions(ctx context.Context, req *livekit.Upda
 	}
 	AppendLogFields(ctx, "room", req.Room, "participant", req.Identity, "trackID", trackSIDs)
 
-	if err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room)); err != nil {
+	if err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 
-	res, err := s.participantClient.UpdateSubscriptions(ctx, s.topicFormatter.ParticipantTopic(ctx, livekit.RoomName(req.Room), livekit.ParticipantIdentity(req.Identity)), req)
+	res, err := s.participantClient.UpdateSubscriptions(ctx, s.topicFormatter.ParticipantTopic(ctx, voicekit.RoomName(req.Room), voicekit.ParticipantIdentity(req.Identity)), req)
 	RecordResponse(ctx, res)
 	return res, err
 }
 
-func (s *RoomService) SendData(ctx context.Context, req *livekit.SendDataRequest) (*livekit.SendDataResponse, error) {
+func (s *RoomService) SendData(ctx context.Context, req *voicekit.SendDataRequest) (*voicekit.SendDataResponse, error) {
 	RecordRequest(ctx, redactSendDataRequest(req))
 
-	roomName := livekit.RoomName(req.Room)
+	roomName := voicekit.RoomName(req.Room)
 	AppendLogFields(ctx, "room", roomName, "size", len(req.Data))
 	if err := EnsureAdminPermission(ctx, roomName); err != nil {
 		return nil, twirpAuthError(err)
@@ -284,12 +284,12 @@ func (s *RoomService) SendData(ctx context.Context, req *livekit.SendDataRequest
 		return nil, twirp.NewError(twirp.InvalidArgument, fmt.Sprintf("nonce should be 16-bytes or not present, got: %d bytes", len(req.Nonce)))
 	}
 
-	res, err := s.roomClient.SendData(ctx, s.topicFormatter.RoomTopic(ctx, livekit.RoomName(req.Room)), req)
+	res, err := s.roomClient.SendData(ctx, s.topicFormatter.RoomTopic(ctx, voicekit.RoomName(req.Room)), req)
 	RecordResponse(ctx, res)
 	return res, err
 }
 
-func (s *RoomService) UpdateRoomMetadata(ctx context.Context, req *livekit.UpdateRoomMetadataRequest) (*livekit.Room, error) {
+func (s *RoomService) UpdateRoomMetadata(ctx context.Context, req *voicekit.UpdateRoomMetadataRequest) (*voicekit.Room, error) {
 	RecordRequest(ctx, redactUpdateRoomMetadataRequest(req))
 
 	AppendLogFields(ctx, "room", req.Room, "size", len(req.Metadata))
@@ -298,16 +298,16 @@ func (s *RoomService) UpdateRoomMetadata(ctx context.Context, req *livekit.Updat
 		return nil, twirp.InvalidArgumentError(ErrMetadataExceedsLimits.Error(), strconv.Itoa(maxMetadataSize))
 	}
 
-	if err := EnsureAdminPermission(ctx, livekit.RoomName(req.Room)); err != nil {
+	if err := EnsureAdminPermission(ctx, voicekit.RoomName(req.Room)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 
-	_, _, err := s.roomStore.LoadRoom(ctx, livekit.RoomName(req.Room), false)
+	_, _, err := s.roomStore.LoadRoom(ctx, voicekit.RoomName(req.Room), false)
 	if err != nil {
 		return nil, err
 	}
 
-	room, err := s.roomClient.UpdateRoomMetadata(ctx, s.topicFormatter.RoomTopic(ctx, livekit.RoomName(req.Room)), req)
+	room, err := s.roomClient.UpdateRoomMetadata(ctx, s.topicFormatter.RoomTopic(ctx, voicekit.RoomName(req.Room)), req)
 	if err != nil {
 		return nil, err
 	}
@@ -316,12 +316,12 @@ func (s *RoomService) UpdateRoomMetadata(ctx context.Context, req *livekit.Updat
 	return room, nil
 }
 
-func (s *RoomService) ForwardParticipant(ctx context.Context, req *livekit.ForwardParticipantRequest) (*livekit.ForwardParticipantResponse, error) {
+func (s *RoomService) ForwardParticipant(ctx context.Context, req *voicekit.ForwardParticipantRequest) (*voicekit.ForwardParticipantResponse, error) {
 	RecordRequest(ctx, req)
 
-	roomName := livekit.RoomName(req.Room)
+	roomName := voicekit.RoomName(req.Room)
 	AppendLogFields(ctx, "room", roomName, "participant", req.Identity)
-	if err := EnsureDestRoomPermission(ctx, roomName, livekit.RoomName(req.DestinationRoom)); err != nil {
+	if err := EnsureDestRoomPermission(ctx, roomName, voicekit.RoomName(req.DestinationRoom)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 
@@ -329,17 +329,17 @@ func (s *RoomService) ForwardParticipant(ctx context.Context, req *livekit.Forwa
 		return nil, twirp.InvalidArgumentError(ErrDestinationSameAsSourceRoom.Error(), "")
 	}
 
-	res, err := s.participantClient.ForwardParticipant(ctx, s.topicFormatter.ParticipantTopic(ctx, livekit.RoomName(req.Room), livekit.ParticipantIdentity(req.Identity)), req)
+	res, err := s.participantClient.ForwardParticipant(ctx, s.topicFormatter.ParticipantTopic(ctx, voicekit.RoomName(req.Room), voicekit.ParticipantIdentity(req.Identity)), req)
 	RecordResponse(ctx, res)
 	return res, err
 }
 
-func (s *RoomService) MoveParticipant(ctx context.Context, req *livekit.MoveParticipantRequest) (*livekit.MoveParticipantResponse, error) {
+func (s *RoomService) MoveParticipant(ctx context.Context, req *voicekit.MoveParticipantRequest) (*voicekit.MoveParticipantResponse, error) {
 	RecordRequest(ctx, req)
 
-	roomName := livekit.RoomName(req.Room)
+	roomName := voicekit.RoomName(req.Room)
 	AppendLogFields(ctx, "room", roomName, "participant", req.Identity)
-	if err := EnsureDestRoomPermission(ctx, roomName, livekit.RoomName(req.DestinationRoom)); err != nil {
+	if err := EnsureDestRoomPermission(ctx, roomName, voicekit.RoomName(req.DestinationRoom)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 
@@ -347,12 +347,12 @@ func (s *RoomService) MoveParticipant(ctx context.Context, req *livekit.MovePart
 		return nil, twirp.InvalidArgumentError(ErrDestinationSameAsSourceRoom.Error(), "")
 	}
 
-	res, err := s.participantClient.MoveParticipant(ctx, s.topicFormatter.ParticipantTopic(ctx, livekit.RoomName(req.Room), livekit.ParticipantIdentity(req.Identity)), req)
+	res, err := s.participantClient.MoveParticipant(ctx, s.topicFormatter.ParticipantTopic(ctx, voicekit.RoomName(req.Room), voicekit.ParticipantIdentity(req.Identity)), req)
 	RecordResponse(ctx, res)
 	return res, err
 }
 
-func redactCreateRoomRequest(req *livekit.CreateRoomRequest) *livekit.CreateRoomRequest {
+func redactCreateRoomRequest(req *voicekit.CreateRoomRequest) *voicekit.CreateRoomRequest {
 	if req.Egress == nil && req.Metadata == "" {
 		// nothing to redact
 		return req
@@ -380,7 +380,7 @@ func redactCreateRoomRequest(req *livekit.CreateRoomRequest) *livekit.CreateRoom
 	return clone
 }
 
-func redactUpdateParticipantRequest(req *livekit.UpdateParticipantRequest) *livekit.UpdateParticipantRequest {
+func redactUpdateParticipantRequest(req *voicekit.UpdateParticipantRequest) *voicekit.UpdateParticipantRequest {
 	if req.Metadata == "" && len(req.Attributes) == 0 {
 		return req
 	}
@@ -410,7 +410,7 @@ func redactUpdateParticipantRequest(req *livekit.UpdateParticipantRequest) *live
 	return clone
 }
 
-func redactSendDataRequest(req *livekit.SendDataRequest) *livekit.SendDataRequest {
+func redactSendDataRequest(req *voicekit.SendDataRequest) *voicekit.SendDataRequest {
 	if len(req.Data) == 0 {
 		return req
 	}
@@ -423,7 +423,7 @@ func redactSendDataRequest(req *livekit.SendDataRequest) *livekit.SendDataReques
 	return clone
 }
 
-func redactUpdateRoomMetadataRequest(req *livekit.UpdateRoomMetadataRequest) *livekit.UpdateRoomMetadataRequest {
+func redactUpdateRoomMetadataRequest(req *voicekit.UpdateRoomMetadataRequest) *voicekit.UpdateRoomMetadataRequest {
 	if req.Metadata == "" {
 		return req
 	}

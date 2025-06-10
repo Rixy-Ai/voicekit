@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type agentClient struct {
@@ -39,7 +39,7 @@ type agentClient struct {
 	participantAvailability atomic.Int32
 	participantJobs         atomic.Int32
 
-	requestedJobs chan *livekit.Job
+	requestedJobs chan *voicekit.Job
 
 	done chan struct{}
 }
@@ -61,42 +61,42 @@ func newAgentClient(token string, port uint32) (*agentClient, error) {
 
 	return &agentClient{
 		conn:          conn,
-		requestedJobs: make(chan *livekit.Job, 100),
+		requestedJobs: make(chan *voicekit.Job, 100),
 		done:          make(chan struct{}),
 	}, nil
 }
 
-func (c *agentClient) Run(jobType livekit.JobType, namespace string) (err error) {
+func (c *agentClient) Run(jobType voicekit.JobType, namespace string) (err error) {
 	go c.read()
 
 	switch jobType {
-	case livekit.JobType_JT_ROOM:
-		err = c.write(&livekit.WorkerMessage{
-			Message: &livekit.WorkerMessage_Register{
-				Register: &livekit.RegisterWorkerRequest{
-					Type:      livekit.JobType_JT_ROOM,
+	case voicekit.JobType_JT_ROOM:
+		err = c.write(&voicekit.WorkerMessage{
+			Message: &voicekit.WorkerMessage_Register{
+				Register: &voicekit.RegisterWorkerRequest{
+					Type:      voicekit.JobType_JT_ROOM,
 					Version:   "version",
 					Namespace: &namespace,
 				},
 			},
 		})
 
-	case livekit.JobType_JT_PUBLISHER:
-		err = c.write(&livekit.WorkerMessage{
-			Message: &livekit.WorkerMessage_Register{
-				Register: &livekit.RegisterWorkerRequest{
-					Type:      livekit.JobType_JT_PUBLISHER,
+	case voicekit.JobType_JT_PUBLISHER:
+		err = c.write(&voicekit.WorkerMessage{
+			Message: &voicekit.WorkerMessage_Register{
+				Register: &voicekit.RegisterWorkerRequest{
+					Type:      voicekit.JobType_JT_PUBLISHER,
 					Version:   "version",
 					Namespace: &namespace,
 				},
 			},
 		})
 
-	case livekit.JobType_JT_PARTICIPANT:
-		err = c.write(&livekit.WorkerMessage{
-			Message: &livekit.WorkerMessage_Register{
-				Register: &livekit.RegisterWorkerRequest{
-					Type:      livekit.JobType_JT_PARTICIPANT,
+	case voicekit.JobType_JT_PARTICIPANT:
+		err = c.write(&voicekit.WorkerMessage{
+			Message: &voicekit.WorkerMessage_Register{
+				Register: &voicekit.RegisterWorkerRequest{
+					Type:      voicekit.JobType_JT_PARTICIPANT,
 					Version:   "version",
 					Namespace: &namespace,
 				},
@@ -118,49 +118,49 @@ func (c *agentClient) read() {
 				return
 			}
 
-			msg := &livekit.ServerMessage{}
+			msg := &voicekit.ServerMessage{}
 			if err = proto.Unmarshal(b, msg); err != nil {
 				return
 			}
 
 			switch m := msg.Message.(type) {
-			case *livekit.ServerMessage_Assignment:
+			case *voicekit.ServerMessage_Assignment:
 				go c.handleAssignment(m.Assignment)
-			case *livekit.ServerMessage_Availability:
+			case *voicekit.ServerMessage_Availability:
 				go c.handleAvailability(m.Availability)
-			case *livekit.ServerMessage_Register:
+			case *voicekit.ServerMessage_Register:
 				go c.handleRegister(m.Register)
 			}
 		}
 	}
 }
 
-func (c *agentClient) handleAssignment(req *livekit.JobAssignment) {
+func (c *agentClient) handleAssignment(req *voicekit.JobAssignment) {
 	switch req.Job.Type {
-	case livekit.JobType_JT_ROOM:
+	case voicekit.JobType_JT_ROOM:
 		c.roomJobs.Inc()
-	case livekit.JobType_JT_PUBLISHER:
+	case voicekit.JobType_JT_PUBLISHER:
 		c.publisherJobs.Inc()
-	case livekit.JobType_JT_PARTICIPANT:
+	case voicekit.JobType_JT_PARTICIPANT:
 		c.participantJobs.Inc()
 	}
 }
 
-func (c *agentClient) handleAvailability(req *livekit.AvailabilityRequest) {
+func (c *agentClient) handleAvailability(req *voicekit.AvailabilityRequest) {
 	switch req.Job.Type {
-	case livekit.JobType_JT_ROOM:
+	case voicekit.JobType_JT_ROOM:
 		c.roomAvailability.Inc()
-	case livekit.JobType_JT_PUBLISHER:
+	case voicekit.JobType_JT_PUBLISHER:
 		c.publisherAvailability.Inc()
-	case livekit.JobType_JT_PARTICIPANT:
+	case voicekit.JobType_JT_PARTICIPANT:
 		c.participantAvailability.Inc()
 	}
 
 	c.requestedJobs <- req.Job
 
-	c.write(&livekit.WorkerMessage{
-		Message: &livekit.WorkerMessage_Availability{
-			Availability: &livekit.AvailabilityResponse{
+	c.write(&voicekit.WorkerMessage{
+		Message: &voicekit.WorkerMessage_Availability{
+			Availability: &voicekit.AvailabilityResponse{
 				JobId:     req.Job.Id,
 				Available: true,
 			},
@@ -168,11 +168,11 @@ func (c *agentClient) handleAvailability(req *livekit.AvailabilityRequest) {
 	})
 }
 
-func (c *agentClient) handleRegister(req *livekit.RegisterWorkerResponse) {
+func (c *agentClient) handleRegister(req *voicekit.RegisterWorkerResponse) {
 	c.registered.Inc()
 }
 
-func (c *agentClient) write(msg *livekit.WorkerMessage) error {
+func (c *agentClient) write(msg *voicekit.WorkerMessage) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

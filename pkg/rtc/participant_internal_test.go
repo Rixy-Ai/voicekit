@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,44 +25,44 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/telemetry/telemetryfakes"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/observability/roomobs"
-	lksdp "github.com/livekit/protocol/sdp"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/telemetryfakes"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/observability/roomobs"
+	lksdp "github.com/voicekit/protocol/sdp"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/livekit-server/pkg/routing/routingfakes"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/rtc/types/typesfakes"
-	"github.com/livekit/livekit-server/pkg/testutils"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/voicekit-server/pkg/routing/routingfakes"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types/typesfakes"
+	"github.com/voicekit/voicekit-server/pkg/testutils"
 )
 
 func TestIsReady(t *testing.T) {
 	tests := []struct {
-		state livekit.ParticipantInfo_State
+		state voicekit.ParticipantInfo_State
 		ready bool
 	}{
 		{
-			state: livekit.ParticipantInfo_JOINING,
+			state: voicekit.ParticipantInfo_JOINING,
 			ready: false,
 		},
 		{
-			state: livekit.ParticipantInfo_JOINED,
+			state: voicekit.ParticipantInfo_JOINED,
 			ready: true,
 		},
 		{
-			state: livekit.ParticipantInfo_ACTIVE,
+			state: voicekit.ParticipantInfo_ACTIVE,
 			ready: true,
 		},
 		{
-			state: livekit.ParticipantInfo_DISCONNECTED,
+			state: voicekit.ParticipantInfo_DISCONNECTED,
 			ready: false,
 		},
 	}
@@ -99,20 +99,20 @@ func TestTrackPublishing(t *testing.T) {
 	t.Run("sends back trackPublished event", func(t *testing.T) {
 		p := newParticipantForTest("test")
 		sink := p.params.Sink.(*routingfakes.FakeMessageSink)
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:    "cid",
 			Name:   "webcam",
-			Type:   livekit.TrackType_VIDEO,
+			Type:   voicekit.TrackType_VIDEO,
 			Width:  1024,
 			Height: 768,
 		})
 		require.Equal(t, 1, sink.WriteMessageCallCount())
-		res := sink.WriteMessageArgsForCall(0).(*livekit.SignalResponse)
-		require.IsType(t, &livekit.SignalResponse_TrackPublished{}, res.Message)
-		published := res.Message.(*livekit.SignalResponse_TrackPublished).TrackPublished
+		res := sink.WriteMessageArgsForCall(0).(*voicekit.SignalResponse)
+		require.IsType(t, &voicekit.SignalResponse_TrackPublished{}, res.Message)
+		published := res.Message.(*voicekit.SignalResponse_TrackPublished).TrackPublished
 		require.Equal(t, "cid", published.Cid)
 		require.Equal(t, "webcam", published.Track.Name)
-		require.Equal(t, livekit.TrackType_VIDEO, published.Track.Type)
+		require.Equal(t, voicekit.TrackType_VIDEO, published.Track.Type)
 		require.Equal(t, uint32(1024), published.Track.Width)
 		require.Equal(t, uint32(768), published.Track.Height)
 	})
@@ -120,15 +120,15 @@ func TestTrackPublishing(t *testing.T) {
 	t.Run("should not allow adding of duplicate tracks", func(t *testing.T) {
 		p := newParticipantForTest("test")
 		sink := p.params.Sink.(*routingfakes.FakeMessageSink)
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:  "cid",
 			Name: "webcam",
-			Type: livekit.TrackType_VIDEO,
+			Type: voicekit.TrackType_VIDEO,
 		})
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:  "cid",
 			Name: "duplicate",
-			Type: livekit.TrackType_AUDIO,
+			Type: voicekit.TrackType_AUDIO,
 		})
 
 		require.Equal(t, 1, sink.WriteMessageCallCount())
@@ -140,23 +140,23 @@ func TestTrackPublishing(t *testing.T) {
 
 		track := &typesfakes.FakeLocalMediaTrack{}
 		track.SignalCidReturns("cid")
-		track.ToProtoReturns(&livekit.TrackInfo{})
+		track.ToProtoReturns(&voicekit.TrackInfo{})
 		// directly add to publishedTracks without lock - for testing purpose only
 		p.UpTrackManager.publishedTracks["cid"] = track
 
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:  "cid",
 			Name: "webcam",
-			Type: livekit.TrackType_VIDEO,
+			Type: voicekit.TrackType_VIDEO,
 		})
 		require.Equal(t, 0, sink.WriteMessageCallCount())
 		require.Equal(t, 1, len(p.pendingTracks["cid"].trackInfos))
 
 		// add again - it should be added to the queue
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:  "cid",
 			Name: "webcam",
-			Type: livekit.TrackType_VIDEO,
+			Type: voicekit.TrackType_VIDEO,
 		})
 		require.Equal(t, 0, sink.WriteMessageCallCount())
 		require.Equal(t, 2, len(p.pendingTracks["cid"].trackInfos))
@@ -170,24 +170,24 @@ func TestTrackPublishing(t *testing.T) {
 		sink := p.params.Sink.(*routingfakes.FakeMessageSink)
 
 		track := &typesfakes.FakeLocalMediaTrack{}
-		track.ToProtoReturns(&livekit.TrackInfo{})
+		track.ToProtoReturns(&voicekit.TrackInfo{})
 		track.HasSdpCidCalls(func(s string) bool { return s == "cid" })
 		// directly add to publishedTracks without lock - for testing purpose only
 		p.UpTrackManager.publishedTracks["cid"] = track
 
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:  "cid",
 			Name: "webcam",
-			Type: livekit.TrackType_VIDEO,
+			Type: voicekit.TrackType_VIDEO,
 		})
 		require.Equal(t, 0, sink.WriteMessageCallCount())
 		require.Equal(t, 1, len(p.pendingTracks["cid"].trackInfos))
 
 		// add again - it should be added to the queue
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:  "cid",
 			Name: "webcam",
-			Type: livekit.TrackType_VIDEO,
+			Type: voicekit.TrackType_VIDEO,
 		})
 		require.Equal(t, 0, sink.WriteMessageCallCount())
 		require.Equal(t, 2, len(p.pendingTracks["cid"].trackInfos))
@@ -198,26 +198,26 @@ func TestTrackPublishing(t *testing.T) {
 
 	t.Run("should not allow adding disallowed sources", func(t *testing.T) {
 		p := newParticipantForTest("test")
-		p.SetPermission(&livekit.ParticipantPermission{
+		p.SetPermission(&voicekit.ParticipantPermission{
 			CanPublish: true,
-			CanPublishSources: []livekit.TrackSource{
-				livekit.TrackSource_CAMERA,
+			CanPublishSources: []voicekit.TrackSource{
+				voicekit.TrackSource_CAMERA,
 			},
 		})
 		sink := p.params.Sink.(*routingfakes.FakeMessageSink)
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:    "cid",
 			Name:   "webcam",
-			Source: livekit.TrackSource_CAMERA,
-			Type:   livekit.TrackType_VIDEO,
+			Source: voicekit.TrackSource_CAMERA,
+			Type:   voicekit.TrackType_VIDEO,
 		})
 		require.Equal(t, 1, sink.WriteMessageCallCount())
 
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:    "cid2",
 			Name:   "rejected source",
-			Type:   livekit.TrackType_AUDIO,
-			Source: livekit.TrackSource_MICROPHONE,
+			Type:   voicekit.TrackType_AUDIO,
+			Source: voicekit.TrackSource_MICROPHONE,
 		})
 		require.Equal(t, 1, sink.WriteMessageCallCount())
 	})
@@ -225,7 +225,7 @@ func TestTrackPublishing(t *testing.T) {
 
 func TestOutOfOrderUpdates(t *testing.T) {
 	p := newParticipantForTest("test")
-	p.updateState(livekit.ParticipantInfo_JOINED)
+	p.updateState(voicekit.ParticipantInfo_JOINED)
 	p.SetMetadata("initial metadata")
 	sink := p.getResponseSink().(*routingfakes.FakeMessageSink)
 	pi1 := p.ToProto()
@@ -235,12 +235,12 @@ func TestOutOfOrderUpdates(t *testing.T) {
 	require.Greater(t, pi2.Version, pi1.Version)
 
 	// send the second update first
-	require.NoError(t, p.SendParticipantUpdate([]*livekit.ParticipantInfo{pi2}))
-	require.NoError(t, p.SendParticipantUpdate([]*livekit.ParticipantInfo{pi1}))
+	require.NoError(t, p.SendParticipantUpdate([]*voicekit.ParticipantInfo{pi2}))
+	require.NoError(t, p.SendParticipantUpdate([]*voicekit.ParticipantInfo{pi1}))
 
 	// only sent once, and it's the earlier message
 	require.Equal(t, 1, sink.WriteMessageCallCount())
-	sent := sink.WriteMessageArgsForCall(0).(*livekit.SignalResponse)
+	sent := sink.WriteMessageArgsForCall(0).(*voicekit.SignalResponse)
 	require.Equal(t, "second update", sent.GetUpdate().Participants[0].Metadata)
 }
 
@@ -248,7 +248,7 @@ func TestOutOfOrderUpdates(t *testing.T) {
 func TestDisconnectTiming(t *testing.T) {
 	t.Run("Negotiate doesn't panic after channel closed", func(t *testing.T) {
 		p := newParticipantForTest("test")
-		msg := routing.NewMessageChannel(livekit.ConnectionID("test"), routing.DefaultMessageChannelSize)
+		msg := routing.NewMessageChannel(voicekit.ConnectionID("test"), routing.DefaultMessageChannelSize)
 		p.params.Sink = msg
 		go func() {
 			for msg := range msg.ReadChan() {
@@ -274,22 +274,22 @@ func TestCorrectJoinedAt(t *testing.T) {
 func TestMuteSetting(t *testing.T) {
 	t.Run("can set mute when track is pending", func(t *testing.T) {
 		p := newParticipantForTest("test")
-		ti := &livekit.TrackInfo{Sid: "testTrack"}
-		p.pendingTracks["cid"] = &pendingTrackInfo{trackInfos: []*livekit.TrackInfo{ti}}
+		ti := &voicekit.TrackInfo{Sid: "testTrack"}
+		p.pendingTracks["cid"] = &pendingTrackInfo{trackInfos: []*voicekit.TrackInfo{ti}}
 
-		p.SetTrackMuted(livekit.TrackID(ti.Sid), true, false)
+		p.SetTrackMuted(voicekit.TrackID(ti.Sid), true, false)
 		require.True(t, p.pendingTracks["cid"].trackInfos[0].Muted)
 	})
 
 	t.Run("can publish a muted track", func(t *testing.T) {
 		p := newParticipantForTest("test")
-		p.AddTrack(&livekit.AddTrackRequest{
+		p.AddTrack(&voicekit.AddTrackRequest{
 			Cid:   "cid",
-			Type:  livekit.TrackType_AUDIO,
+			Type:  voicekit.TrackType_AUDIO,
 			Muted: true,
 		})
 
-		_, ti, _, _ := p.getPendingTrack("cid", livekit.TrackType_AUDIO, false)
+		_, ti, _, _ := p.getPendingTrack("cid", voicekit.TrackType_AUDIO, false)
 		require.NotNil(t, ti)
 		require.True(t, ti.Muted)
 	})
@@ -298,7 +298,7 @@ func TestMuteSetting(t *testing.T) {
 func TestSubscriberAsPrimary(t *testing.T) {
 	t.Run("protocol 4 uses subs as primary", func(t *testing.T) {
 		p := newParticipantForTestWithOpts("test", &participantOpts{
-			permissions: &livekit.ParticipantPermission{
+			permissions: &voicekit.ParticipantPermission{
 				CanSubscribe: true,
 				CanPublish:   true,
 			},
@@ -309,7 +309,7 @@ func TestSubscriberAsPrimary(t *testing.T) {
 	t.Run("protocol 2 uses pub as primary", func(t *testing.T) {
 		p := newParticipantForTestWithOpts("test", &participantOpts{
 			protocolVersion: 2,
-			permissions: &livekit.ParticipantPermission{
+			permissions: &voicekit.ParticipantPermission{
 				CanSubscribe: true,
 				CanPublish:   true,
 			},
@@ -319,7 +319,7 @@ func TestSubscriberAsPrimary(t *testing.T) {
 
 	t.Run("publisher only uses pub as primary", func(t *testing.T) {
 		p := newParticipantForTestWithOpts("test", &participantOpts{
-			permissions: &livekit.ParticipantPermission{
+			permissions: &voicekit.ParticipantPermission{
 				CanSubscribe: false,
 				CanPublish:   true,
 			},
@@ -327,7 +327,7 @@ func TestSubscriberAsPrimary(t *testing.T) {
 		require.False(t, p.SubscriberAsPrimary())
 
 		// ensure that it doesn't change after perms
-		p.SetPermission(&livekit.ParticipantPermission{
+		p.SetPermission(&voicekit.ParticipantPermission{
 			CanSubscribe: true,
 			CanPublish:   true,
 		})
@@ -338,9 +338,9 @@ func TestSubscriberAsPrimary(t *testing.T) {
 func TestDisableCodecs(t *testing.T) {
 	participant := newParticipantForTestWithOpts("123", &participantOpts{
 		publisher: false,
-		clientConf: &livekit.ClientConfiguration{
-			DisabledCodecs: &livekit.DisabledCodecs{
-				Codecs: []*livekit.Codec{
+		clientConf: &voicekit.ClientConfiguration{
+			DisabledCodecs: &voicekit.DisabledCodecs{
+				Codecs: []*voicekit.Codec{
 					{Mime: "video/h264"},
 				},
 			},
@@ -371,7 +371,7 @@ func TestDisableCodecs(t *testing.T) {
 	var answer webrtc.SessionDescription
 	var answerReceived atomic.Bool
 	sink.WriteMessageCalls(func(msg proto.Message) error {
-		if res, ok := msg.(*livekit.SignalResponse); ok {
+		if res, ok := msg.(*voicekit.SignalResponse); ok {
 			if res.GetAnswer() != nil {
 				answer = FromProtoSessionDescription(res.GetAnswer())
 				answerReceived.Store(true)
@@ -403,9 +403,9 @@ func TestDisableCodecs(t *testing.T) {
 func TestDisablePublishCodec(t *testing.T) {
 	participant := newParticipantForTestWithOpts("123", &participantOpts{
 		publisher: true,
-		clientConf: &livekit.ClientConfiguration{
-			DisabledCodecs: &livekit.DisabledCodecs{
-				Publish: []*livekit.Codec{
+		clientConf: &voicekit.ClientConfiguration{
+			DisabledCodecs: &voicekit.DisabledCodecs{
+				Publish: []*voicekit.Codec{
 					{Mime: "video/h264"},
 				},
 			},
@@ -420,7 +420,7 @@ func TestDisablePublishCodec(t *testing.T) {
 	participant.SetResponseSink(sink)
 	var publishReceived atomic.Bool
 	sink.WriteMessageCalls(func(msg proto.Message) error {
-		if res, ok := msg.(*livekit.SignalResponse); ok {
+		if res, ok := msg.(*voicekit.SignalResponse); ok {
 			if published := res.GetTrackPublished(); published != nil {
 				publishReceived.Store(true)
 				require.NotEmpty(t, published.Track.Codecs)
@@ -431,10 +431,10 @@ func TestDisablePublishCodec(t *testing.T) {
 	})
 
 	// simulcast codec response should pick an alternative
-	participant.AddTrack(&livekit.AddTrackRequest{
+	participant.AddTrack(&voicekit.AddTrackRequest{
 		Cid:  "cid1",
-		Type: livekit.TrackType_VIDEO,
-		SimulcastCodecs: []*livekit.SimulcastCodec{{
+		Type: voicekit.TrackType_VIDEO,
+		SimulcastCodecs: []*voicekit.SimulcastCodec{{
 			Codec: "h264",
 			Cid:   "cid1",
 		}},
@@ -445,7 +445,7 @@ func TestDisablePublishCodec(t *testing.T) {
 	// publishing a supported codec should not change
 	publishReceived.Store(false)
 	sink.WriteMessageCalls(func(msg proto.Message) error {
-		if res, ok := msg.(*livekit.SignalResponse); ok {
+		if res, ok := msg.(*voicekit.SignalResponse); ok {
 			if published := res.GetTrackPublished(); published != nil {
 				publishReceived.Store(true)
 				require.NotEmpty(t, published.Track.Codecs)
@@ -454,10 +454,10 @@ func TestDisablePublishCodec(t *testing.T) {
 		}
 		return nil
 	})
-	participant.AddTrack(&livekit.AddTrackRequest{
+	participant.AddTrack(&voicekit.AddTrackRequest{
 		Cid:  "cid2",
-		Type: livekit.TrackType_VIDEO,
-		SimulcastCodecs: []*livekit.SimulcastCodec{{
+		Type: voicekit.TrackType_VIDEO,
+		SimulcastCodecs: []*voicekit.SimulcastCodec{{
 			Codec: "vp8",
 			Cid:   "cid2",
 		}},
@@ -478,13 +478,13 @@ func TestPreferVideoCodecForPublisher(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		// publish h264 track without client preferred codec
 		trackCid := fmt.Sprintf("preferh264video%d", i)
-		participant.AddTrack(&livekit.AddTrackRequest{
-			Type:   livekit.TrackType_VIDEO,
+		participant.AddTrack(&voicekit.AddTrackRequest{
+			Type:   voicekit.TrackType_VIDEO,
 			Name:   "video",
 			Width:  1280,
 			Height: 720,
-			Source: livekit.TrackSource_CAMERA,
-			SimulcastCodecs: []*livekit.SimulcastCodec{
+			Source: voicekit.TrackSource_CAMERA,
+			SimulcastCodecs: []*voicekit.SimulcastCodec{
 				{
 					Codec: "h264",
 					Cid:   trackCid,
@@ -516,7 +516,7 @@ func TestPreferVideoCodecForPublisher(t *testing.T) {
 		var answer webrtc.SessionDescription
 		var answerReceived atomic.Bool
 		sink.WriteMessageCalls(func(msg proto.Message) error {
-			if res, ok := msg.(*livekit.SignalResponse); ok {
+			if res, ok := msg.(*voicekit.SignalResponse); ok {
 				if res.GetAnswer() != nil {
 					answer = FromProtoSessionDescription(res.GetAnswer())
 					pc.SetRemoteDescription(answer)
@@ -572,8 +572,8 @@ func TestPreferAudioCodecForRed(t *testing.T) {
 	for i, disableRed := range []bool{false, true} {
 		t.Run(fmt.Sprintf("disableRed=%v", disableRed), func(t *testing.T) {
 			trackCid := fmt.Sprintf("audiotrack%d", i)
-			participant.AddTrack(&livekit.AddTrackRequest{
-				Type:       livekit.TrackType_AUDIO,
+			participant.AddTrack(&voicekit.AddTrackRequest{
+				Type:       voicekit.TrackType_AUDIO,
 				DisableRed: disableRed,
 				Cid:        trackCid,
 			})
@@ -600,7 +600,7 @@ func TestPreferAudioCodecForRed(t *testing.T) {
 			var answer webrtc.SessionDescription
 			var answerReceived atomic.Bool
 			sink.WriteMessageCalls(func(msg proto.Message) error {
-				if res, ok := msg.(*livekit.SignalResponse); ok {
+				if res, ok := msg.(*voicekit.SignalResponse); ok {
 					if res.GetAnswer() != nil {
 						answer = FromProtoSessionDescription(res.GetAnswer())
 						pc.SetRemoteDescription(answer)
@@ -650,14 +650,14 @@ func TestPreferAudioCodecForRed(t *testing.T) {
 }
 
 type participantOpts struct {
-	permissions     *livekit.ParticipantPermission
+	permissions     *voicekit.ParticipantPermission
 	protocolVersion types.ProtocolVersion
 	publisher       bool
-	clientConf      *livekit.ClientConfiguration
-	clientInfo      *livekit.ClientInfo
+	clientConf      *voicekit.ClientConfiguration
+	clientInfo      *voicekit.ClientInfo
 }
 
-func newParticipantForTestWithOpts(identity livekit.ParticipantIdentity, opts *participantOpts) *ParticipantImpl {
+func newParticipantForTestWithOpts(identity voicekit.ParticipantIdentity, opts *participantOpts) *ParticipantImpl {
 	if opts == nil {
 		opts = &participantOpts{}
 	}
@@ -682,14 +682,14 @@ func newParticipantForTestWithOpts(identity livekit.ParticipantIdentity, opts *p
 		grants.Video.SetCanSubscribe(opts.permissions.CanSubscribe)
 	}
 
-	enabledCodecs := make([]*livekit.Codec, 0, len(conf.Room.EnabledCodecs))
+	enabledCodecs := make([]*voicekit.Codec, 0, len(conf.Room.EnabledCodecs))
 	for _, c := range conf.Room.EnabledCodecs {
-		enabledCodecs = append(enabledCodecs, &livekit.Codec{
+		enabledCodecs = append(enabledCodecs, &voicekit.Codec{
 			Mime:     c.Mime,
 			FmtpLine: c.FmtpLine,
 		})
 	}
-	sid := livekit.ParticipantID(guid.New(utils.ParticipantPrefix))
+	sid := voicekit.ParticipantID(guid.New(utils.ParticipantPrefix))
 	p, _ := NewParticipant(ParticipantParams{
 		SID:                    sid,
 		Identity:               identity,
@@ -710,11 +710,11 @@ func newParticipantForTestWithOpts(identity livekit.ParticipantIdentity, opts *p
 		ParticipantHelper:      &typesfakes.FakeLocalParticipantHelper{},
 	})
 	p.isPublisher.Store(opts.publisher)
-	p.updateState(livekit.ParticipantInfo_ACTIVE)
+	p.updateState(voicekit.ParticipantInfo_ACTIVE)
 
 	return p
 }
 
-func newParticipantForTest(identity livekit.ParticipantIdentity) *ParticipantImpl {
+func newParticipantForTest(identity voicekit.ParticipantIdentity) *ParticipantImpl {
 	return newParticipantForTestWithOpts(identity, nil)
 }

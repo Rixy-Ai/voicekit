@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,15 +23,15 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/livekit-server/pkg/utils"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/psrpc"
-	"github.com/livekit/psrpc/pkg/middleware"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/psrpc"
+	"github.com/voicekit/psrpc/pkg/middleware"
 )
 
 var ErrSignalWriteFailed = errors.New("signal write failed")
@@ -40,17 +40,17 @@ var ErrSignalMessageDropped = errors.New("signal message dropped")
 //counterfeiter:generate . SignalClient
 type SignalClient interface {
 	ActiveCount() int
-	StartParticipantSignal(ctx context.Context, roomName livekit.RoomName, pi ParticipantInit, nodeID livekit.NodeID) (connectionID livekit.ConnectionID, reqSink MessageSink, resSource MessageSource, err error)
+	StartParticipantSignal(ctx context.Context, roomName voicekit.RoomName, pi ParticipantInit, nodeID voicekit.NodeID) (connectionID voicekit.ConnectionID, reqSink MessageSink, resSource MessageSource, err error)
 }
 
 type signalClient struct {
-	nodeID livekit.NodeID
+	nodeID voicekit.NodeID
 	config config.SignalRelayConfig
 	client rpc.TypedSignalClient
 	active atomic.Int32
 }
 
-func NewSignalClient(nodeID livekit.NodeID, bus psrpc.MessageBus, config config.SignalRelayConfig) (SignalClient, error) {
+func NewSignalClient(nodeID voicekit.NodeID, bus psrpc.MessageBus, config config.SignalRelayConfig) (SignalClient, error) {
 	c, err := rpc.NewTypedSignalClient(
 		nodeID,
 		bus,
@@ -74,16 +74,16 @@ func (r *signalClient) ActiveCount() int {
 
 func (r *signalClient) StartParticipantSignal(
 	ctx context.Context,
-	roomName livekit.RoomName,
+	roomName voicekit.RoomName,
 	pi ParticipantInit,
-	nodeID livekit.NodeID,
+	nodeID voicekit.NodeID,
 ) (
-	connectionID livekit.ConnectionID,
+	connectionID voicekit.ConnectionID,
 	reqSink MessageSink,
 	resSource MessageSource,
 	err error,
 ) {
-	connectionID = livekit.ConnectionID(guid.New("CO_"))
+	connectionID = voicekit.ConnectionID(guid.New("CO_"))
 	ss, err := pi.ToStartSession(roomName, connectionID)
 	if err != nil {
 		return
@@ -147,11 +147,11 @@ type signalRequestMessageWriter struct{}
 func (e signalRequestMessageWriter) Write(seq uint64, close bool, msgs []proto.Message) *rpc.RelaySignalRequest {
 	r := &rpc.RelaySignalRequest{
 		Seq:      seq,
-		Requests: make([]*livekit.SignalRequest, 0, len(msgs)),
+		Requests: make([]*voicekit.SignalRequest, 0, len(msgs)),
 		Close:    close,
 	}
 	for _, m := range msgs {
-		r.Requests = append(r.Requests, m.(*livekit.SignalRequest))
+		r.Requests = append(r.Requests, m.(*voicekit.SignalRequest))
 	}
 	return r
 }
@@ -246,7 +246,7 @@ type SignalSinkParams[SendType, RecvType RelaySignalMessage] struct {
 	Writer         SignalMessageWriter[SendType]
 	CloseOnFailure bool
 	BlockOnClose   bool
-	ConnectionID   livekit.ConnectionID
+	ConnectionID   voicekit.ConnectionID
 }
 
 func NewSignalMessageSink[SendType, RecvType RelaySignalMessage](params SignalSinkParams[SendType, RecvType]) MessageSink {
@@ -366,6 +366,6 @@ func (s *signalMessageSink[SendType, RecvType]) WriteMessage(msg proto.Message) 
 	return nil
 }
 
-func (s *signalMessageSink[SendType, RecvType]) ConnectionID() livekit.ConnectionID {
+func (s *signalMessageSink[SendType, RecvType]) ConnectionID() voicekit.ConnectionID {
 	return s.SignalSinkParams.ConnectionID
 }

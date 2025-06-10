@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 )
 
 const (
@@ -43,17 +43,17 @@ type ParticipantSupervisor struct {
 
 	lock                 sync.RWMutex
 	isPublisherConnected bool
-	publications         map[livekit.TrackID]*trackMonitor
+	publications         map[voicekit.TrackID]*trackMonitor
 
 	isStopped atomic.Bool
 
-	onPublicationError func(trackID livekit.TrackID)
+	onPublicationError func(trackID voicekit.TrackID)
 }
 
 func NewParticipantSupervisor(params ParticipantSupervisorParams) *ParticipantSupervisor {
 	p := &ParticipantSupervisor{
 		params:       params,
-		publications: make(map[livekit.TrackID]*trackMonitor),
+		publications: make(map[voicekit.TrackID]*trackMonitor),
 	}
 
 	go p.checkState()
@@ -65,14 +65,14 @@ func (p *ParticipantSupervisor) Stop() {
 	p.isStopped.Store(true)
 }
 
-func (p *ParticipantSupervisor) OnPublicationError(f func(trackID livekit.TrackID)) {
+func (p *ParticipantSupervisor) OnPublicationError(f func(trackID voicekit.TrackID)) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
 	p.onPublicationError = f
 }
 
-func (p *ParticipantSupervisor) getOnPublicationError() func(trackID livekit.TrackID) {
+func (p *ParticipantSupervisor) getOnPublicationError() func(trackID voicekit.TrackID) {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 
@@ -89,7 +89,7 @@ func (p *ParticipantSupervisor) SetPublisherPeerConnectionConnected(isConnected 
 	p.lock.Unlock()
 }
 
-func (p *ParticipantSupervisor) AddPublication(trackID livekit.TrackID) {
+func (p *ParticipantSupervisor) AddPublication(trackID voicekit.TrackID) {
 	p.lock.Lock()
 	pm, ok := p.publications[trackID]
 	if !ok {
@@ -108,7 +108,7 @@ func (p *ParticipantSupervisor) AddPublication(trackID livekit.TrackID) {
 	p.lock.Unlock()
 }
 
-func (p *ParticipantSupervisor) SetPublicationMute(trackID livekit.TrackID, isMuted bool) {
+func (p *ParticipantSupervisor) SetPublicationMute(trackID voicekit.TrackID, isMuted bool) {
 	p.lock.Lock()
 	pm, ok := p.publications[trackID]
 	if ok {
@@ -117,7 +117,7 @@ func (p *ParticipantSupervisor) SetPublicationMute(trackID livekit.TrackID, isMu
 	p.lock.Unlock()
 }
 
-func (p *ParticipantSupervisor) SetPublishedTrack(trackID livekit.TrackID, pubTrack types.LocalMediaTrack) {
+func (p *ParticipantSupervisor) SetPublishedTrack(trackID voicekit.TrackID, pubTrack types.LocalMediaTrack) {
 	p.lock.RLock()
 	pm, ok := p.publications[trackID]
 	if ok {
@@ -126,7 +126,7 @@ func (p *ParticipantSupervisor) SetPublishedTrack(trackID livekit.TrackID, pubTr
 	p.lock.RUnlock()
 }
 
-func (p *ParticipantSupervisor) ClearPublishedTrack(trackID livekit.TrackID, pubTrack types.LocalMediaTrack) {
+func (p *ParticipantSupervisor) ClearPublishedTrack(trackID voicekit.TrackID, pubTrack types.LocalMediaTrack) {
 	p.lock.RLock()
 	pm, ok := p.publications[trackID]
 	if ok {
@@ -147,8 +147,8 @@ func (p *ParticipantSupervisor) checkState() {
 }
 
 func (p *ParticipantSupervisor) checkPublications() {
-	var erroredPublications []livekit.TrackID
-	var removablePublications []livekit.TrackID
+	var erroredPublications []voicekit.TrackID
+	var removablePublications []voicekit.TrackID
 	p.lock.RLock()
 	for trackID, pm := range p.publications {
 		if err := pm.opMon.Check(); err != nil {

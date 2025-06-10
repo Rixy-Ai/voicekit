@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package codecmunger
 import (
 	"github.com/elliotchance/orderedmap/v2"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
 )
 
 const (
@@ -67,7 +67,7 @@ func NewVP8FromNull(cm CodecMunger, logger logger.Logger) *VP8 {
 }
 
 func (v *VP8) GetState() interface{} {
-	return &livekit.VP8MungerState{
+	return &voicekit.VP8MungerState{
 		ExtLastPictureId: v.extLastPictureId,
 		PictureIdUsed:    v.pictureIdUsed,
 		LastTl0PicIdx:    uint32(v.lastTl0PicIdx),
@@ -80,7 +80,7 @@ func (v *VP8) GetState() interface{} {
 
 func (v *VP8) SeedState(seed interface{}) {
 	switch cm := seed.(type) {
-	case *livekit.RTPForwarderState_Vp8Munger:
+	case *voicekit.RTPForwarderState_Vp8Munger:
 		state := cm.Vp8Munger
 		v.extLastPictureId = state.ExtLastPictureId
 		v.pictureIdUsed = state.PictureIdUsed

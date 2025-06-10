@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
-	"github.com/livekit/livekit-server/pkg/sfu/rtpstats"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/sfu/rtpstats"
 )
 
 const (
@@ -64,7 +64,7 @@ type ConnectionStats struct {
 	isStarted atomic.Bool
 	isVideo   atomic.Bool
 
-	onStatsUpdate func(cs *ConnectionStats, stat *livekit.AnalyticsStat)
+	onStatsUpdate func(cs *ConnectionStats, stat *voicekit.AnalyticsStat)
 
 	lock               sync.RWMutex
 	packetsSent        uint64
@@ -113,7 +113,7 @@ func (cs *ConnectionStats) UpdateCodec(codecMimeType mime.MimeType, isFECEnabled
 	cs.scorer.UpdatePacketLossWeight(getPacketLossWeight(codecMimeType, isFECEnabled))
 }
 
-func (cs *ConnectionStats) OnStatsUpdate(fn func(cs *ConnectionStats, stat *livekit.AnalyticsStat)) {
+func (cs *ConnectionStats) OnStatsUpdate(fn func(cs *ConnectionStats, stat *voicekit.AnalyticsStat)) {
 	cs.onStatsUpdate = fn
 }
 
@@ -197,7 +197,7 @@ func (cs *ConnectionStats) AddLayerTransition(distance float64) {
 	cs.scorer.AddLayerTransition(distance)
 }
 
-func (cs *ConnectionStats) GetScoreAndQuality() (float32, livekit.ConnectionQuality) {
+func (cs *ConnectionStats) GetScoreAndQuality() (float32, voicekit.ConnectionQuality) {
 	return cs.scorer.GetMOSAndQuality()
 }
 
@@ -328,7 +328,7 @@ func (cs *ConnectionStats) getStat() {
 	score, streams, isSender := cs.updateScoreAt(time.Time{})
 
 	if cs.onStatsUpdate != nil && len(streams) != 0 {
-		analyticsStreams := make([]*livekit.AnalyticsStream, 0, len(streams))
+		analyticsStreams := make([]*voicekit.AnalyticsStream, 0, len(streams))
 		for ssrc, stream := range streams {
 			as := toAnalyticsStream(ssrc, stream.RTPStats, stream.RTPStatsRemoteView, isSender)
 			if as == nil {
@@ -353,7 +353,7 @@ func (cs *ConnectionStats) getStat() {
 		}
 
 		if len(analyticsStreams) != 0 {
-			cs.onStatsUpdate(cs, &livekit.AnalyticsStat{
+			cs.onStatsUpdate(cs, &voicekit.AnalyticsStat{
 				Score:   score,
 				Streams: analyticsStreams,
 				Mime:    cs.codecMimeType.Load().(mime.MimeType).String(),
@@ -454,7 +454,7 @@ func toAnalyticsStream(
 	deltaStats *rtpstats.RTPDeltaInfo,
 	deltaStatsRemoteView *rtpstats.RTPDeltaInfo,
 	isSender bool,
-) *livekit.AnalyticsStream {
+) *voicekit.AnalyticsStream {
 	if deltaStats == nil {
 		return nil
 	}
@@ -479,7 +479,7 @@ func toAnalyticsStream(
 		maxJitter = 0
 	}
 
-	return &livekit.AnalyticsStream{
+	return &voicekit.AnalyticsStream{
 		StartTime:         timestamppb.New(deltaStats.StartTime),
 		EndTime:           timestamppb.New(deltaStats.EndTime),
 		Ssrc:              ssrc,
@@ -500,12 +500,12 @@ func toAnalyticsStream(
 	}
 }
 
-func toAnalyticsVideoLayer(layer int32, layerStats *rtpstats.RTPDeltaInfo) *livekit.AnalyticsVideoLayer {
+func toAnalyticsVideoLayer(layer int32, layerStats *rtpstats.RTPDeltaInfo) *voicekit.AnalyticsVideoLayer {
 	if layerStats == nil {
 		return nil
 	}
 
-	avl := &livekit.AnalyticsVideoLayer{
+	avl := &voicekit.AnalyticsVideoLayer{
 		Layer:   layer,
 		Packets: layerStats.Packets + layerStats.PacketsDuplicate + layerStats.PacketsPadding,
 		Bytes:   layerStats.Bytes + layerStats.BytesDuplicate + layerStats.BytesPadding,

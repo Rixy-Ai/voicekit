@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,25 +35,25 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/livekit/mediatransportutil/pkg/rtcconfig"
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/mediatransportutil/pkg/rtcconfig"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 
-	"github.com/livekit/livekit-server/pkg/rtc"
-	"github.com/livekit/livekit-server/pkg/rtc/transport/transportfakes"
-	"github.com/livekit/livekit-server/pkg/rtc/types"
-	"github.com/livekit/livekit-server/pkg/sfu/buffer"
-	"github.com/livekit/livekit-server/pkg/sfu/mime"
+	"github.com/voicekit/voicekit-server/pkg/rtc"
+	"github.com/voicekit/voicekit-server/pkg/rtc/transport/transportfakes"
+	"github.com/voicekit/voicekit-server/pkg/rtc/types"
+	"github.com/voicekit/voicekit-server/pkg/sfu/buffer"
+	"github.com/voicekit/voicekit-server/pkg/sfu/mime"
 )
 
-type SignalRequestHandler func(msg *livekit.SignalRequest) error
-type SignalRequestInterceptor func(msg *livekit.SignalRequest, next SignalRequestHandler) error
-type SignalResponseHandler func(msg *livekit.SignalResponse) error
-type SignalResponseInterceptor func(msg *livekit.SignalResponse, next SignalResponseHandler) error
+type SignalRequestHandler func(msg *voicekit.SignalRequest) error
+type SignalRequestInterceptor func(msg *voicekit.SignalRequest, next SignalRequestHandler) error
+type SignalResponseHandler func(msg *voicekit.SignalResponse) error
+type SignalResponseInterceptor func(msg *voicekit.SignalResponse, next SignalResponseHandler) error
 
 type RTCClient struct {
-	id         livekit.ParticipantID
+	id         voicekit.ParticipantID
 	conn       *websocket.Conn
 	publisher  *rtc.PCTransport
 	subscriber *rtc.PCTransport
@@ -65,9 +65,9 @@ type RTCClient struct {
 	ctx                context.Context
 	cancel             context.CancelFunc
 	me                 *webrtc.MediaEngine // optional, populated only when receiving tracks
-	subscribedTracks   map[livekit.ParticipantID][]*webrtc.TrackRemote
-	localParticipant   *livekit.ParticipantInfo
-	remoteParticipants map[livekit.ParticipantID]*livekit.ParticipantInfo
+	subscribedTracks   map[voicekit.ParticipantID][]*webrtc.TrackRemote
+	localParticipant   *voicekit.ParticipantInfo
+	remoteParticipants map[voicekit.ParticipantID]*voicekit.ParticipantInfo
 
 	signalRequestInterceptor  SignalRequestInterceptor
 	signalResponseInterceptor SignalResponseInterceptor
@@ -81,7 +81,7 @@ type RTCClient struct {
 	lastAnswer                 atomic.Pointer[webrtc.SessionDescription]
 
 	// tracks waiting to be acked, cid => trackInfo
-	pendingPublishedTracks map[string]*livekit.TrackInfo
+	pendingPublishedTracks map[string]*voicekit.TrackInfo
 
 	pendingTrackWriters     []*TrackWriter
 	OnConnected             func()
@@ -89,11 +89,11 @@ type RTCClient struct {
 	OnDataUnlabeledReceived func(data []byte)
 	refreshToken            string
 
-	// map of livekit.ParticipantID and last packet
-	lastPackets   map[livekit.ParticipantID]*rtp.Packet
-	bytesReceived map[livekit.ParticipantID]uint64
+	// map of voicekit.ParticipantID and last packet
+	lastPackets   map[voicekit.ParticipantID]*rtp.Packet
+	bytesReceived map[voicekit.ParticipantID]uint64
 
-	subscriptionResponse atomic.Pointer[livekit.SubscriptionResponse]
+	subscriptionResponse atomic.Pointer[voicekit.SubscriptionResponse]
 }
 
 var (
@@ -116,7 +116,7 @@ type Options struct {
 	AutoSubscribe             bool
 	Publish                   string
 	Attributes                map[string]string
-	ClientInfo                *livekit.ClientInfo
+	ClientInfo                *voicekit.ClientInfo
 	DisabledCodecs            []webrtc.RTPCodecCapability
 	TokenCustomizer           func(token *auth.AccessToken, grants *auth.VideoGrant)
 	SignalRequestInterceptor  SignalRequestInterceptor
@@ -152,7 +152,7 @@ func NewWebSocketConn(host, token string, opts *Options) (*websocket.Conn, error
 			if opts.ClientInfo.Os != "" {
 				connectUrl += encodeQueryParam("os", opts.ClientInfo.Os)
 			}
-			if opts.ClientInfo.Sdk != livekit.ClientInfo_UNKNOWN {
+			if opts.ClientInfo.Sdk != voicekit.ClientInfo_UNKNOWN {
 				sdk = opts.ClientInfo.Sdk.String()
 			}
 		}
@@ -173,12 +173,12 @@ func NewRTCClient(conn *websocket.Conn, opts *Options) (*RTCClient, error) {
 		conn:                   conn,
 		localTracks:            make(map[string]webrtc.TrackLocal),
 		trackSenders:           make(map[string]*webrtc.RTPSender),
-		pendingPublishedTracks: make(map[string]*livekit.TrackInfo),
-		subscribedTracks:       make(map[livekit.ParticipantID][]*webrtc.TrackRemote),
-		remoteParticipants:     make(map[livekit.ParticipantID]*livekit.ParticipantInfo),
+		pendingPublishedTracks: make(map[string]*voicekit.TrackInfo),
+		subscribedTracks:       make(map[voicekit.ParticipantID][]*webrtc.TrackRemote),
+		remoteParticipants:     make(map[voicekit.ParticipantID]*voicekit.ParticipantInfo),
 		me:                     &webrtc.MediaEngine{},
-		lastPackets:            make(map[livekit.ParticipantID]*rtp.Packet),
-		bytesReceived:          make(map[livekit.ParticipantID]uint64),
+		lastPackets:            make(map[voicekit.ParticipantID]*rtp.Packet),
+		bytesReceived:          make(map[voicekit.ParticipantID]uint64),
 	}
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 
@@ -191,8 +191,8 @@ func NewRTCClient(conn *websocket.Conn, opts *Options) (*RTCClient, error) {
 	conf.SettingEngine.SetAnsweringDTLSRole(webrtc.DTLSRoleClient)
 	ff := buffer.NewFactoryOfBufferFactory(500, 200)
 	conf.SetBufferFactory(ff.CreateBufferFactory())
-	var codecs []*livekit.Codec
-	for _, codec := range []*livekit.Codec{
+	var codecs []*voicekit.Codec
+	for _, codec := range []*voicekit.Codec{
 		{
 			Mime: "audio/opus",
 		},
@@ -249,8 +249,8 @@ func NewRTCClient(conn *websocket.Conn, opts *Options) (*RTCClient, error) {
 		return nil, err
 	}
 
-	publisherHandler.OnICECandidateCalls(func(ic *webrtc.ICECandidate, t livekit.SignalTarget) error {
-		return c.SendIceCandidate(ic, livekit.SignalTarget_PUBLISHER)
+	publisherHandler.OnICECandidateCalls(func(ic *webrtc.ICECandidate, t voicekit.SignalTarget) error {
+		return c.SendIceCandidate(ic, voicekit.SignalTarget_PUBLISHER)
 	})
 	publisherHandler.OnOfferCalls(c.onOffer)
 	publisherHandler.OnFullyEstablishedCalls(func() {
@@ -286,11 +286,11 @@ func NewRTCClient(conn *websocket.Conn, opts *Options) (*RTCClient, error) {
 		return nil, err
 	}
 
-	subscriberHandler.OnICECandidateCalls(func(ic *webrtc.ICECandidate, t livekit.SignalTarget) error {
+	subscriberHandler.OnICECandidateCalls(func(ic *webrtc.ICECandidate, t voicekit.SignalTarget) error {
 		if ic == nil {
 			return nil
 		}
-		return c.SendIceCandidate(ic, livekit.SignalTarget_SUBSCRIBER)
+		return c.SendIceCandidate(ic, voicekit.SignalTarget_SUBSCRIBER)
 	})
 	subscriberHandler.OnTrackCalls(func(track *webrtc.TrackRemote, rtpReceiver *webrtc.RTPReceiver) {
 		go c.processTrack(track)
@@ -324,8 +324,8 @@ func NewRTCClient(conn *websocket.Conn, opts *Options) (*RTCClient, error) {
 			"participant", c.localParticipant.Identity,
 			// "sdp", answer,
 		)
-		return c.SendRequest(&livekit.SignalRequest{
-			Message: &livekit.SignalRequest_Answer{
+		return c.SendRequest(&voicekit.SignalRequest{
+			Message: &voicekit.SignalRequest_Answer{
 				Answer: rtc.ToProtoSessionDescription(answer),
 			},
 		})
@@ -339,7 +339,7 @@ func NewRTCClient(conn *websocket.Conn, opts *Options) (*RTCClient, error) {
 	return c, nil
 }
 
-func (c *RTCClient) ID() livekit.ParticipantID {
+func (c *RTCClient) ID() voicekit.ParticipantID {
 	return c.id
 }
 
@@ -372,14 +372,14 @@ func (c *RTCClient) Run() error {
 	}
 }
 
-func (c *RTCClient) handleSignalResponse(res *livekit.SignalResponse) error {
+func (c *RTCClient) handleSignalResponse(res *voicekit.SignalResponse) error {
 	switch msg := res.Message.(type) {
-	case *livekit.SignalResponse_Join:
+	case *voicekit.SignalResponse_Join:
 		c.localParticipant = msg.Join.Participant
-		c.id = livekit.ParticipantID(msg.Join.Participant.Sid)
+		c.id = voicekit.ParticipantID(msg.Join.Participant.Sid)
 		c.lock.Lock()
 		for _, p := range msg.Join.OtherParticipants {
-			c.remoteParticipants[livekit.ParticipantID(p.Sid)] = p
+			c.remoteParticipants[voicekit.ParticipantID(p.Sid)] = p
 		}
 		c.lock.Unlock()
 		// if publish only, negotiate
@@ -391,51 +391,51 @@ func (c *RTCClient) handleSignalResponse(res *livekit.SignalResponse) error {
 		}
 
 		logger.Infow("join accepted, awaiting offer", "participant", msg.Join.Participant.Identity)
-	case *livekit.SignalResponse_Answer:
+	case *voicekit.SignalResponse_Answer:
 		// logger.Debugw("received server answer",
 		//	"participant", c.localParticipant.Identity,
 		//	"answer", msg.Answer.Sdp)
 		c.handleAnswer(rtc.FromProtoSessionDescription(msg.Answer))
-	case *livekit.SignalResponse_Offer:
+	case *voicekit.SignalResponse_Offer:
 		logger.Infow("received server offer",
 			"participant", c.localParticipant.Identity,
 		)
 		desc := rtc.FromProtoSessionDescription(msg.Offer)
 		c.handleOffer(desc)
-	case *livekit.SignalResponse_Trickle:
+	case *voicekit.SignalResponse_Trickle:
 		candidateInit, err := rtc.FromProtoTrickle(msg.Trickle)
 		if err != nil {
 			return err
 		}
-		if msg.Trickle.Target == livekit.SignalTarget_PUBLISHER {
+		if msg.Trickle.Target == voicekit.SignalTarget_PUBLISHER {
 			c.publisher.AddICECandidate(candidateInit)
 		} else {
 			c.subscriber.AddICECandidate(candidateInit)
 		}
-	case *livekit.SignalResponse_Update:
+	case *voicekit.SignalResponse_Update:
 		c.lock.Lock()
 		for _, p := range msg.Update.Participants {
-			if livekit.ParticipantID(p.Sid) != c.id {
-				if p.State != livekit.ParticipantInfo_DISCONNECTED {
-					c.remoteParticipants[livekit.ParticipantID(p.Sid)] = p
+			if voicekit.ParticipantID(p.Sid) != c.id {
+				if p.State != voicekit.ParticipantInfo_DISCONNECTED {
+					c.remoteParticipants[voicekit.ParticipantID(p.Sid)] = p
 				} else {
-					delete(c.remoteParticipants, livekit.ParticipantID(p.Sid))
+					delete(c.remoteParticipants, voicekit.ParticipantID(p.Sid))
 				}
 			}
 		}
 		c.lock.Unlock()
 
-	case *livekit.SignalResponse_TrackPublished:
+	case *voicekit.SignalResponse_TrackPublished:
 		logger.Debugw("track published", "trackID", msg.TrackPublished.Track.Name, "participant", c.localParticipant.Sid,
 			"cid", msg.TrackPublished.Cid, "trackSid", msg.TrackPublished.Track.Sid)
 		c.lock.Lock()
 		c.pendingPublishedTracks[msg.TrackPublished.Cid] = msg.TrackPublished.Track
 		c.lock.Unlock()
-	case *livekit.SignalResponse_RefreshToken:
+	case *voicekit.SignalResponse_RefreshToken:
 		c.lock.Lock()
 		c.refreshToken = msg.RefreshToken
 		c.lock.Unlock()
-	case *livekit.SignalResponse_TrackUnpublished:
+	case *voicekit.SignalResponse_TrackUnpublished:
 		sid := msg.TrackUnpublished.TrackSid
 		c.lock.Lock()
 		sender := c.trackSenders[sid]
@@ -448,9 +448,9 @@ func (c *RTCClient) handleSignalResponse(res *livekit.SignalResponse) error {
 		delete(c.trackSenders, sid)
 		delete(c.localTracks, sid)
 		c.lock.Unlock()
-	case *livekit.SignalResponse_Pong:
+	case *voicekit.SignalResponse_Pong:
 		c.pongReceivedAt.Store(msg.Pong)
-	case *livekit.SignalResponse_SubscriptionResponse:
+	case *voicekit.SignalResponse_SubscriptionResponse:
 		c.subscriptionResponse.Store(msg.SubscriptionResponse)
 	}
 	return nil
@@ -481,7 +481,7 @@ func (c *RTCClient) WaitUntilConnected() error {
 	}
 }
 
-func (c *RTCClient) ReadResponse() (*livekit.SignalResponse, error) {
+func (c *RTCClient) ReadResponse() (*voicekit.SignalResponse, error) {
 	for {
 		// handle special messages and pass on the rest
 		messageType, payload, err := c.conn.ReadMessage()
@@ -493,7 +493,7 @@ func (c *RTCClient) ReadResponse() (*livekit.SignalResponse, error) {
 			return nil, c.ctx.Err()
 		}
 
-		msg := &livekit.SignalResponse{}
+		msg := &voicekit.SignalResponse{}
 		switch messageType {
 		case websocket.PingMessage:
 			_ = c.conn.WriteMessage(websocket.PongMessage, nil)
@@ -508,24 +508,24 @@ func (c *RTCClient) ReadResponse() (*livekit.SignalResponse, error) {
 	}
 }
 
-func (c *RTCClient) SubscribedTracks() map[livekit.ParticipantID][]*webrtc.TrackRemote {
+func (c *RTCClient) SubscribedTracks() map[voicekit.ParticipantID][]*webrtc.TrackRemote {
 	// create a copy of this
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	tracks := make(map[livekit.ParticipantID][]*webrtc.TrackRemote, len(c.subscribedTracks))
+	tracks := make(map[voicekit.ParticipantID][]*webrtc.TrackRemote, len(c.subscribedTracks))
 	for key, val := range c.subscribedTracks {
 		tracks[key] = val
 	}
 	return tracks
 }
 
-func (c *RTCClient) RemoteParticipants() []*livekit.ParticipantInfo {
+func (c *RTCClient) RemoteParticipants() []*voicekit.ParticipantInfo {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	return funk.Values(c.remoteParticipants).([]*livekit.ParticipantInfo)
+	return funk.Values(c.remoteParticipants).([]*voicekit.ParticipantInfo)
 }
 
-func (c *RTCClient) GetRemoteParticipant(sid livekit.ParticipantID) *livekit.ParticipantInfo {
+func (c *RTCClient) GetRemoteParticipant(sid voicekit.ParticipantID) *voicekit.ParticipantInfo {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	return c.remoteParticipants[sid]
@@ -533,11 +533,11 @@ func (c *RTCClient) GetRemoteParticipant(sid livekit.ParticipantID) *livekit.Par
 
 func (c *RTCClient) Stop() {
 	logger.Infow("stopping client", "ID", c.ID())
-	_ = c.SendRequest(&livekit.SignalRequest{
-		Message: &livekit.SignalRequest_Leave{
-			Leave: &livekit.LeaveRequest{
-				Reason: livekit.DisconnectReason_CLIENT_INITIATED,
-				Action: livekit.LeaveRequest_DISCONNECT,
+	_ = c.SendRequest(&voicekit.SignalRequest{
+		Message: &voicekit.SignalRequest_Leave{
+			Leave: &voicekit.LeaveRequest{
+				Reason: voicekit.DisconnectReason_CLIENT_INITIATED,
+				Action: voicekit.LeaveRequest_DISCONNECT,
 			},
 		},
 	})
@@ -559,19 +559,19 @@ func (c *RTCClient) PongReceivedAt() int64 {
 	return c.pongReceivedAt.Load()
 }
 
-func (c *RTCClient) GetSubscriptionResponseAndClear() *livekit.SubscriptionResponse {
+func (c *RTCClient) GetSubscriptionResponseAndClear() *voicekit.SubscriptionResponse {
 	return c.subscriptionResponse.Swap(nil)
 }
 
 func (c *RTCClient) SendPing() error {
-	return c.SendRequest(&livekit.SignalRequest{
-		Message: &livekit.SignalRequest_Ping{
+	return c.SendRequest(&voicekit.SignalRequest{
+		Message: &voicekit.SignalRequest_Ping{
 			Ping: time.Now().UnixNano(),
 		},
 	})
 }
 
-func (c *RTCClient) SendRequest(msg *livekit.SignalRequest) error {
+func (c *RTCClient) SendRequest(msg *voicekit.SignalRequest) error {
 	if c.signalRequestInterceptor != nil {
 		return c.signalRequestInterceptor(msg, c.sendRequest)
 	} else {
@@ -579,7 +579,7 @@ func (c *RTCClient) SendRequest(msg *livekit.SignalRequest) error {
 	}
 }
 
-func (c *RTCClient) sendRequest(msg *livekit.SignalRequest) error {
+func (c *RTCClient) sendRequest(msg *voicekit.SignalRequest) error {
 	payload, err := proto.Marshal(msg)
 	if err != nil {
 		return err
@@ -590,23 +590,23 @@ func (c *RTCClient) sendRequest(msg *livekit.SignalRequest) error {
 	return c.conn.WriteMessage(websocket.BinaryMessage, payload)
 }
 
-func (c *RTCClient) SendIceCandidate(ic *webrtc.ICECandidate, target livekit.SignalTarget) error {
+func (c *RTCClient) SendIceCandidate(ic *webrtc.ICECandidate, target voicekit.SignalTarget) error {
 	prevIC := c.icQueue[target].Swap(ic)
 	if prevIC == nil {
 		return nil
 	}
 
-	return c.SendRequest(&livekit.SignalRequest{
-		Message: &livekit.SignalRequest_Trickle{
+	return c.SendRequest(&voicekit.SignalRequest{
+		Message: &voicekit.SignalRequest_Trickle{
 			Trickle: rtc.ToProtoTrickle(prevIC.ToJSON(), target, ic == nil),
 		},
 	})
 }
 
 func (c *RTCClient) SetAttributes(attrs map[string]string) error {
-	return c.SendRequest(&livekit.SignalRequest{
-		Message: &livekit.SignalRequest_UpdateMetadata{
-			UpdateMetadata: &livekit.UpdateParticipantMetadata{
+	return c.SendRequest(&voicekit.SignalRequest{
+		Message: &voicekit.SignalRequest_UpdateMetadata{
+			UpdateMetadata: &voicekit.UpdateParticipantMetadata{
 				Attributes: attrs,
 			},
 		},
@@ -638,9 +638,9 @@ func (c *RTCClient) AddTrack(track *webrtc.TrackLocalStaticSample, path string, 
 	for _, opt := range opts {
 		opt(&params)
 	}
-	trackType := livekit.TrackType_AUDIO
+	trackType := voicekit.TrackType_AUDIO
 	if track.Kind() == webrtc.RTPCodecTypeVideo {
-		trackType = livekit.TrackType_VIDEO
+		trackType = voicekit.TrackType_VIDEO
 	}
 
 	if err = c.SendAddTrack(track.ID(), track.StreamID(), trackType); err != nil {
@@ -649,7 +649,7 @@ func (c *RTCClient) AddTrack(track *webrtc.TrackLocalStaticSample, path string, 
 
 	// wait till track published message is received
 	timeout := time.After(5 * time.Second)
-	var ti *livekit.TrackInfo
+	var ti *voicekit.TrackInfo
 	for {
 		select {
 		case <-timeout:
@@ -731,10 +731,10 @@ func (c *RTCClient) AddFileTrack(path string, id string, label string) (writer *
 }
 
 // send AddTrack command to server to initiate server-side negotiation
-func (c *RTCClient) SendAddTrack(cid string, name string, trackType livekit.TrackType) error {
-	return c.SendRequest(&livekit.SignalRequest{
-		Message: &livekit.SignalRequest_AddTrack{
-			AddTrack: &livekit.AddTrackRequest{
+func (c *RTCClient) SendAddTrack(cid string, name string, trackType voicekit.TrackType) error {
+	return c.SendRequest(&voicekit.SignalRequest{
+		Message: &voicekit.SignalRequest_AddTrack{
+			AddTrack: &voicekit.AddTrackRequest{
 				Cid:  cid,
 				Name: name,
 				Type: trackType,
@@ -743,14 +743,14 @@ func (c *RTCClient) SendAddTrack(cid string, name string, trackType livekit.Trac
 	})
 }
 
-func (c *RTCClient) PublishData(data []byte, kind livekit.DataPacket_Kind) error {
+func (c *RTCClient) PublishData(data []byte, kind voicekit.DataPacket_Kind) error {
 	if err := c.ensurePublisherConnected(); err != nil {
 		return err
 	}
 
-	dpData, err := proto.Marshal(&livekit.DataPacket{
-		Value: &livekit.DataPacket_User{
-			User: &livekit.UserPacket{Payload: data},
+	dpData, err := proto.Marshal(&voicekit.DataPacket{
+		Value: &voicekit.DataPacket_User{
+			User: &voicekit.UserPacket{Payload: data},
 		},
 	})
 	if err != nil {
@@ -806,14 +806,14 @@ func (c *RTCClient) ensurePublisherConnected() error {
 	}
 }
 
-func (c *RTCClient) handleDataMessage(kind livekit.DataPacket_Kind, data []byte) {
-	dp := &livekit.DataPacket{}
+func (c *RTCClient) handleDataMessage(kind voicekit.DataPacket_Kind, data []byte) {
+	dp := &voicekit.DataPacket{}
 	err := proto.Unmarshal(data, dp)
 	if err != nil {
 		return
 	}
 	dp.Kind = kind
-	if val, ok := dp.Value.(*livekit.DataPacket_User); ok {
+	if val, ok := dp.Value.(*voicekit.DataPacket_User); ok {
 		if c.OnDataReceived != nil {
 			c.OnDataReceived(val.User.Payload, val.User.ParticipantSid)
 		}
@@ -844,8 +844,8 @@ func (c *RTCClient) onOffer(offer webrtc.SessionDescription) error {
 	if c.localParticipant != nil {
 		logger.Infow("starting negotiation", "participant", c.localParticipant.Identity)
 	}
-	return c.SendRequest(&livekit.SignalRequest{
-		Message: &livekit.SignalRequest_Offer{
+	return c.SendRequest(&voicekit.SignalRequest{
+		Message: &voicekit.SignalRequest_Offer{
 			Offer: rtc.ToProtoSessionDescription(offer),
 		},
 	})
@@ -855,7 +855,7 @@ func (c *RTCClient) processTrack(track *webrtc.TrackRemote) {
 	lastUpdate := time.Time{}
 	pId, trackId := rtc.UnpackStreamID(track.StreamID())
 	if trackId == "" {
-		trackId = livekit.TrackID(track.ID())
+		trackId = voicekit.TrackID(track.ID())
 	}
 	c.lock.Lock()
 	c.subscribedTracks[pId] = append(c.subscribedTracks[pId], track)

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/livekit/mediatransportutil"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/mediatransportutil"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/mono"
 )
 
 const (
@@ -149,7 +149,7 @@ func (s *snapshot) maybeUpdateMaxJitter(jitter float64) {
 // ------------------------------------------------------------------
 
 type wrappedRTPDriftLogger struct {
-	*livekit.RTPDrift
+	*voicekit.RTPDrift
 }
 
 func (w wrappedRTPDriftLogger) MarshalLogObject(e zapcore.ObjectEncoder) error {
@@ -173,7 +173,7 @@ func (w wrappedRTPDriftLogger) MarshalLogObject(e zapcore.ObjectEncoder) error {
 // ------------------------------------------------------------------
 
 type WrappedRTCPSenderReportStateLogger struct {
-	*livekit.RTCPSenderReportState
+	*voicekit.RTCPSenderReportState
 }
 
 func (w WrappedRTCPSenderReportStateLogger) MarshalLogObject(e zapcore.ObjectEncoder) error {
@@ -192,7 +192,7 @@ func (w WrappedRTCPSenderReportStateLogger) MarshalLogObject(e zapcore.ObjectEnc
 	return nil
 }
 
-func RTCPSenderReportPropagationDelay(rsrs *livekit.RTCPSenderReportState, passThrough bool) time.Duration {
+func RTCPSenderReportPropagationDelay(rsrs *voicekit.RTCPSenderReportState, passThrough bool) time.Duration {
 	if passThrough {
 		return 0
 	}
@@ -236,8 +236,8 @@ type rtpStatsBase struct {
 	rtt    uint32
 	maxRtt uint32
 
-	srFirst  *livekit.RTCPSenderReportState
-	srNewest *livekit.RTCPSenderReportState
+	srFirst  *voicekit.RTCPSenderReportState
+	srNewest *voicekit.RTCPSenderReportState
 
 	nextSnapshotID uint32
 	snapshots      []snapshot
@@ -381,7 +381,7 @@ func (r *rtpStatsBase) GetRtt() uint32 {
 	return r.rtt
 }
 
-func (r *rtpStatsBase) maybeAdjustFirstPacketTime(srData *livekit.RTCPSenderReportState, tsOffset uint64, extStartTS uint64) (err error, loggingFields []interface{}) {
+func (r *rtpStatsBase) maybeAdjustFirstPacketTime(srData *voicekit.RTCPSenderReportState, tsOffset uint64, extStartTS uint64) (err error, loggingFields []interface{}) {
 	nowNano := mono.UnixNano()
 	if time.Duration(nowNano-r.startTime) > cFirstPacketTimeAdjustWindow {
 		return
@@ -595,7 +595,7 @@ func (r *rtpStatsBase) toProto(
 	packetsExpected, packetsSeenMinusPadding, packetsLost uint64,
 	extStartTS, extHighestTS uint64,
 	jitter, maxJitter float64,
-) *livekit.RTPStats {
+) *voicekit.RTPStats {
 	p := r.rtpStatsBaseLite.toProto(packetsExpected, packetsSeenMinusPadding, packetsLost)
 	if p == nil {
 		return nil
@@ -687,10 +687,10 @@ func (r *rtpStatsBase) getAndResetSnapshot(snapshotID uint32, extStartSN uint64,
 }
 
 func (r *rtpStatsBase) getDrift(extStartTS, extHighestTS uint64) (
-	packetDrift *livekit.RTPDrift,
-	ntpReportDrift *livekit.RTPDrift,
-	receivedReportDrift *livekit.RTPDrift,
-	rebasedReportDrift *livekit.RTPDrift,
+	packetDrift *voicekit.RTPDrift,
+	ntpReportDrift *voicekit.RTPDrift,
+	receivedReportDrift *voicekit.RTPDrift,
+	rebasedReportDrift *voicekit.RTPDrift,
 ) {
 	if r.firstTime != 0 {
 		elapsed := r.highestTime - r.firstTime
@@ -698,7 +698,7 @@ func (r *rtpStatsBase) getDrift(extStartTS, extHighestTS uint64) (
 		driftSamples := int64(rtpClockTicks - uint64(elapsed*int64(r.params.ClockRate)/1e9))
 		if elapsed > 0 {
 			elapsedSeconds := time.Duration(elapsed).Seconds()
-			packetDrift = &livekit.RTPDrift{
+			packetDrift = &voicekit.RTPDrift{
 				StartTime:      timestamppb.New(time.Unix(0, r.firstTime)),
 				EndTime:        timestamppb.New(time.Unix(0, r.highestTime)),
 				Duration:       elapsedSeconds,
@@ -718,7 +718,7 @@ func (r *rtpStatsBase) getDrift(extStartTS, extHighestTS uint64) (
 		elapsed := mediatransportutil.NtpTime(r.srNewest.NtpTimestamp).Time().Sub(mediatransportutil.NtpTime(r.srFirst.NtpTimestamp).Time())
 		if elapsed.Seconds() > 0.0 {
 			driftSamples := int64(rtpClockTicks - uint64(elapsed.Nanoseconds()*int64(r.params.ClockRate)/1e9))
-			ntpReportDrift = &livekit.RTPDrift{
+			ntpReportDrift = &voicekit.RTPDrift{
 				StartTime:      timestamppb.New(mediatransportutil.NtpTime(r.srFirst.NtpTimestamp).Time()),
 				EndTime:        timestamppb.New(mediatransportutil.NtpTime(r.srNewest.NtpTimestamp).Time()),
 				Duration:       elapsed.Seconds(),
@@ -734,7 +734,7 @@ func (r *rtpStatsBase) getDrift(extStartTS, extHighestTS uint64) (
 		elapsed = time.Duration(r.srNewest.At - r.srFirst.At)
 		if elapsed.Seconds() > 0.0 {
 			driftSamples := int64(rtpClockTicks - uint64(elapsed.Nanoseconds()*int64(r.params.ClockRate)/1e9))
-			receivedReportDrift = &livekit.RTPDrift{
+			receivedReportDrift = &voicekit.RTPDrift{
 				StartTime:      timestamppb.New(time.Unix(0, r.srFirst.At)),
 				EndTime:        timestamppb.New(time.Unix(0, r.srNewest.At)),
 				Duration:       elapsed.Seconds(),
@@ -750,7 +750,7 @@ func (r *rtpStatsBase) getDrift(extStartTS, extHighestTS uint64) (
 		elapsed = time.Duration(r.srNewest.AtAdjusted - r.srFirst.AtAdjusted)
 		if elapsed.Seconds() > 0.0 {
 			driftSamples := int64(rtpClockTicks - uint64(elapsed.Nanoseconds()*int64(r.params.ClockRate)/1e9))
-			rebasedReportDrift = &livekit.RTPDrift{
+			rebasedReportDrift = &voicekit.RTPDrift{
 				StartTime:      timestamppb.New(time.Unix(0, r.srFirst.AtAdjusted)),
 				EndTime:        timestamppb.New(time.Unix(0, r.srNewest.AtAdjusted)),
 				Duration:       elapsed.Seconds(),
@@ -805,7 +805,7 @@ func initSnapshot(startTime int64, extStartSN uint64) snapshot {
 	}
 }
 
-func AggregateRTPStats(statsList []*livekit.RTPStats) *livekit.RTPStats {
+func AggregateRTPStats(statsList []*voicekit.RTPStats) *voicekit.RTPStats {
 	return utils.AggregateRTPStats(statsList, cGapHistogramNumBins)
 }
 
@@ -913,7 +913,7 @@ func AggregateRTPDeltaInfo(deltaInfoList []*RTPDeltaInfo) *RTPDeltaInfo {
 	}
 }
 
-func ReconcileRTPStatsWithRTX(primaryStats *livekit.RTPStats, rtxStats *livekit.RTPStats) *livekit.RTPStats {
+func ReconcileRTPStatsWithRTX(primaryStats *voicekit.RTPStats, rtxStats *voicekit.RTPStats) *voicekit.RTPStats {
 	if primaryStats == nil || rtxStats == nil {
 		return primaryStats
 	}

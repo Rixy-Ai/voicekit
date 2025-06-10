@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import (
 	"github.com/frostbyte73/core"
 	"go.uber.org/atomic"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/observability/roomobs"
-	"github.com/livekit/protocol/utils"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/observability/roomobs"
+	"github.com/voicekit/protocol/utils"
 )
 
 type BytesTrackType string
@@ -49,8 +49,8 @@ type TrafficTotals struct {
 
 // stats for signal and data channel
 type BytesTrackStats struct {
-	trackID                              livekit.TrackID
-	pID                                  livekit.ParticipantID
+	trackID                              voicekit.TrackID
+	pID                                  voicekit.ParticipantID
 	send, recv                           atomic.Uint64
 	sendMessages, recvMessages           atomic.Uint32
 	totalSendBytes, totalRecvBytes       atomic.Uint64
@@ -61,8 +61,8 @@ type BytesTrackStats struct {
 }
 
 func NewBytesTrackStats(
-	trackID livekit.TrackID,
-	pID livekit.ParticipantID,
+	trackID voicekit.TrackID,
+	pID voicekit.ParticipantID,
 	telemetry TelemetryService,
 	participantReporter roomobs.ParticipantSessionReporter,
 ) *BytesTrackStats {
@@ -119,8 +119,8 @@ func (s *BytesTrackStats) Stop() {
 func (s *BytesTrackStats) report() {
 	if recv := s.recv.Swap(0); recv > 0 {
 		packets := s.recvMessages.Swap(0)
-		s.telemetry.TrackStats(StatsKeyForData(livekit.StreamType_UPSTREAM, s.pID, s.trackID), &livekit.AnalyticsStat{
-			Streams: []*livekit.AnalyticsStream{
+		s.telemetry.TrackStats(StatsKeyForData(voicekit.StreamType_UPSTREAM, s.pID, s.trackID), &voicekit.AnalyticsStat{
+			Streams: []*voicekit.AnalyticsStream{
 				{
 					PrimaryBytes:   recv,
 					PrimaryPackets: packets,
@@ -131,8 +131,8 @@ func (s *BytesTrackStats) report() {
 
 	if send := s.send.Swap(0); send > 0 {
 		packets := s.sendMessages.Swap(0)
-		s.telemetry.TrackStats(StatsKeyForData(livekit.StreamType_DOWNSTREAM, s.pID, s.trackID), &livekit.AnalyticsStat{
-			Streams: []*livekit.AnalyticsStream{
+		s.telemetry.TrackStats(StatsKeyForData(voicekit.StreamType_DOWNSTREAM, s.pID, s.trackID), &voicekit.AnalyticsStat{
+			Streams: []*voicekit.AnalyticsStream{
 				{
 					PrimaryBytes:   send,
 					PrimaryPackets: packets,
@@ -169,8 +169,8 @@ type BytesSignalStats struct {
 	trackResolver       roomobs.KeyResolver
 
 	mu      sync.Mutex
-	ri      *livekit.Room
-	pi      *livekit.ParticipantInfo
+	ri      *voicekit.Room
+	pi      *voicekit.ParticipantInfo
 	stopped chan struct{}
 }
 
@@ -192,11 +192,11 @@ func NewBytesSignalStats(
 	}
 }
 
-func (s *BytesSignalStats) ResolveRoom(ri *livekit.Room) {
+func (s *BytesSignalStats) ResolveRoom(ri *voicekit.Room) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.ri == nil && ri.GetSid() != "" {
-		s.ri = &livekit.Room{
+		s.ri = &voicekit.Room{
 			Sid:  ri.Sid,
 			Name: ri.Name,
 		}
@@ -204,11 +204,11 @@ func (s *BytesSignalStats) ResolveRoom(ri *livekit.Room) {
 	}
 }
 
-func (s *BytesSignalStats) ResolveParticipant(pi *livekit.ParticipantInfo) {
+func (s *BytesSignalStats) ResolveParticipant(pi *voicekit.ParticipantInfo) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.pi == nil && pi != nil {
-		s.pi = &livekit.ParticipantInfo{
+		s.pi = &voicekit.ParticipantInfo{
 			Sid:      pi.Sid,
 			Identity: pi.Identity,
 		}
@@ -237,14 +237,14 @@ func (s *BytesSignalStats) maybeStart() {
 		return
 	}
 
-	s.pID = livekit.ParticipantID(s.pi.Sid)
+	s.pID = voicekit.ParticipantID(s.pi.Sid)
 	s.trackID = BytesTrackIDForParticipantID(BytesTrackTypeSignal, s.pID)
 
 	s.participantResolver.Resolve(
-		livekit.RoomName(s.ri.Name),
-		livekit.RoomID(s.ri.Sid),
-		livekit.ParticipantIdentity(s.pi.Identity),
-		livekit.ParticipantID(s.pi.Sid),
+		voicekit.RoomName(s.ri.Name),
+		voicekit.RoomID(s.ri.Sid),
+		voicekit.ParticipantIdentity(s.pi.Identity),
+		voicekit.ParticipantID(s.pi.Sid),
 	)
 	s.trackResolver.Resolve(string(s.trackID))
 
@@ -261,6 +261,6 @@ func (s *BytesSignalStats) worker() {
 
 // -----------------------------------------------------------------------
 
-func BytesTrackIDForParticipantID(typ BytesTrackType, participantID livekit.ParticipantID) livekit.TrackID {
-	return livekit.TrackID(fmt.Sprintf("%s%s%s", utils.TrackPrefix, typ, participantID))
+func BytesTrackIDForParticipantID(typ BytesTrackType, participantID voicekit.ParticipantID) voicekit.TrackID {
+	return voicekit.TrackID(fmt.Sprintf("%s%s%s", utils.TrackPrefix, typ, participantID))
 }

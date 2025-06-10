@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ import (
 	"context"
 	"errors"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s *IOInfoService) CreateIngress(ctx context.Context, info *livekit.IngressInfo) (*emptypb.Empty, error) {
+func (s *IOInfoService) CreateIngress(ctx context.Context, info *voicekit.IngressInfo) (*emptypb.Empty, error) {
 	err := s.is.StoreIngress(ctx, info)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (s *IOInfoService) GetIngressInfo(ctx context.Context, req *rpc.GetIngressI
 	return &rpc.GetIngressInfoResponse{Info: info}, nil
 }
 
-func (s *IOInfoService) loadIngressFromInfoRequest(req *rpc.GetIngressInfoRequest) (info *livekit.IngressInfo, err error) {
+func (s *IOInfoService) loadIngressFromInfoRequest(req *rpc.GetIngressInfoRequest) (info *voicekit.IngressInfo, err error) {
 	if req.IngressId != "" {
 		info, err = s.is.LoadIngress(context.Background(), req.IngressId)
 	} else if req.StreamKey != "" {
@@ -70,9 +70,9 @@ func (s *IOInfoService) UpdateIngressState(ctx context.Context, req *rpc.UpdateI
 		info.State = req.State
 
 		switch req.State.Status {
-		case livekit.IngressState_ENDPOINT_ERROR,
-			livekit.IngressState_ENDPOINT_INACTIVE,
-			livekit.IngressState_ENDPOINT_COMPLETE:
+		case voicekit.IngressState_ENDPOINT_ERROR,
+			voicekit.IngressState_ENDPOINT_INACTIVE,
+			voicekit.IngressState_ENDPOINT_COMPLETE:
 			s.telemetry.IngressEnded(ctx, info)
 
 			if req.State.Error != "" {
@@ -81,12 +81,12 @@ func (s *IOInfoService) UpdateIngressState(ctx context.Context, req *rpc.UpdateI
 				logger.Infow("ingress ended", "ingressID", req.IngressId)
 			}
 
-		case livekit.IngressState_ENDPOINT_PUBLISHING:
+		case voicekit.IngressState_ENDPOINT_PUBLISHING:
 			s.telemetry.IngressStarted(ctx, info)
 
 			logger.Infow("ingress started", "ingressID", req.IngressId)
 
-		case livekit.IngressState_ENDPOINT_BUFFERING:
+		case voicekit.IngressState_ENDPOINT_BUFFERING:
 			s.telemetry.IngressUpdated(ctx, info)
 
 			logger.Infow("ingress buffering", "ingressID", req.IngressId)

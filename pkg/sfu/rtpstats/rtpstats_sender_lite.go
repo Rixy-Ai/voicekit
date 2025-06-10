@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 package rtpstats
 
 import (
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/utils/mono"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -80,7 +80,7 @@ func (r *RTPStatsSenderLite) MarshalLogObject(e zapcore.ObjectEncoder) error {
 	return lockedRTPStatsSenderLiteLogEncoder{r}.MarshalLogObject(e)
 }
 
-func (r *RTPStatsSenderLite) ToProto() *livekit.RTPStats {
+func (r *RTPStatsSenderLite) ToProto() *voicekit.RTPStats {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 

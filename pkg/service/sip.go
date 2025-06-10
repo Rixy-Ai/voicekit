@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,34 +23,34 @@ import (
 	"github.com/twitchtv/twirp"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/sip"
-	"github.com/livekit/protocol/utils"
-	"github.com/livekit/protocol/utils/guid"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/sip"
+	"github.com/voicekit/protocol/utils"
+	"github.com/voicekit/protocol/utils/guid"
+	"github.com/voicekit/psrpc"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/telemetry"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
 )
 
 type SIPService struct {
 	conf        *config.SIPConfig
-	nodeID      livekit.NodeID
+	nodeID      voicekit.NodeID
 	bus         psrpc.MessageBus
 	psrpcClient rpc.SIPClient
 	store       SIPStore
-	roomService livekit.RoomService
+	roomService voicekit.RoomService
 }
 
 func NewSIPService(
 	conf *config.SIPConfig,
-	nodeID livekit.NodeID,
+	nodeID voicekit.NodeID,
 	bus psrpc.MessageBus,
 	psrpcClient rpc.SIPClient,
 	store SIPStore,
-	rs livekit.RoomService,
+	rs voicekit.RoomService,
 	ts telemetry.TelemetryService,
 ) *SIPService {
 	return &SIPService{
@@ -63,7 +63,7 @@ func NewSIPService(
 	}
 }
 
-func (s *SIPService) CreateSIPTrunk(ctx context.Context, req *livekit.CreateSIPTrunkRequest) (*livekit.SIPTrunkInfo, error) {
+func (s *SIPService) CreateSIPTrunk(ctx context.Context, req *voicekit.CreateSIPTrunkRequest) (*voicekit.SIPTrunkInfo, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -75,7 +75,7 @@ func (s *SIPService) CreateSIPTrunk(ctx context.Context, req *livekit.CreateSIPT
 	}
 
 	// Keep ID empty, so that validation can print "<new>" instead of a non-existent ID in the error.
-	info := &livekit.SIPTrunkInfo{
+	info := &voicekit.SIPTrunkInfo{
 		InboundAddresses: req.InboundAddresses,
 		OutboundAddress:  req.OutboundAddress,
 		OutboundNumber:   req.OutboundNumber,
@@ -92,7 +92,7 @@ func (s *SIPService) CreateSIPTrunk(ctx context.Context, req *livekit.CreateSIPT
 	}
 
 	// Validate all trunks including the new one first.
-	it, err := ListSIPInboundTrunk(ctx, s.store, &livekit.ListSIPInboundTrunkRequest{}, info.AsInbound())
+	it, err := ListSIPInboundTrunk(ctx, s.store, &voicekit.ListSIPInboundTrunkRequest{}, info.AsInbound())
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (s *SIPService) CreateSIPTrunk(ctx context.Context, req *livekit.CreateSIPT
 	return info, nil
 }
 
-func (s *SIPService) CreateSIPInboundTrunk(ctx context.Context, req *livekit.CreateSIPInboundTrunkRequest) (*livekit.SIPInboundTrunkInfo, error) {
+func (s *SIPService) CreateSIPInboundTrunk(ctx context.Context, req *voicekit.CreateSIPInboundTrunkRequest) (*voicekit.SIPInboundTrunkInfo, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -129,7 +129,7 @@ func (s *SIPService) CreateSIPInboundTrunk(ctx context.Context, req *livekit.Cre
 	// Keep ID empty still, so that validation can print "<new>" instead of a non-existent ID in the error.
 
 	// Validate all trunks including the new one first.
-	it, err := ListSIPInboundTrunk(ctx, s.store, &livekit.ListSIPInboundTrunkRequest{
+	it, err := ListSIPInboundTrunk(ctx, s.store, &voicekit.ListSIPInboundTrunkRequest{
 		Numbers: req.GetTrunk().GetNumbers(),
 	}, info)
 	if err != nil {
@@ -148,7 +148,7 @@ func (s *SIPService) CreateSIPInboundTrunk(ctx context.Context, req *livekit.Cre
 	return info, nil
 }
 
-func (s *SIPService) CreateSIPOutboundTrunk(ctx context.Context, req *livekit.CreateSIPOutboundTrunkRequest) (*livekit.SIPOutboundTrunkInfo, error) {
+func (s *SIPService) CreateSIPOutboundTrunk(ctx context.Context, req *voicekit.CreateSIPOutboundTrunkRequest) (*voicekit.SIPOutboundTrunkInfo, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -173,7 +173,7 @@ func (s *SIPService) CreateSIPOutboundTrunk(ctx context.Context, req *livekit.Cr
 	return info, nil
 }
 
-func (s *SIPService) UpdateSIPInboundTrunk(ctx context.Context, req *livekit.UpdateSIPInboundTrunkRequest) (*livekit.SIPInboundTrunkInfo, error) {
+func (s *SIPService) UpdateSIPInboundTrunk(ctx context.Context, req *voicekit.UpdateSIPInboundTrunkRequest) (*voicekit.SIPInboundTrunkInfo, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -197,21 +197,21 @@ func (s *SIPService) UpdateSIPInboundTrunk(ctx context.Context, req *livekit.Upd
 	switch a := req.Action.(type) {
 	default:
 		return nil, errors.New("missing or unsupported action")
-	case livekit.UpdateSIPInboundTrunkRequestAction:
+	case voicekit.UpdateSIPInboundTrunkRequestAction:
 		info, err = a.Apply(info)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	it, err := ListSIPInboundTrunk(ctx, s.store, &livekit.ListSIPInboundTrunkRequest{
+	it, err := ListSIPInboundTrunk(ctx, s.store, &voicekit.ListSIPInboundTrunkRequest{
 		Numbers: info.Numbers,
 	})
 	if err != nil {
 		return nil, err
 	}
 	defer it.Close()
-	if err = sip.ValidateTrunksIter(it, sip.WithTrunkReplace(func(t *livekit.SIPInboundTrunkInfo) *livekit.SIPInboundTrunkInfo {
+	if err = sip.ValidateTrunksIter(it, sip.WithTrunkReplace(func(t *voicekit.SIPInboundTrunkInfo) *voicekit.SIPInboundTrunkInfo {
 		if req.SipTrunkId == t.SipTrunkId {
 			return info // updated one
 		}
@@ -225,7 +225,7 @@ func (s *SIPService) UpdateSIPInboundTrunk(ctx context.Context, req *livekit.Upd
 	return info, nil
 }
 
-func (s *SIPService) UpdateSIPOutboundTrunk(ctx context.Context, req *livekit.UpdateSIPOutboundTrunkRequest) (*livekit.SIPOutboundTrunkInfo, error) {
+func (s *SIPService) UpdateSIPOutboundTrunk(ctx context.Context, req *voicekit.UpdateSIPOutboundTrunkRequest) (*voicekit.SIPOutboundTrunkInfo, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -248,7 +248,7 @@ func (s *SIPService) UpdateSIPOutboundTrunk(ctx context.Context, req *livekit.Up
 	switch a := req.Action.(type) {
 	default:
 		return nil, errors.New("missing or unsupported action")
-	case livekit.UpdateSIPOutboundTrunkRequestAction:
+	case voicekit.UpdateSIPOutboundTrunkRequestAction:
 		info, err = a.Apply(info)
 		if err != nil {
 			return nil, err
@@ -261,7 +261,7 @@ func (s *SIPService) UpdateSIPOutboundTrunk(ctx context.Context, req *livekit.Up
 	return info, nil
 }
 
-func (s *SIPService) GetSIPInboundTrunk(ctx context.Context, req *livekit.GetSIPInboundTrunkRequest) (*livekit.GetSIPInboundTrunkResponse, error) {
+func (s *SIPService) GetSIPInboundTrunk(ctx context.Context, req *voicekit.GetSIPInboundTrunkRequest) (*voicekit.GetSIPInboundTrunkResponse, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -278,10 +278,10 @@ func (s *SIPService) GetSIPInboundTrunk(ctx context.Context, req *livekit.GetSIP
 		return nil, err
 	}
 
-	return &livekit.GetSIPInboundTrunkResponse{Trunk: trunk}, nil
+	return &voicekit.GetSIPInboundTrunkResponse{Trunk: trunk}, nil
 }
 
-func (s *SIPService) GetSIPOutboundTrunk(ctx context.Context, req *livekit.GetSIPOutboundTrunkRequest) (*livekit.GetSIPOutboundTrunkResponse, error) {
+func (s *SIPService) GetSIPOutboundTrunk(ctx context.Context, req *voicekit.GetSIPOutboundTrunkRequest) (*voicekit.GetSIPOutboundTrunkResponse, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -298,32 +298,32 @@ func (s *SIPService) GetSIPOutboundTrunk(ctx context.Context, req *livekit.GetSI
 		return nil, err
 	}
 
-	return &livekit.GetSIPOutboundTrunkResponse{Trunk: trunk}, nil
+	return &voicekit.GetSIPOutboundTrunkResponse{Trunk: trunk}, nil
 }
 
 // deprecated: ListSIPTrunk will be removed in the future
-func (s *SIPService) ListSIPTrunk(ctx context.Context, req *livekit.ListSIPTrunkRequest) (*livekit.ListSIPTrunkResponse, error) {
+func (s *SIPService) ListSIPTrunk(ctx context.Context, req *voicekit.ListSIPTrunkRequest) (*voicekit.ListSIPTrunkResponse, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
 	if s.store == nil {
 		return nil, ErrSIPNotConnected
 	}
-	it := livekit.ListPageIter(s.store.ListSIPTrunk, req)
+	it := voicekit.ListPageIter(s.store.ListSIPTrunk, req)
 	defer it.Close()
 
 	items, err := iters.AllPages(ctx, it)
 	if err != nil {
 		return nil, err
 	}
-	return &livekit.ListSIPTrunkResponse{Items: items}, nil
+	return &voicekit.ListSIPTrunkResponse{Items: items}, nil
 }
 
-func ListSIPInboundTrunk(ctx context.Context, s SIPStore, req *livekit.ListSIPInboundTrunkRequest, add ...*livekit.SIPInboundTrunkInfo) (iters.Iter[*livekit.SIPInboundTrunkInfo], error) {
+func ListSIPInboundTrunk(ctx context.Context, s SIPStore, req *voicekit.ListSIPInboundTrunkRequest, add ...*voicekit.SIPInboundTrunkInfo) (iters.Iter[*voicekit.SIPInboundTrunkInfo], error) {
 	if s == nil {
 		return nil, ErrSIPNotConnected
 	}
-	pages := livekit.ListPageIter(s.ListSIPInboundTrunk, req)
+	pages := voicekit.ListPageIter(s.ListSIPInboundTrunk, req)
 	it := iters.PagesAsIter(ctx, pages)
 	if len(add) != 0 {
 		it = iters.MultiIter(true, it, iters.Slice(add))
@@ -331,11 +331,11 @@ func ListSIPInboundTrunk(ctx context.Context, s SIPStore, req *livekit.ListSIPIn
 	return it, nil
 }
 
-func ListSIPOutboundTrunk(ctx context.Context, s SIPStore, req *livekit.ListSIPOutboundTrunkRequest, add ...*livekit.SIPOutboundTrunkInfo) (iters.Iter[*livekit.SIPOutboundTrunkInfo], error) {
+func ListSIPOutboundTrunk(ctx context.Context, s SIPStore, req *voicekit.ListSIPOutboundTrunkRequest, add ...*voicekit.SIPOutboundTrunkInfo) (iters.Iter[*voicekit.SIPOutboundTrunkInfo], error) {
 	if s == nil {
 		return nil, ErrSIPNotConnected
 	}
-	pages := livekit.ListPageIter(s.ListSIPOutboundTrunk, req)
+	pages := voicekit.ListPageIter(s.ListSIPOutboundTrunk, req)
 	it := iters.PagesAsIter(ctx, pages)
 	if len(add) != 0 {
 		it = iters.MultiIter(true, it, iters.Slice(add))
@@ -343,7 +343,7 @@ func ListSIPOutboundTrunk(ctx context.Context, s SIPStore, req *livekit.ListSIPO
 	return it, nil
 }
 
-func (s *SIPService) ListSIPInboundTrunk(ctx context.Context, req *livekit.ListSIPInboundTrunkRequest) (*livekit.ListSIPInboundTrunkResponse, error) {
+func (s *SIPService) ListSIPInboundTrunk(ctx context.Context, req *voicekit.ListSIPInboundTrunkRequest) (*voicekit.ListSIPInboundTrunkResponse, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -360,10 +360,10 @@ func (s *SIPService) ListSIPInboundTrunk(ctx context.Context, req *livekit.ListS
 	if err != nil {
 		return nil, err
 	}
-	return &livekit.ListSIPInboundTrunkResponse{Items: items}, nil
+	return &voicekit.ListSIPInboundTrunkResponse{Items: items}, nil
 }
 
-func (s *SIPService) ListSIPOutboundTrunk(ctx context.Context, req *livekit.ListSIPOutboundTrunkRequest) (*livekit.ListSIPOutboundTrunkResponse, error) {
+func (s *SIPService) ListSIPOutboundTrunk(ctx context.Context, req *voicekit.ListSIPOutboundTrunkRequest) (*voicekit.ListSIPOutboundTrunkResponse, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -380,10 +380,10 @@ func (s *SIPService) ListSIPOutboundTrunk(ctx context.Context, req *livekit.List
 	if err != nil {
 		return nil, err
 	}
-	return &livekit.ListSIPOutboundTrunkResponse{Items: items}, nil
+	return &voicekit.ListSIPOutboundTrunkResponse{Items: items}, nil
 }
 
-func (s *SIPService) DeleteSIPTrunk(ctx context.Context, req *livekit.DeleteSIPTrunkRequest) (*livekit.SIPTrunkInfo, error) {
+func (s *SIPService) DeleteSIPTrunk(ctx context.Context, req *voicekit.DeleteSIPTrunkRequest) (*voicekit.SIPTrunkInfo, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -399,10 +399,10 @@ func (s *SIPService) DeleteSIPTrunk(ctx context.Context, req *livekit.DeleteSIPT
 		return nil, err
 	}
 
-	return &livekit.SIPTrunkInfo{SipTrunkId: req.SipTrunkId}, nil
+	return &voicekit.SIPTrunkInfo{SipTrunkId: req.SipTrunkId}, nil
 }
 
-func (s *SIPService) CreateSIPDispatchRule(ctx context.Context, req *livekit.CreateSIPDispatchRuleRequest) (*livekit.SIPDispatchRuleInfo, error) {
+func (s *SIPService) CreateSIPDispatchRule(ctx context.Context, req *voicekit.CreateSIPDispatchRuleRequest) (*voicekit.SIPDispatchRuleInfo, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -422,7 +422,7 @@ func (s *SIPService) CreateSIPDispatchRule(ctx context.Context, req *livekit.Cre
 	info.SipDispatchRuleId = ""
 
 	// Validate all rules including the new one first.
-	it, err := ListSIPDispatchRule(ctx, s.store, &livekit.ListSIPDispatchRuleRequest{
+	it, err := ListSIPDispatchRule(ctx, s.store, &voicekit.ListSIPDispatchRuleRequest{
 		TrunkIds: req.TrunkIds,
 	}, info)
 	if err != nil {
@@ -441,7 +441,7 @@ func (s *SIPService) CreateSIPDispatchRule(ctx context.Context, req *livekit.Cre
 	return info, nil
 }
 
-func (s *SIPService) UpdateSIPDispatchRule(ctx context.Context, req *livekit.UpdateSIPDispatchRuleRequest) (*livekit.SIPDispatchRuleInfo, error) {
+func (s *SIPService) UpdateSIPDispatchRule(ctx context.Context, req *voicekit.UpdateSIPDispatchRuleRequest) (*voicekit.SIPDispatchRuleInfo, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -465,21 +465,21 @@ func (s *SIPService) UpdateSIPDispatchRule(ctx context.Context, req *livekit.Upd
 	switch a := req.Action.(type) {
 	default:
 		return nil, errors.New("missing or unsupported action")
-	case livekit.UpdateSIPDispatchRuleRequestAction:
+	case voicekit.UpdateSIPDispatchRuleRequestAction:
 		info, err = a.Apply(info)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	it, err := ListSIPDispatchRule(ctx, s.store, &livekit.ListSIPDispatchRuleRequest{
+	it, err := ListSIPDispatchRule(ctx, s.store, &voicekit.ListSIPDispatchRuleRequest{
 		TrunkIds: info.TrunkIds,
 	})
 	if err != nil {
 		return nil, err
 	}
 	defer it.Close()
-	if _, err = sip.ValidateDispatchRulesIter(it, sip.WithDispatchRuleReplace(func(t *livekit.SIPDispatchRuleInfo) *livekit.SIPDispatchRuleInfo {
+	if _, err = sip.ValidateDispatchRulesIter(it, sip.WithDispatchRuleReplace(func(t *voicekit.SIPDispatchRuleInfo) *voicekit.SIPDispatchRuleInfo {
 		if req.SipDispatchRuleId == t.SipDispatchRuleId {
 			return info // updated one
 		}
@@ -494,11 +494,11 @@ func (s *SIPService) UpdateSIPDispatchRule(ctx context.Context, req *livekit.Upd
 	return info, nil
 }
 
-func ListSIPDispatchRule(ctx context.Context, s SIPStore, req *livekit.ListSIPDispatchRuleRequest, add ...*livekit.SIPDispatchRuleInfo) (iters.Iter[*livekit.SIPDispatchRuleInfo], error) {
+func ListSIPDispatchRule(ctx context.Context, s SIPStore, req *voicekit.ListSIPDispatchRuleRequest, add ...*voicekit.SIPDispatchRuleInfo) (iters.Iter[*voicekit.SIPDispatchRuleInfo], error) {
 	if s == nil {
 		return nil, ErrSIPNotConnected
 	}
-	pages := livekit.ListPageIter(s.ListSIPDispatchRule, req)
+	pages := voicekit.ListPageIter(s.ListSIPDispatchRule, req)
 	it := iters.PagesAsIter(ctx, pages)
 	if len(add) != 0 {
 		it = iters.MultiIter(true, it, iters.Slice(add))
@@ -506,7 +506,7 @@ func ListSIPDispatchRule(ctx context.Context, s SIPStore, req *livekit.ListSIPDi
 	return it, nil
 }
 
-func (s *SIPService) ListSIPDispatchRule(ctx context.Context, req *livekit.ListSIPDispatchRuleRequest) (*livekit.ListSIPDispatchRuleResponse, error) {
+func (s *SIPService) ListSIPDispatchRule(ctx context.Context, req *voicekit.ListSIPDispatchRuleRequest) (*voicekit.ListSIPDispatchRuleResponse, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -523,10 +523,10 @@ func (s *SIPService) ListSIPDispatchRule(ctx context.Context, req *livekit.ListS
 	if err != nil {
 		return nil, err
 	}
-	return &livekit.ListSIPDispatchRuleResponse{Items: items}, nil
+	return &voicekit.ListSIPDispatchRuleResponse{Items: items}, nil
 }
 
-func (s *SIPService) DeleteSIPDispatchRule(ctx context.Context, req *livekit.DeleteSIPDispatchRuleRequest) (*livekit.SIPDispatchRuleInfo, error) {
+func (s *SIPService) DeleteSIPDispatchRule(ctx context.Context, req *voicekit.DeleteSIPDispatchRuleRequest) (*voicekit.SIPDispatchRuleInfo, error) {
 	if err := EnsureSIPAdminPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -549,7 +549,7 @@ func (s *SIPService) DeleteSIPDispatchRule(ctx context.Context, req *livekit.Del
 	return info, nil
 }
 
-func (s *SIPService) CreateSIPParticipant(ctx context.Context, req *livekit.CreateSIPParticipantRequest) (*livekit.SIPParticipantInfo, error) {
+func (s *SIPService) CreateSIPParticipant(ctx context.Context, req *voicekit.CreateSIPParticipantRequest) (*voicekit.SIPParticipantInfo, error) {
 	unlikelyLogger := logger.GetLogger().WithUnlikelyValues(
 		"room", req.RoomName,
 		"sipTrunk", req.SipTrunkId,
@@ -578,7 +578,7 @@ func (s *SIPService) CreateSIPParticipant(ctx context.Context, req *livekit.Crea
 		"toHost", ireq.Address,
 	)
 
-	// CreateSIPParticipant will wait for LiveKit Participant to be created and that can take some time.
+	// CreateSIPParticipant will wait for VoiceKit Participant to be created and that can take some time.
 	// Thus, we must set a higher deadline for it, if it's not set already.
 	timeout := 30 * time.Second
 	if req.WaitUntilAnswered {
@@ -596,7 +596,7 @@ func (s *SIPService) CreateSIPParticipant(ctx context.Context, req *livekit.Crea
 		unlikelyLogger.Errorw("cannot create sip participant", err)
 		return nil, err
 	}
-	return &livekit.SIPParticipantInfo{
+	return &voicekit.SIPParticipantInfo{
 		ParticipantId:       resp.ParticipantId,
 		ParticipantIdentity: resp.ParticipantIdentity,
 		RoomName:            req.RoomName,
@@ -604,7 +604,7 @@ func (s *SIPService) CreateSIPParticipant(ctx context.Context, req *livekit.Crea
 	}, nil
 }
 
-func (s *SIPService) CreateSIPParticipantRequest(ctx context.Context, req *livekit.CreateSIPParticipantRequest, projectID, host, wsUrl, token string) (*rpc.InternalCreateSIPParticipantRequest, error) {
+func (s *SIPService) CreateSIPParticipantRequest(ctx context.Context, req *voicekit.CreateSIPParticipantRequest, projectID, host, wsUrl, token string) (*rpc.InternalCreateSIPParticipantRequest, error) {
 	if err := EnsureSIPCallPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
@@ -633,7 +633,7 @@ func (s *SIPService) CreateSIPParticipantRequest(ctx context.Context, req *livek
 	return rpc.NewCreateSIPParticipantRequest(projectID, callID, host, wsUrl, token, req, trunk)
 }
 
-func (s *SIPService) TransferSIPParticipant(ctx context.Context, req *livekit.TransferSIPParticipantRequest) (*emptypb.Empty, error) {
+func (s *SIPService) TransferSIPParticipant(ctx context.Context, req *voicekit.TransferSIPParticipantRequest) (*emptypb.Empty, error) {
 	log := logger.GetLogger().WithUnlikelyValues(
 		"room", req.RoomName,
 		"participant", req.ParticipantIdentity,
@@ -670,7 +670,7 @@ func (s *SIPService) TransferSIPParticipant(ctx context.Context, req *livekit.Tr
 	return &emptypb.Empty{}, nil
 }
 
-func (s *SIPService) transferSIPParticipantRequest(ctx context.Context, req *livekit.TransferSIPParticipantRequest) (*rpc.InternalTransferSIPParticipantRequest, error) {
+func (s *SIPService) transferSIPParticipantRequest(ctx context.Context, req *voicekit.TransferSIPParticipantRequest) (*rpc.InternalTransferSIPParticipantRequest, error) {
 	if req.RoomName == "" {
 		return nil, psrpc.NewErrorf(psrpc.InvalidArgument, "Missing room name")
 	}
@@ -682,14 +682,14 @@ func (s *SIPService) transferSIPParticipantRequest(ctx context.Context, req *liv
 	if err := EnsureSIPCallPermission(ctx); err != nil {
 		return nil, twirpAuthError(err)
 	}
-	if err := EnsureAdminPermission(ctx, livekit.RoomName(req.RoomName)); err != nil {
+	if err := EnsureAdminPermission(ctx, voicekit.RoomName(req.RoomName)); err != nil {
 		return nil, twirpAuthError(err)
 	}
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
 
-	resp, err := s.roomService.GetParticipant(ctx, &livekit.RoomParticipantIdentity{
+	resp, err := s.roomService.GetParticipant(ctx, &voicekit.RoomParticipantIdentity{
 		Room:     req.RoomName,
 		Identity: req.ParticipantIdentity,
 	})
@@ -698,7 +698,7 @@ func (s *SIPService) transferSIPParticipantRequest(ctx context.Context, req *liv
 		return nil, err
 	}
 
-	callID, ok := resp.Attributes[livekit.AttrSIPCallID]
+	callID, ok := resp.Attributes[voicekit.AttrSIPCallID]
 	if !ok {
 		return nil, psrpc.NewErrorf(psrpc.InvalidArgument, "no SIP session associated with participant")
 	}

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 package buffer
 
 import (
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
 )
 
 const (
@@ -26,15 +26,15 @@ const (
 )
 
 // SIMULCAST-CODEC-TODO: these need to be codec mime aware if and when each codec suppports different layers
-func LayerPresenceFromTrackInfo(trackInfo *livekit.TrackInfo) *[livekit.VideoQuality_HIGH + 1]bool {
+func LayerPresenceFromTrackInfo(trackInfo *voicekit.TrackInfo) *[voicekit.VideoQuality_HIGH + 1]bool {
 	if trackInfo == nil || len(trackInfo.Layers) == 0 {
 		return nil
 	}
 
-	var layerPresence [livekit.VideoQuality_HIGH + 1]bool
+	var layerPresence [voicekit.VideoQuality_HIGH + 1]bool
 	for _, layer := range trackInfo.Layers {
 		// WARNING: comparing protobuf enum
-		if layer.Quality <= livekit.VideoQuality_HIGH {
+		if layer.Quality <= voicekit.VideoQuality_HIGH {
 			layerPresence[layer.Quality] = true
 		} else {
 			logger.Warnw("unexpected quality in track info", nil, "trackID", trackInfo.Sid, "trackInfo", logger.Proto(trackInfo))
@@ -44,7 +44,7 @@ func LayerPresenceFromTrackInfo(trackInfo *livekit.TrackInfo) *[livekit.VideoQua
 	return &layerPresence
 }
 
-func RidToSpatialLayer(rid string, trackInfo *livekit.TrackInfo) int32 {
+func RidToSpatialLayer(rid string, trackInfo *voicekit.TrackInfo) int32 {
 	lp := LayerPresenceFromTrackInfo(trackInfo)
 	if lp == nil {
 		switch rid {
@@ -62,13 +62,13 @@ func RidToSpatialLayer(rid string, trackInfo *livekit.TrackInfo) int32 {
 	switch rid {
 	case QuarterResolution:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			return 0
 
 		default:
@@ -78,13 +78,13 @@ func RidToSpatialLayer(rid string, trackInfo *livekit.TrackInfo) int32 {
 
 	case HalfResolution:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			return 1
 
 		default:
@@ -94,16 +94,16 @@ func RidToSpatialLayer(rid string, trackInfo *livekit.TrackInfo) int32 {
 
 	case FullResolution:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			return 2
 
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			logger.Warnw("unexpected rid f with only two qualities, low and medium", nil, "trackID", trackInfo.Sid, "trackInfo", logger.Proto(trackInfo))
 			return 1
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			logger.Warnw("unexpected rid f with only two qualities, low and high", nil, "trackID", trackInfo.Sid, "trackInfo", logger.Proto(trackInfo))
 			return 1
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			logger.Warnw("unexpected rid f with only two qualities, medium and high", nil, "trackID", trackInfo.Sid, "trackInfo", logger.Proto(trackInfo))
 			return 1
 
@@ -118,7 +118,7 @@ func RidToSpatialLayer(rid string, trackInfo *livekit.TrackInfo) int32 {
 	}
 }
 
-func SpatialLayerToRid(layer int32, trackInfo *livekit.TrackInfo) string {
+func SpatialLayerToRid(layer int32, trackInfo *voicekit.TrackInfo) string {
 	lp := LayerPresenceFromTrackInfo(trackInfo)
 	if lp == nil {
 		switch layer {
@@ -136,13 +136,13 @@ func SpatialLayerToRid(layer int32, trackInfo *livekit.TrackInfo) string {
 	switch layer {
 	case 0:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			return QuarterResolution
 
 		default:
@@ -151,13 +151,13 @@ func SpatialLayerToRid(layer int32, trackInfo *livekit.TrackInfo) string {
 
 	case 1:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			return HalfResolution
 
 		default:
@@ -166,16 +166,16 @@ func SpatialLayerToRid(layer int32, trackInfo *livekit.TrackInfo) string {
 
 	case 2:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			return FullResolution
 
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			logger.Warnw("unexpected layer 2 with only two qualities, low and medium", nil, "trackID", trackInfo.Sid, "trackInfo", logger.Proto(trackInfo))
 			return HalfResolution
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			logger.Warnw("unexpected layer 2 with only two qualities, low and high", nil, "trackID", trackInfo.Sid, "trackInfo", logger.Proto(trackInfo))
 			return HalfResolution
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			logger.Warnw("unexpected layer 2 with only two qualities, medium and high", nil, "trackID", trackInfo.Sid, "trackInfo", logger.Proto(trackInfo))
 			return HalfResolution
 
@@ -188,86 +188,86 @@ func SpatialLayerToRid(layer int32, trackInfo *livekit.TrackInfo) string {
 	}
 }
 
-func VideoQualityToRid(quality livekit.VideoQuality, trackInfo *livekit.TrackInfo) string {
+func VideoQualityToRid(quality voicekit.VideoQuality, trackInfo *voicekit.TrackInfo) string {
 	return SpatialLayerToRid(VideoQualityToSpatialLayer(quality, trackInfo), trackInfo)
 }
 
-func SpatialLayerToVideoQuality(layer int32, trackInfo *livekit.TrackInfo) livekit.VideoQuality {
+func SpatialLayerToVideoQuality(layer int32, trackInfo *voicekit.TrackInfo) voicekit.VideoQuality {
 	lp := LayerPresenceFromTrackInfo(trackInfo)
 	if lp == nil {
 		switch layer {
 		case 0:
-			return livekit.VideoQuality_LOW
+			return voicekit.VideoQuality_LOW
 		case 1:
-			return livekit.VideoQuality_MEDIUM
+			return voicekit.VideoQuality_MEDIUM
 		case 2:
-			return livekit.VideoQuality_HIGH
+			return voicekit.VideoQuality_HIGH
 		default:
-			return livekit.VideoQuality_OFF
+			return voicekit.VideoQuality_OFF
 		}
 	}
 
 	switch layer {
 	case 0:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW]:
-			return livekit.VideoQuality_LOW
+		case lp[voicekit.VideoQuality_LOW]:
+			return voicekit.VideoQuality_LOW
 
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_MEDIUM]:
-			return livekit.VideoQuality_MEDIUM
+		case lp[voicekit.VideoQuality_MEDIUM]:
+			return voicekit.VideoQuality_MEDIUM
 
 		default:
-			return livekit.VideoQuality_HIGH
+			return voicekit.VideoQuality_HIGH
 		}
 
 	case 1:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
-			return livekit.VideoQuality_MEDIUM
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
+			return voicekit.VideoQuality_MEDIUM
 
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
-			return livekit.VideoQuality_HIGH
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
+			return voicekit.VideoQuality_HIGH
 
 		default:
 			logger.Errorw("invalid layer", nil, "trackID", trackInfo.Sid, "layer", layer, "trackInfo", logger.Proto(trackInfo))
-			return livekit.VideoQuality_HIGH
+			return voicekit.VideoQuality_HIGH
 		}
 
 	case 2:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
-			return livekit.VideoQuality_HIGH
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
+			return voicekit.VideoQuality_HIGH
 
 		default:
 			logger.Errorw("invalid layer", nil, "trackID", trackInfo.Sid, "layer", layer, "trackInfo", logger.Proto(trackInfo))
-			return livekit.VideoQuality_HIGH
+			return voicekit.VideoQuality_HIGH
 		}
 	}
 
-	return livekit.VideoQuality_OFF
+	return voicekit.VideoQuality_OFF
 }
 
-func VideoQualityToSpatialLayer(quality livekit.VideoQuality, trackInfo *livekit.TrackInfo) int32 {
+func VideoQualityToSpatialLayer(quality voicekit.VideoQuality, trackInfo *voicekit.TrackInfo) int32 {
 	lp := LayerPresenceFromTrackInfo(trackInfo)
 	if lp == nil {
 		switch quality {
-		case livekit.VideoQuality_LOW:
+		case voicekit.VideoQuality_LOW:
 			return 0
-		case livekit.VideoQuality_MEDIUM:
+		case voicekit.VideoQuality_MEDIUM:
 			return 1
-		case livekit.VideoQuality_HIGH:
+		case voicekit.VideoQuality_HIGH:
 			return 2
 		default:
 			return InvalidLayerSpatial
@@ -275,46 +275,46 @@ func VideoQualityToSpatialLayer(quality livekit.VideoQuality, trackInfo *livekit
 	}
 
 	switch quality {
-	case livekit.VideoQuality_LOW:
+	case voicekit.VideoQuality_LOW:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
 		default: // only one quality published, could be any
 			return 0
 		}
 
-	case livekit.VideoQuality_MEDIUM:
+	case voicekit.VideoQuality_MEDIUM:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			return 1
 
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			return 0
 
 		default: // only one quality published, could be any
 			return 0
 		}
 
-	case livekit.VideoQuality_HIGH:
+	case voicekit.VideoQuality_HIGH:
 		switch {
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			return 2
 
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_MEDIUM]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_MEDIUM]:
 			fallthrough
-		case lp[livekit.VideoQuality_LOW] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_LOW] && lp[voicekit.VideoQuality_HIGH]:
 			fallthrough
-		case lp[livekit.VideoQuality_MEDIUM] && lp[livekit.VideoQuality_HIGH]:
+		case lp[voicekit.VideoQuality_MEDIUM] && lp[voicekit.VideoQuality_HIGH]:
 			return 1
 
 		default: // only one quality published, could be any

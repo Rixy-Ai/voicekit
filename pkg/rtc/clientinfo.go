@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 )
 
 type ClientInfo struct {
-	*livekit.ClientInfo
+	*voicekit.ClientInfo
 }
 
 func (c ClientInfo) isFirefox() bool {
@@ -34,7 +34,7 @@ func (c ClientInfo) isSafari() bool {
 }
 
 func (c ClientInfo) isGo() bool {
-	return c.ClientInfo != nil && c.ClientInfo.Sdk == livekit.ClientInfo_GO
+	return c.ClientInfo != nil && c.ClientInfo.Sdk == voicekit.ClientInfo_GO
 }
 
 func (c ClientInfo) isLinux() bool {
@@ -59,11 +59,11 @@ func (c ClientInfo) FireTrackByRTPPacket() bool {
 }
 
 func (c ClientInfo) SupportsCodecChange() bool {
-	return c.ClientInfo != nil && c.ClientInfo.Sdk != livekit.ClientInfo_GO && c.ClientInfo.Sdk != livekit.ClientInfo_UNKNOWN
+	return c.ClientInfo != nil && c.ClientInfo.Sdk != voicekit.ClientInfo_GO && c.ClientInfo.Sdk != voicekit.ClientInfo_UNKNOWN
 }
 
 func (c ClientInfo) CanHandleReconnectResponse() bool {
-	if c.Sdk == livekit.ClientInfo_JS {
+	if c.Sdk == voicekit.ClientInfo_JS {
 		// JS handles Reconnect explicitly in 1.6.3, prior to 1.6.4 it could not handle unknown responses
 		if c.compareVersion("1.6.3") < 0 {
 			return false
@@ -76,11 +76,11 @@ func (c ClientInfo) SupportsICETCP() bool {
 	if c.ClientInfo == nil {
 		return false
 	}
-	if c.ClientInfo.Sdk == livekit.ClientInfo_GO {
+	if c.ClientInfo.Sdk == voicekit.ClientInfo_GO {
 		// Go does not support active TCP
 		return false
 	}
-	if c.ClientInfo.Sdk == livekit.ClientInfo_SWIFT {
+	if c.ClientInfo.Sdk == voicekit.ClientInfo_SWIFT {
 		// ICE/TCP added in 1.0.5
 		return c.compareVersion("1.0.5") >= 0
 	}
@@ -98,7 +98,7 @@ func (c ClientInfo) ComplyWithCodecOrderInSDPAnswer() bool {
 
 // Rust SDK can't decode unknown signal message (TrackSubscribed and ErrorResponse)
 func (c ClientInfo) SupportTrackSubscribedEvent() bool {
-	return !(c.ClientInfo.GetSdk() == livekit.ClientInfo_RUST && c.ClientInfo.GetProtocol() < 10)
+	return !(c.ClientInfo.GetSdk() == voicekit.ClientInfo_RUST && c.ClientInfo.GetProtocol() < 10)
 }
 
 func (c ClientInfo) SupportErrorResponse() bool {
@@ -106,7 +106,7 @@ func (c ClientInfo) SupportErrorResponse() bool {
 }
 
 func (c ClientInfo) SupportSctpZeroChecksum() bool {
-	return !(c.ClientInfo.GetSdk() == livekit.ClientInfo_UNKNOWN ||
+	return !(c.ClientInfo.GetSdk() == voicekit.ClientInfo_UNKNOWN ||
 		(c.isGo() && c.compareVersion("2.4.0") < 0))
 }
 

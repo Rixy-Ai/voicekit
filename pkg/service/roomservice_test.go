@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/twitchtv/twirp"
 
-	"github.com/livekit/protocol/auth"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/rpc"
-	"github.com/livekit/protocol/rpc/rpcfakes"
+	"github.com/voicekit/protocol/auth"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/rpc"
+	"github.com/voicekit/protocol/rpc/rpcfakes"
 
-	"github.com/livekit/livekit-server/pkg/config"
-	"github.com/livekit/livekit-server/pkg/routing/routingfakes"
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/livekit-server/pkg/service/servicefakes"
+	"github.com/voicekit/voicekit-server/pkg/config"
+	"github.com/voicekit/voicekit-server/pkg/routing/routingfakes"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/voicekit-server/pkg/service/servicefakes"
 )
 
 func TestDeleteRoom(t *testing.T) {
@@ -39,7 +39,7 @@ func TestDeleteRoom(t *testing.T) {
 			Video: &auth.VideoGrant{},
 		}
 		ctx := service.WithGrants(context.Background(), grant, "")
-		_, err := svc.DeleteRoom(ctx, &livekit.DeleteRoomRequest{
+		_, err := svc.DeleteRoom(ctx, &voicekit.DeleteRoomRequest{
 			Room: "testroom",
 		})
 		require.Error(t, err)
@@ -53,7 +53,7 @@ func TestMetaDataLimits(t *testing.T) {
 			Video: &auth.VideoGrant{},
 		}
 		ctx := service.WithGrants(context.Background(), grant, "")
-		_, err := svc.UpdateParticipant(ctx, &livekit.UpdateParticipantRequest{
+		_, err := svc.UpdateParticipant(ctx, &voicekit.UpdateParticipantRequest{
 			Room:     "testroom",
 			Identity: "123",
 			Metadata: "abcdefg",
@@ -62,7 +62,7 @@ func TestMetaDataLimits(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, twirp.InvalidArgument, terr.Code())
 
-		_, err = svc.UpdateRoomMetadata(ctx, &livekit.UpdateRoomMetadataRequest{
+		_, err = svc.UpdateRoomMetadata(ctx, &voicekit.UpdateRoomMetadataRequest{
 			Room:     "testroom",
 			Metadata: "abcdefg",
 		})
@@ -83,7 +83,7 @@ func TestMetaDataLimits(t *testing.T) {
 				Video: &auth.VideoGrant{},
 			}
 			ctx := service.WithGrants(context.Background(), grant, "")
-			_, err := svc.UpdateParticipant(ctx, &livekit.UpdateParticipantRequest{
+			_, err := svc.UpdateParticipant(ctx, &voicekit.UpdateParticipantRequest{
 				Room:     "testroom",
 				Identity: "123",
 				Metadata: "abc",
@@ -92,7 +92,7 @@ func TestMetaDataLimits(t *testing.T) {
 			require.True(t, ok)
 			require.NotEqual(t, twirp.InvalidArgument, terr.Code())
 
-			_, err = svc.UpdateRoomMetadata(ctx, &livekit.UpdateRoomMetadataRequest{
+			_, err = svc.UpdateRoomMetadata(ctx, &voicekit.UpdateRoomMetadataRequest{
 				Room:     "testroom",
 				Metadata: "abc",
 			})

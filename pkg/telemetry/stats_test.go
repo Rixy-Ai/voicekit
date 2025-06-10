@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/livekit/livekit-server/pkg/telemetry"
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/voicekit-server/pkg/telemetry"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/telemetry/prometheus"
-	"github.com/livekit/livekit-server/pkg/telemetry/telemetryfakes"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/prometheus"
+	"github.com/voicekit/voicekit-server/pkg/telemetry/telemetryfakes"
 )
 
 func init() {
-	prometheus.Init("test", livekit.NodeType_SERVER)
+	prometheus.Init("test", voicekit.NodeType_SERVER)
 }
 
 type telemetryServiceFixture struct {
@@ -48,16 +48,16 @@ func Test_ParticipantAndRoomDataAreSentWithAnalytics(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{Sid: "RoomSid", Name: "RoomName"}
-	partSID := livekit.ParticipantID("part1")
-	clientInfo := &livekit.ClientInfo{Sdk: 2}
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{Sid: "RoomSid", Name: "RoomName"}
+	partSID := voicekit.ParticipantID("part1")
+	clientInfo := &voicekit.ClientInfo{Sdk: 2}
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, clientInfo, nil, true)
 
 	// do
 	packet := 33
-	stat := &livekit.AnalyticsStat{Streams: []*livekit.AnalyticsStream{{PrimaryBytes: uint64(packet)}}}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, ""), stat)
+	stat := &voicekit.AnalyticsStat{Streams: []*voicekit.AnalyticsStream{{PrimaryBytes: uint64(packet)}}}
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, ""), stat)
 
 	// flush
 	fixture.flush()
@@ -66,7 +66,7 @@ func Test_ParticipantAndRoomDataAreSentWithAnalytics(t *testing.T) {
 	require.Equal(t, 1, fixture.analytics.SendStatsCallCount())
 	_, stats := fixture.analytics.SendStatsArgsForCall(0)
 	require.Equal(t, 1, len(stats))
-	require.Equal(t, livekit.StreamType_DOWNSTREAM, stats[0].Kind)
+	require.Equal(t, voicekit.StreamType_DOWNSTREAM, stats[0].Kind)
 	require.Equal(t, string(partSID), stats[0].ParticipantId)
 	require.Equal(t, room.Sid, stats[0].RoomId)
 	require.Equal(t, room.Name, stats[0].RoomName)
@@ -76,20 +76,20 @@ func Test_OnDownstreamPackets(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	clientInfo := &livekit.ClientInfo{Sdk: 2}
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	clientInfo := &voicekit.ClientInfo{Sdk: 2}
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, clientInfo, nil, true)
 
 	// do
 	packets := []int{33, 23}
 	totalBytes := packets[0] + packets[1]
 	totalPackets := len(packets)
-	trackID := livekit.TrackID("trackID")
+	trackID := voicekit.TrackID("trackID")
 	for i := range packets {
-		stat := &livekit.AnalyticsStat{Streams: []*livekit.AnalyticsStream{{PrimaryBytes: uint64(packets[i]), PrimaryPackets: uint32(1)}}}
-		fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID), stat)
+		stat := &voicekit.AnalyticsStat{Streams: []*voicekit.AnalyticsStream{{PrimaryBytes: uint64(packets[i]), PrimaryPackets: uint32(1)}}}
+		fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID), stat)
 	}
 
 	// flush
@@ -99,7 +99,7 @@ func Test_OnDownstreamPackets(t *testing.T) {
 	require.Equal(t, 1, fixture.analytics.SendStatsCallCount())
 	_, stats := fixture.analytics.SendStatsArgsForCall(0)
 	require.Equal(t, 1, len(stats))
-	require.Equal(t, livekit.StreamType_DOWNSTREAM, stats[0].Kind)
+	require.Equal(t, voicekit.StreamType_DOWNSTREAM, stats[0].Kind)
 	require.Equal(t, totalBytes, int(stats[0].Streams[0].PrimaryBytes))
 	require.Equal(t, totalPackets, int(stats[0].Streams[0].PrimaryPackets))
 	require.Equal(t, string(trackID), stats[0].TrackId)
@@ -109,22 +109,22 @@ func Test_OnDownstreamPackets_SeveralTracks(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	clientInfo := &livekit.ClientInfo{Sdk: 2}
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	clientInfo := &voicekit.ClientInfo{Sdk: 2}
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, clientInfo, nil, true)
 
 	// do
 	packet1 := 33
-	trackID1 := livekit.TrackID("trackID1")
-	stat1 := &livekit.AnalyticsStat{Streams: []*livekit.AnalyticsStream{{PrimaryBytes: uint64(packet1), PrimaryPackets: 1}}}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID1), stat1)
+	trackID1 := voicekit.TrackID("trackID1")
+	stat1 := &voicekit.AnalyticsStat{Streams: []*voicekit.AnalyticsStream{{PrimaryBytes: uint64(packet1), PrimaryPackets: 1}}}
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID1), stat1)
 
 	packet2 := 23
-	trackID2 := livekit.TrackID("trackID2")
-	stat2 := &livekit.AnalyticsStat{Streams: []*livekit.AnalyticsStream{{PrimaryBytes: uint64(packet2), PrimaryPackets: 1}}}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID2), stat2)
+	trackID2 := voicekit.TrackID("trackID2")
+	stat2 := &voicekit.AnalyticsStat{Streams: []*voicekit.AnalyticsStream{{PrimaryBytes: uint64(packet2), PrimaryPackets: 1}}}
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID2), stat2)
 
 	// flush
 	fixture.flush()
@@ -137,11 +137,11 @@ func Test_OnDownstreamPackets_SeveralTracks(t *testing.T) {
 	found1 := false
 	found2 := false
 	for _, sentStat := range stats {
-		if livekit.TrackID(sentStat.TrackId) == trackID1 {
+		if voicekit.TrackID(sentStat.TrackId) == trackID1 {
 			found1 = true
 			require.Equal(t, packet1, int(sentStat.Streams[0].PrimaryBytes))
 			require.Equal(t, 1, int(sentStat.Streams[0].PrimaryPackets))
-		} else if livekit.TrackID(sentStat.TrackId) == trackID2 {
+		} else if voicekit.TrackID(sentStat.TrackId) == trackID2 {
 			found2 = true
 			require.Equal(t, packet2, int(sentStat.Streams[0].PrimaryBytes))
 			require.Equal(t, 1, int(sentStat.Streams[0].PrimaryPackets))
@@ -155,14 +155,14 @@ func Test_OnDownStreamStat(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, nil, nil, true)
 
 	// do
-	stat1 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat1 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   1,
 				PrimaryPackets: 1,
@@ -174,11 +174,11 @@ func Test_OnDownStreamStat(t *testing.T) {
 			},
 		},
 	}
-	trackID := livekit.TrackID("trackID1")
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID), stat1)
+	trackID := voicekit.TrackID("trackID1")
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID), stat1)
 
-	stat2 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat2 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   2,
 				PrimaryPackets: 2,
@@ -191,7 +191,7 @@ func Test_OnDownStreamStat(t *testing.T) {
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID), stat2)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID), stat2)
 
 	// flush
 	fixture.flush()
@@ -200,7 +200,7 @@ func Test_OnDownStreamStat(t *testing.T) {
 	require.Equal(t, 1, fixture.analytics.SendStatsCallCount())
 	_, stats := fixture.analytics.SendStatsArgsForCall(0)
 	require.Equal(t, 1, len(stats))
-	require.Equal(t, livekit.StreamType_DOWNSTREAM, stats[0].Kind)
+	require.Equal(t, voicekit.StreamType_DOWNSTREAM, stats[0].Kind)
 	require.Equal(t, 2, int(stats[0].Streams[0].Nacks))
 	require.Equal(t, 2, int(stats[0].Streams[0].Plis))
 	require.Equal(t, 1, int(stats[0].Streams[0].Firs))
@@ -214,15 +214,15 @@ func Test_PacketLostDiffShouldBeSentToTelemetry(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, nil, nil, true)
 
 	// do
-	trackID := livekit.TrackID("trackID1")
-	stat1 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	trackID := voicekit.TrackID("trackID1")
+	stat1 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   1,
 				PrimaryPackets: 1,
@@ -230,13 +230,13 @@ func Test_PacketLostDiffShouldBeSentToTelemetry(t *testing.T) {
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID), stat1) // there should be bytes reported so that stats are sent
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID), stat1) // there should be bytes reported so that stats are sent
 
 	// flush
 	fixture.flush()
 
-	stat2 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat2 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   2,
 				PrimaryPackets: 2,
@@ -244,7 +244,7 @@ func Test_PacketLostDiffShouldBeSentToTelemetry(t *testing.T) {
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID), stat2)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID), stat2)
 
 	// flush
 	fixture.flush()
@@ -253,12 +253,12 @@ func Test_PacketLostDiffShouldBeSentToTelemetry(t *testing.T) {
 	require.Equal(t, 2, fixture.analytics.SendStatsCallCount()) // 2 calls to fixture.sut.FlushStats()
 	_, stats := fixture.analytics.SendStatsArgsForCall(0)
 	require.Equal(t, 1, len(stats))
-	require.Equal(t, livekit.StreamType_DOWNSTREAM, stats[0].Kind)
+	require.Equal(t, voicekit.StreamType_DOWNSTREAM, stats[0].Kind)
 	require.Equal(t, 1, int(stats[0].Streams[0].PacketsLost)) // see pkts1
 
 	_, stats = fixture.analytics.SendStatsArgsForCall(1)
 	require.Equal(t, 1, len(stats))
-	require.Equal(t, livekit.StreamType_DOWNSTREAM, stats[0].Kind)
+	require.Equal(t, voicekit.StreamType_DOWNSTREAM, stats[0].Kind)
 	require.Equal(t, 4, int(stats[0].Streams[0].PacketsLost)) // delta loss should be sent as is
 }
 
@@ -266,26 +266,26 @@ func Test_OnDownStreamRTCP_SeveralTracks(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, nil, nil, true)
 
 	// do
-	trackID1 := livekit.TrackID("trackID1")
-	trackID2 := livekit.TrackID("trackID2")
-	stat1 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	trackID1 := voicekit.TrackID("trackID1")
+	trackID2 := voicekit.TrackID("trackID2")
+	stat1 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   1,
 				PrimaryPackets: 1,
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID1), stat1) // there should be bytes reported so that stats are sent
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID1), stat1) // there should be bytes reported so that stats are sent
 
-	stat2 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat2 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   2,
 				PrimaryPackets: 2,
@@ -293,10 +293,10 @@ func Test_OnDownStreamRTCP_SeveralTracks(t *testing.T) {
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID1), stat2)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID1), stat2)
 
-	stat3 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat3 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   3,
 				PrimaryPackets: 3,
@@ -304,7 +304,7 @@ func Test_OnDownStreamRTCP_SeveralTracks(t *testing.T) {
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, trackID2), stat3)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, trackID2), stat3)
 
 	// flush
 	fixture.flush()
@@ -317,13 +317,13 @@ func Test_OnDownStreamRTCP_SeveralTracks(t *testing.T) {
 	found1 := false
 	found2 := false
 	for _, sentStat := range stats {
-		if livekit.TrackID(sentStat.TrackId) == trackID1 {
+		if voicekit.TrackID(sentStat.TrackId) == trackID1 {
 			found1 = true
-			require.Equal(t, livekit.StreamType_DOWNSTREAM, sentStat.Kind)
+			require.Equal(t, voicekit.StreamType_DOWNSTREAM, sentStat.Kind)
 			require.Equal(t, 1, int(sentStat.Streams[0].Nacks)) // see pkts1 above
-		} else if livekit.TrackID(sentStat.TrackId) == trackID2 {
+		} else if voicekit.TrackID(sentStat.TrackId) == trackID2 {
 			found2 = true
-			require.Equal(t, livekit.StreamType_DOWNSTREAM, sentStat.Kind)
+			require.Equal(t, voicekit.StreamType_DOWNSTREAM, sentStat.Kind)
 			require.Equal(t, 1, int(sentStat.Streams[0].Firs)) // see pkts2 above
 		}
 	}
@@ -335,14 +335,14 @@ func Test_OnUpstreamStat(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, nil, nil, true)
 
 	// do
-	stat1 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat1 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   1,
 				PrimaryPackets: 1,
@@ -355,12 +355,12 @@ func Test_OnUpstreamStat(t *testing.T) {
 			},
 		},
 	}
-	trackID := livekit.TrackID("trackID")
+	trackID := voicekit.TrackID("trackID")
 
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_UPSTREAM, partSID, trackID), stat1)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_UPSTREAM, partSID, trackID), stat1)
 
-	stat2 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat2 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   2,
 				PrimaryPackets: 2,
@@ -373,7 +373,7 @@ func Test_OnUpstreamStat(t *testing.T) {
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_UPSTREAM, partSID, trackID), stat2)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_UPSTREAM, partSID, trackID), stat2)
 
 	// flush
 	fixture.flush()
@@ -382,7 +382,7 @@ func Test_OnUpstreamStat(t *testing.T) {
 	require.Equal(t, 1, fixture.analytics.SendStatsCallCount())
 	_, stats := fixture.analytics.SendStatsArgsForCall(0)
 	require.Equal(t, 1, len(stats))
-	require.Equal(t, livekit.StreamType_UPSTREAM, stats[0].Kind)
+	require.Equal(t, voicekit.StreamType_UPSTREAM, stats[0].Kind)
 	require.Equal(t, 2, int(stats[0].Streams[0].Nacks))
 	require.Equal(t, 2, int(stats[0].Streams[0].Plis))
 	require.Equal(t, 2, int(stats[0].Streams[0].Firs))
@@ -396,34 +396,34 @@ func Test_OnUpstreamRTCP_SeveralTracks(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	identity := livekit.ParticipantIdentity("part1Identity")
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID), Identity: string(identity)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	identity := voicekit.ParticipantIdentity("part1Identity")
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID), Identity: string(identity)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, nil, nil, true)
 
 	// there should be bytes reported so that stats are sent
 	totalBytes := 1
 	totalPackets := 1
-	trackID1 := livekit.TrackID("trackID1")
-	trackID2 := livekit.TrackID("trackID2")
+	trackID1 := voicekit.TrackID("trackID1")
+	trackID2 := voicekit.TrackID("trackID2")
 
-	stat1 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat1 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   uint64(totalBytes),
 				PrimaryPackets: uint32(totalPackets),
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_UPSTREAM, partSID, trackID1), stat1)
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_UPSTREAM, partSID, trackID2), stat1) // using same buffer is not correct but for test it is fine
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_UPSTREAM, partSID, trackID1), stat1)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_UPSTREAM, partSID, trackID2), stat1) // using same buffer is not correct but for test it is fine
 
 	// do
 	totalBytes++
 	totalPackets++
-	stat2 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat2 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   uint64(totalBytes),
 				PrimaryPackets: uint32(totalPackets),
@@ -431,10 +431,10 @@ func Test_OnUpstreamRTCP_SeveralTracks(t *testing.T) {
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_UPSTREAM, partSID, trackID1), stat2)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_UPSTREAM, partSID, trackID1), stat2)
 
-	stat3 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat3 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   uint64(totalBytes),
 				PrimaryPackets: uint32(totalPackets),
@@ -442,7 +442,7 @@ func Test_OnUpstreamRTCP_SeveralTracks(t *testing.T) {
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_UPSTREAM, partSID, trackID2), stat3)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_UPSTREAM, partSID, trackID2), stat3)
 
 	// flush
 	fixture.flush()
@@ -455,13 +455,13 @@ func Test_OnUpstreamRTCP_SeveralTracks(t *testing.T) {
 	found1 := false
 	found2 := false
 	for _, sentStat := range stats {
-		if livekit.TrackID(sentStat.TrackId) == trackID1 {
+		if voicekit.TrackID(sentStat.TrackId) == trackID1 {
 			found1 = true
-			require.Equal(t, livekit.StreamType_UPSTREAM, sentStat.Kind)
+			require.Equal(t, voicekit.StreamType_UPSTREAM, sentStat.Kind)
 			require.Equal(t, 1, int(sentStat.Streams[0].Nacks)) // see pkts1 above
-		} else if livekit.TrackID(sentStat.TrackId) == trackID2 {
+		} else if voicekit.TrackID(sentStat.TrackId) == trackID2 {
 			found2 = true
-			require.Equal(t, livekit.StreamType_UPSTREAM, sentStat.Kind)
+			require.Equal(t, voicekit.StreamType_UPSTREAM, sentStat.Kind)
 			require.Equal(t, 1, int(sentStat.Streams[0].Firs)) // see pkts2 above
 		}
 		require.Equal(t, 3, int(sentStat.Streams[0].PrimaryBytes))
@@ -471,7 +471,7 @@ func Test_OnUpstreamRTCP_SeveralTracks(t *testing.T) {
 	require.True(t, found2)
 
 	// remove 1 track - track stats were flushed above, so no more calls to SendStats
-	fixture.sut.TrackUnpublished(context.Background(), partSID, identity, &livekit.TrackInfo{Sid: string(trackID2)}, true)
+	fixture.sut.TrackUnpublished(context.Background(), partSID, identity, &voicekit.TrackInfo{Sid: string(trackID2)}, true)
 
 	// flush
 	fixture.flush()
@@ -483,9 +483,9 @@ func Test_AnalyticsSentWhenParticipantLeaves(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
+	room := &voicekit.Room{}
 	partSID := "part1"
-	participantInfo := &livekit.ParticipantInfo{Sid: partSID}
+	participantInfo := &voicekit.ParticipantInfo{Sid: partSID}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, nil, nil, true)
 
 	// do
@@ -500,25 +500,25 @@ func Test_AddUpTrack(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, nil, nil, true)
 
 	// do
 	var totalBytes uint64 = 3
 	var totalPackets uint32 = 3
 
-	stat := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   totalBytes,
 				PrimaryPackets: totalPackets,
 			},
 		},
 	}
-	trackID := livekit.TrackID("trackID")
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_UPSTREAM, partSID, trackID), stat)
+	trackID := voicekit.TrackID("trackID")
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_UPSTREAM, partSID, trackID), stat)
 
 	// flush
 	fixture.flush()
@@ -527,7 +527,7 @@ func Test_AddUpTrack(t *testing.T) {
 	require.Equal(t, 1, fixture.analytics.SendStatsCallCount())
 	_, stats := fixture.analytics.SendStatsArgsForCall(0)
 	require.Equal(t, 1, len(stats))
-	require.Equal(t, livekit.StreamType_UPSTREAM, stats[0].Kind)
+	require.Equal(t, voicekit.StreamType_UPSTREAM, stats[0].Kind)
 	require.Equal(t, totalBytes, stats[0].Streams[0].PrimaryBytes)
 	require.Equal(t, totalPackets, stats[0].Streams[0].PrimaryPackets)
 	require.Equal(t, string(trackID), stats[0].TrackId)
@@ -537,15 +537,15 @@ func Test_AddUpTrack_SeveralBuffers_Simulcast(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, nil, nil, true)
 
 	// do
-	trackID := livekit.TrackID("trackID")
-	stat1 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	trackID := voicekit.TrackID("trackID")
+	stat1 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   1,
 				PrimaryPackets: 1,
@@ -556,7 +556,7 @@ func Test_AddUpTrack_SeveralBuffers_Simulcast(t *testing.T) {
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_UPSTREAM, partSID, trackID), stat1)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_UPSTREAM, partSID, trackID), stat1)
 
 	// flush
 	fixture.flush()
@@ -565,7 +565,7 @@ func Test_AddUpTrack_SeveralBuffers_Simulcast(t *testing.T) {
 	require.Equal(t, 1, fixture.analytics.SendStatsCallCount())
 	_, stats := fixture.analytics.SendStatsArgsForCall(0)
 	require.Equal(t, 1, len(stats))
-	require.Equal(t, livekit.StreamType_UPSTREAM, stats[0].Kind)
+	require.Equal(t, voicekit.StreamType_UPSTREAM, stats[0].Kind)
 	// should be a consolidated stream
 	require.Equal(t, stat1.Streams[0].PrimaryBytes+stat1.Streams[1].PrimaryBytes, stats[0].Streams[0].PrimaryBytes)
 	require.Equal(t, stat1.Streams[0].PrimaryPackets+stat1.Streams[1].PrimaryPackets, stats[0].Streams[0].PrimaryPackets)
@@ -576,32 +576,32 @@ func Test_BothDownstreamAndUpstreamStatsAreSentTogether(t *testing.T) {
 	fixture := createFixture()
 
 	// prepare
-	room := &livekit.Room{}
-	partSID := livekit.ParticipantID("part1")
-	participantInfo := &livekit.ParticipantInfo{Sid: string(partSID)}
+	room := &voicekit.Room{}
+	partSID := voicekit.ParticipantID("part1")
+	participantInfo := &voicekit.ParticipantInfo{Sid: string(partSID)}
 	fixture.sut.ParticipantJoined(context.Background(), room, participantInfo, nil, nil, true)
 
 	// do
 	// upstream bytes
-	stat1 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat1 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   3,
 				PrimaryPackets: 3,
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_UPSTREAM, partSID, "trackID"), stat1)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_UPSTREAM, partSID, "trackID"), stat1)
 	// downstream bytes
-	stat2 := &livekit.AnalyticsStat{
-		Streams: []*livekit.AnalyticsStream{
+	stat2 := &voicekit.AnalyticsStat{
+		Streams: []*voicekit.AnalyticsStream{
 			{
 				PrimaryBytes:   1,
 				PrimaryPackets: 1,
 			},
 		},
 	}
-	fixture.sut.TrackStats(telemetry.StatsKeyForData(livekit.StreamType_DOWNSTREAM, partSID, "trackID1"), stat2)
+	fixture.sut.TrackStats(telemetry.StatsKeyForData(voicekit.StreamType_DOWNSTREAM, partSID, "trackID1"), stat2)
 
 	// flush
 	fixture.flush()
@@ -610,8 +610,8 @@ func Test_BothDownstreamAndUpstreamStatsAreSentTogether(t *testing.T) {
 	require.Equal(t, 1, fixture.analytics.SendStatsCallCount())
 	_, stats := fixture.analytics.SendStatsArgsForCall(0)
 	require.Equal(t, 2, len(stats))
-	require.Equal(t, livekit.StreamType_UPSTREAM, stats[0].Kind)
-	require.Equal(t, livekit.StreamType_DOWNSTREAM, stats[1].Kind)
+	require.Equal(t, voicekit.StreamType_UPSTREAM, stats[0].Kind)
+	require.Equal(t, voicekit.StreamType_DOWNSTREAM, stats[1].Kind)
 }
 
 func (f *telemetryServiceFixture) flush() {

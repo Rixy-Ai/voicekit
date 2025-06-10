@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2024 VoiceKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@ package service_test
 import (
 	"context"
 	"github.com/dennwc/iters"
-	"github.com/livekit/livekit-server/pkg/service"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/service"
+	"github.com/voicekit/psrpc"
 	"slices"
 	"testing"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +39,7 @@ func TestSIPTrunkSelect(t *testing.T) {
 	ctx := context.Background()
 	s, rs := ioStoreDocker(t)
 
-	for _, tr := range []*livekit.SIPInboundTrunkInfo{
+	for _, tr := range []*voicekit.SIPInboundTrunkInfo{
 		{SipTrunkId: "any", Numbers: nil},
 		{SipTrunkId: "B", Numbers: []string{"B1", "B2"}},
 		{SipTrunkId: "BC", Numbers: []string{"B1", "C1"}},
@@ -48,7 +48,7 @@ func TestSIPTrunkSelect(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	for _, tr := range []*livekit.SIPTrunkInfo{
+	for _, tr := range []*voicekit.SIPTrunkInfo{
 		{SipTrunkId: "old-any", OutboundNumber: ""},
 		{SipTrunkId: "old-A", OutboundNumber: "A"},
 	} {
@@ -86,7 +86,7 @@ func TestSIPRuleSelect(t *testing.T) {
 	ctx := context.Background()
 	s, rs := ioStoreDocker(t)
 
-	for _, r := range []*livekit.SIPDispatchRuleInfo{
+	for _, r := range []*voicekit.SIPDispatchRuleInfo{
 		{SipDispatchRuleId: "any", TrunkIds: nil},
 		{SipDispatchRuleId: "B", TrunkIds: []string{"B1", "B2"}},
 		{SipDispatchRuleId: "BC", TrunkIds: []string{"B1", "C1"}},

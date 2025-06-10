@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@ package selector_test
 import (
 	"testing"
 
-	"github.com/livekit/protocol/livekit"
+	"github.com/voicekit/protocol/voicekit"
 
-	"github.com/livekit/livekit-server/pkg/routing/selector"
+	"github.com/voicekit/voicekit-server/pkg/routing/selector"
 )
 
 func SortByTest(t *testing.T, sortBy string) {
 	sel := selector.SystemLoadSelector{SortBy: sortBy}
-	nodes := []*livekit.Node{nodeLoadLow, nodeLoadMedium, nodeLoadHigh}
+	nodes := []*voicekit.Node{nodeLoadLow, nodeLoadMedium, nodeLoadHigh}
 
 	for i := 0; i < 5; i++ {
 		node, err := sel.SelectNode(nodes)
@@ -39,7 +39,7 @@ func SortByTest(t *testing.T, sortBy string) {
 
 func TestSortByErrors(t *testing.T) {
 	sel := selector.SystemLoadSelector{}
-	nodes := []*livekit.Node{nodeLoadLow, nodeLoadMedium, nodeLoadHigh}
+	nodes := []*voicekit.Node{nodeLoadLow, nodeLoadMedium, nodeLoadHigh}
 
 	// Test unset sort by option error
 	_, err := sel.SelectNode(nodes)

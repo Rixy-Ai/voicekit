@@ -5,9 +5,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/livekit/livekit-server/pkg/routing"
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/psrpc"
+	"github.com/voicekit/voicekit-server/pkg/routing"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/psrpc"
 )
 
 type FakeRoomManagerClient struct {
@@ -15,20 +15,20 @@ type FakeRoomManagerClient struct {
 	closeMutex       sync.RWMutex
 	closeArgsForCall []struct {
 	}
-	CreateRoomStub        func(context.Context, livekit.NodeID, *livekit.CreateRoomRequest, ...psrpc.RequestOption) (*livekit.Room, error)
+	CreateRoomStub        func(context.Context, voicekit.NodeID, *voicekit.CreateRoomRequest, ...psrpc.RequestOption) (*voicekit.Room, error)
 	createRoomMutex       sync.RWMutex
 	createRoomArgsForCall []struct {
 		arg1 context.Context
-		arg2 livekit.NodeID
-		arg3 *livekit.CreateRoomRequest
+		arg2 voicekit.NodeID
+		arg3 *voicekit.CreateRoomRequest
 		arg4 []psrpc.RequestOption
 	}
 	createRoomReturns struct {
-		result1 *livekit.Room
+		result1 *voicekit.Room
 		result2 error
 	}
 	createRoomReturnsOnCall map[int]struct {
-		result1 *livekit.Room
+		result1 *voicekit.Room
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -59,13 +59,13 @@ func (fake *FakeRoomManagerClient) CloseCalls(stub func()) {
 	fake.CloseStub = stub
 }
 
-func (fake *FakeRoomManagerClient) CreateRoom(arg1 context.Context, arg2 livekit.NodeID, arg3 *livekit.CreateRoomRequest, arg4 ...psrpc.RequestOption) (*livekit.Room, error) {
+func (fake *FakeRoomManagerClient) CreateRoom(arg1 context.Context, arg2 voicekit.NodeID, arg3 *voicekit.CreateRoomRequest, arg4 ...psrpc.RequestOption) (*voicekit.Room, error) {
 	fake.createRoomMutex.Lock()
 	ret, specificReturn := fake.createRoomReturnsOnCall[len(fake.createRoomArgsForCall)]
 	fake.createRoomArgsForCall = append(fake.createRoomArgsForCall, struct {
 		arg1 context.Context
-		arg2 livekit.NodeID
-		arg3 *livekit.CreateRoomRequest
+		arg2 voicekit.NodeID
+		arg3 *voicekit.CreateRoomRequest
 		arg4 []psrpc.RequestOption
 	}{arg1, arg2, arg3, arg4})
 	stub := fake.CreateRoomStub
@@ -87,41 +87,41 @@ func (fake *FakeRoomManagerClient) CreateRoomCallCount() int {
 	return len(fake.createRoomArgsForCall)
 }
 
-func (fake *FakeRoomManagerClient) CreateRoomCalls(stub func(context.Context, livekit.NodeID, *livekit.CreateRoomRequest, ...psrpc.RequestOption) (*livekit.Room, error)) {
+func (fake *FakeRoomManagerClient) CreateRoomCalls(stub func(context.Context, voicekit.NodeID, *voicekit.CreateRoomRequest, ...psrpc.RequestOption) (*voicekit.Room, error)) {
 	fake.createRoomMutex.Lock()
 	defer fake.createRoomMutex.Unlock()
 	fake.CreateRoomStub = stub
 }
 
-func (fake *FakeRoomManagerClient) CreateRoomArgsForCall(i int) (context.Context, livekit.NodeID, *livekit.CreateRoomRequest, []psrpc.RequestOption) {
+func (fake *FakeRoomManagerClient) CreateRoomArgsForCall(i int) (context.Context, voicekit.NodeID, *voicekit.CreateRoomRequest, []psrpc.RequestOption) {
 	fake.createRoomMutex.RLock()
 	defer fake.createRoomMutex.RUnlock()
 	argsForCall := fake.createRoomArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeRoomManagerClient) CreateRoomReturns(result1 *livekit.Room, result2 error) {
+func (fake *FakeRoomManagerClient) CreateRoomReturns(result1 *voicekit.Room, result2 error) {
 	fake.createRoomMutex.Lock()
 	defer fake.createRoomMutex.Unlock()
 	fake.CreateRoomStub = nil
 	fake.createRoomReturns = struct {
-		result1 *livekit.Room
+		result1 *voicekit.Room
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeRoomManagerClient) CreateRoomReturnsOnCall(i int, result1 *livekit.Room, result2 error) {
+func (fake *FakeRoomManagerClient) CreateRoomReturnsOnCall(i int, result1 *voicekit.Room, result2 error) {
 	fake.createRoomMutex.Lock()
 	defer fake.createRoomMutex.Unlock()
 	fake.CreateRoomStub = nil
 	if fake.createRoomReturnsOnCall == nil {
 		fake.createRoomReturnsOnCall = make(map[int]struct {
-			result1 *livekit.Room
+			result1 *voicekit.Room
 			result2 error
 		})
 	}
 	fake.createRoomReturnsOnCall[i] = struct {
-		result1 *livekit.Room
+		result1 *voicekit.Room
 		result2 error
 	}{result1, result2}
 }

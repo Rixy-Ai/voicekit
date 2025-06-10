@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2025 Rixy Ai.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/livekit/protocol/livekit"
-	"github.com/livekit/protocol/logger"
-	"github.com/livekit/protocol/utils/mono"
+	"github.com/voicekit/protocol/voicekit"
+	"github.com/voicekit/protocol/logger"
+	"github.com/voicekit/protocol/utils/mono"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -430,7 +430,7 @@ func (r *rtpStatsBaseLite) marshalLogObject(e zapcore.ObjectEncoder, packetsExpe
 	return elapsedSeconds, nil
 }
 
-func (r *rtpStatsBaseLite) toProto(packetsExpected, packetsSeenMinusPadding, packetsLost uint64) *livekit.RTPStats {
+func (r *rtpStatsBaseLite) toProto(packetsExpected, packetsSeenMinusPadding, packetsLost uint64) *voicekit.RTPStats {
 	if r.startTime == 0 {
 		return nil
 	}
@@ -453,7 +453,7 @@ func (r *rtpStatsBaseLite) toProto(packetsExpected, packetsSeenMinusPadding, pac
 		packetLostPercentage = float32(packetsLost) / float32(packetsExpected) * 100.0
 	}
 
-	p := &livekit.RTPStats{
+	p := &voicekit.RTPStats{
 		StartTime:            timestamppb.New(time.Unix(0, r.startTime)),
 		EndTime:              timestamppb.New(time.Unix(0, endTime)),
 		Duration:             elapsed,
